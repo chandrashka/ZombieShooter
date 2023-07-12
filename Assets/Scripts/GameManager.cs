@@ -6,19 +6,40 @@ public class GameManager : MonoBehaviour
     [SerializeField] private UIManager uiManager;
     [SerializeField] private GameObject player;
 
-    public void StartGame()
+    [SerializeField] private AudioClip buttonSound;
+    [SerializeField] private AudioSource audioSource;
+
+    private bool m_IsGameOn;
+    private bool m_PlayerDead;
+    private void Update()
     {
+        if (!Input.GetKeyDown(KeyCode.F)) return;
+        if (m_IsGameOn && m_PlayerDead)
+        {
+            RestartGame();
+            audioSource.PlayOneShot(buttonSound);
+        }
+        else
+        {
+            StartGame();
+            audioSource.PlayOneShot(buttonSound);
+        }
+    }
+
+    private void StartGame()
+    {
+        m_IsGameOn = true;
+        m_PlayerDead = false;
+        
         enemyManager.StartGame(player);
         uiManager.StartGame();
     }
 
-    public void Exit()
+    private void RestartGame()
     {
-        Application.Quit();
-    }
-
-    public void RestartGame()
-    {
+        m_IsGameOn = true;
+        m_PlayerDead = false;
+        
         enemyManager.ResetGame();
         uiManager.StartGame();
     }
@@ -26,6 +47,8 @@ public class GameManager : MonoBehaviour
 
     public void EndGame()
     {
+        m_IsGameOn = false;
+        m_PlayerDead = true;
         uiManager.EndGame();
     }
 }

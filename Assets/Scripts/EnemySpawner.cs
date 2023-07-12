@@ -5,7 +5,7 @@ public class EnemySpawner : MonoBehaviour
 {
     [SerializeField] private List<GameObject> enemyPrefabs;
     [SerializeField] private List<Transform> spawnPoints;
-    [SerializeField] private GameObject player;
+    public GameObject player;
     [SerializeField] private float timeToSpawnNewEnemy;
     private float m_CurrentTimeToSpawnNewEnemy;
     private System.Random m_Random;
@@ -30,12 +30,14 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    private void SpawnEnemy()
+    public GameObject SpawnEnemy()
     {
         var enemyPrefab = enemyPrefabs[m_Random.Next(0, enemyPrefabs.Count)];
         var spawnPoint = spawnPoints[m_Random.Next(0, spawnPoints.Count)];
 
         var enemy = Instantiate(enemyPrefab, spawnPoint);
         enemy.GetComponent<EnemyAI>().player = player;
+
+        return enemy;
     }
 }

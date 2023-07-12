@@ -14,12 +14,7 @@ public class RagdollController : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        
-    }
-
-    private void MakePhysical()
+    public void MakePhysical()
     {
         animator.enabled = false;
         foreach (var currentRigidbody in allRigidbodies)
