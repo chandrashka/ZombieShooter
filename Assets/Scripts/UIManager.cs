@@ -7,14 +7,16 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI enemyCounter;
     [SerializeField] private TextMeshProUGUI resultText;
     
-    [SerializeField] private GameObject startScreenCanvas;
+    [SerializeField] private GameObject startGameCanvas;
     [SerializeField] private GameObject endGameCanvas;
     [SerializeField] private List<GameObject> gameCanvasObjects;
+    [SerializeField] private GameObject pausedGameCanvas;
 
     private void Start()
     {
-        startScreenCanvas.SetActive(true);
+        startGameCanvas.SetActive(true);
         endGameCanvas.SetActive(false);
+        pausedGameCanvas.SetActive(false);
         foreach (var obj in gameCanvasObjects) obj.SetActive(false);
     }
 
@@ -25,17 +27,36 @@ public class UIManager : MonoBehaviour
 
     public void StartGame()
     {
-        startScreenCanvas.SetActive(false);
+        startGameCanvas.SetActive(false);
         endGameCanvas.SetActive(false);
+        pausedGameCanvas.SetActive(false);
+        foreach (var obj in gameCanvasObjects) obj.SetActive(true);
+    }
+
+    public void PauseGame()
+    {
+        startGameCanvas.SetActive(false);
+        endGameCanvas.SetActive(false);
+        pausedGameCanvas.SetActive(true);
+        foreach (var obj in gameCanvasObjects) obj.SetActive(false);
+    }
+
+    public void UnPauseGame()
+    {
+        startGameCanvas.SetActive(false);
+        endGameCanvas.SetActive(false);
+        pausedGameCanvas.SetActive(false);
         foreach (var obj in gameCanvasObjects) obj.SetActive(true);
     }
 
     public void EndGame()
     {
-        startScreenCanvas.SetActive(false);
+        startGameCanvas.SetActive(false);
         endGameCanvas.SetActive(true);
+        pausedGameCanvas.SetActive(false);
         foreach (var obj in gameCanvasObjects) obj.SetActive(false);
 
         resultText.text = "Killed enemies: " + enemyCounter.text;
+        enemyCounter.text = "0";
     }
 }

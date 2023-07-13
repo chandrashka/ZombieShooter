@@ -12,39 +12,57 @@ public class GameManager : MonoBehaviour
     
     private bool m_IsGameOn;
     private bool m_PlayerDead;
+    private bool m_GamePaused;
 
     private PlayerManager m_PlayerManager;
 
     private void Awake()
     {
         m_PlayerManager = player.GetComponent<PlayerManager>();
+        Time.timeScale = 0;
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.F))
         {
-            if (m_IsGameOn && m_PlayerDead)
+            if (m_IsGameOn && m_PlayerDead && !m_GamePaused)
             {
-                RestartGame();
                 audioSource.PlayOneShot(buttonSound);
+                RestartGame();
+            }
+            else if (m_GamePaused)
+            {
+                audioSource.PlayOneShot(buttonSound);
+                uiManager.UnPauseGame();
+                m_GamePaused = false;
+                Time.timeScale = 1;
             }
             else
             {
-                StartGame();
                 audioSource.PlayOneShot(buttonSound);
+                StartGame();
             }
         }
         else if (Input.GetKeyDown(KeyCode.Q))
         {
-            if (!m_PlayerDead && !m_IsGameOn) return;
+            if (!m_IsGameOn) return;
             audioSource.PlayOneShot(buttonSound);
             Application.Quit();
+        }
+        else if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (!m_IsGameOn) return;
+            audioSource.PlayOneShot(buttonSound);
+            uiManager.PauseGame();
+            m_GamePaused = true;
+            Time.timeScale = 0;
         }
     }
 
     private void StartGame()
     {
+        Time.timeScale = 1;
         m_IsGameOn = true;
         m_PlayerDead = false;
 
@@ -55,6 +73,7 @@ public class GameManager : MonoBehaviour
 
     private void RestartGame()
     {
+        Time.timeScale = 1;
         m_IsGameOn = true;
         m_PlayerDead = false;
 
@@ -65,6 +84,7 @@ public class GameManager : MonoBehaviour
 
     public void EndGame()
     {
+        Time.timeScale = 0;
         m_IsGameOn = false;
         m_PlayerDead = true;
 

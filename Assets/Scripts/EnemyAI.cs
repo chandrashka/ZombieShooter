@@ -1,9 +1,9 @@
 using Opsive.UltimateCharacterController.Traits;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class EnemyAI : MonoBehaviour
 {
-    [SerializeField] private float speed;
     [SerializeField] private Animator animator;
     [SerializeField] private float damage;
     
@@ -14,20 +14,22 @@ public class EnemyAI : MonoBehaviour
     private const float TimeBetweenAttacks = 1f;
     
     public bool isKilled;
-    private Rigidbody m_Rigidbody;
-    
+
     public GameObject player;
+    private LayerMask m_Masks;
+    private NavMeshAgent m_NavMeshAgent;
     
     private void Start()
     {
-        m_Rigidbody = GetComponent<Rigidbody>();
+        m_Masks = LayerMask.GetMask("Character", "SubCharacter");
+        m_NavMeshAgent = GetComponent<NavMeshAgent>();
     }
 
     private void FixedUpdate()
     {
         if (isKilled) return;
         if (Physics.Raycast(transform.position, transform.forward, 1f,
-                LayerMask.GetMask("Character", "SubCharacter")))
+                m_Masks))
         {
             if (m_TimeToAttack <= 0)
             {
@@ -48,6 +50,8 @@ public class EnemyAI : MonoBehaviour
 
     private void Attack()
     {
+        m_NavMeshAgent.isStopped = true;
+        
         animator.SetTrigger(Punch);
         var health = player.GetComponent<CharacterHealth>();
         health.Damage(damage);
@@ -55,9 +59,7 @@ public class EnemyAI : MonoBehaviour
 
     private void MoveToPlayer()
     {
-        var position = Vector3.MoveTowards(transform.position, player.transform.position,
-            speed * Time.deltaTime);
-        m_Rigidbody.MovePosition(position);
-        transform.LookAt(player.transform);
+        m_NavMeshAgent.isStopped = false;
+        m_NavMeshAgent.SetDestination(player.transform.position);
     }
 }
