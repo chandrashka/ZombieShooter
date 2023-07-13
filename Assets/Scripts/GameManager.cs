@@ -46,9 +46,11 @@ public class GameManager : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.Q))
         {
-            if (!m_IsGameOn) return;
-            audioSource.PlayOneShot(buttonSound);
-            Application.Quit();
+            if (m_GamePaused || m_PlayerDead)
+            {
+                audioSource.PlayOneShot(buttonSound);
+                Application.Quit();
+            }
         }
         else if (Input.GetKeyDown(KeyCode.Escape))
         {
