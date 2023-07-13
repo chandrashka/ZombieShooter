@@ -4,42 +4,47 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Character.MovementTypes;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.ThirdPersonController.Character.MovementTypes
 {
-    using Opsive.UltimateCharacterController.Character.MovementTypes;
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// With the Combat movement type the character can strafe and move backwards, and is always facing in the direction of the camera.
+    ///     With the Combat movement type the character can strafe and move backwards, and is always facing in the direction of
+    ///     the camera.
     /// </summary>
     public class Combat : MovementType
     {
-        public override bool FirstPersonPerspective { get { return false; } }
+        public override bool FirstPersonPerspective => false;
 
         /// <summary>
-        /// Returns the delta yaw rotation of the character.
+        ///     Returns the delta yaw rotation of the character.
         /// </summary>
         /// <param name="characterHorizontalMovement">The character's horizontal movement.</param>
         /// <param name="characterForwardMovement">The character's forward movement.</param>
         /// <param name="cameraHorizontalMovement">The camera's horizontal movement.</param>
         /// <param name="cameraVerticalMovement">The camera's vertical movement.</param>
         /// <returns>The delta yaw rotation of the character.</returns>
-        public override float GetDeltaYawRotation(float characterHorizontalMovement, float characterForwardMovement, float cameraHorizontalMovement, float cameraVerticalMovement)
+        public override float GetDeltaYawRotation(float characterHorizontalMovement, float characterForwardMovement,
+            float cameraHorizontalMovement, float cameraVerticalMovement)
         {
 #if UNITY_EDITOR
-            if (m_LookSource == null) {
-                Debug.LogError($"Error: There is no look source attached to the character {m_GameObject.name}. Ensure the character has a look source attached. For player characters the look source is the Camera Controller, and AI agents use the Local Look Source.");
+            if (m_LookSource == null)
+            {
+                Debug.LogError(
+                    $"Error: There is no look source attached to the character {m_GameObject.name}. Ensure the character has a look source attached. For player characters the look source is the Camera Controller, and AI agents use the Local Look Source.");
                 return 0;
             }
 #endif
             var lookRotation = Quaternion.LookRotation(m_LookSource.LookDirection(true), m_CharacterLocomotion.Up);
             // Convert to a local character rotation and then only return the relative y rotation.
-            return MathUtility.ClampInnerAngle(MathUtility.InverseTransformQuaternion(m_Transform.rotation, lookRotation).eulerAngles.y);
+            return MathUtility.ClampInnerAngle(MathUtility
+                .InverseTransformQuaternion(m_Transform.rotation, lookRotation).eulerAngles.y);
         }
 
         /// <summary>
-        /// Gets the controller's input vector relative to the movement type.
+        ///     Gets the controller's input vector relative to the movement type.
         /// </summary>
         /// <param name="inputVector">The current input vector.</param>
         /// <returns>The updated input vector.</returns>

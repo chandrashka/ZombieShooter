@@ -4,40 +4,71 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Events;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Character.Abilities
 {
-    using Opsive.Shared.Events;
-    using UnityEngine;
-
     /// <summary>
-    /// The Slide ability will apply a force to the character if the character is on a steep slope.
+    ///     The Slide ability will apply a force to the character if the character is on a steep slope.
     /// </summary>
     [DefaultStopType(AbilityStopType.Automatic)]
     public class Slide : Ability
     {
-        [Tooltip("Steepness (in degrees) above which the character can slide.")]
-        [SerializeField] protected float m_MinSlideLimit = 40;
-        [Tooltip("Steepness (in degrees) below which the character can slide.")]
-        [SerializeField] protected float m_MaxSlideLimit = 89f;
-        [Tooltip("Multiplier of the ground's slide value. The slide value is determined by (1 - dynamicFriction) of the ground's physic material.")]
-        [SerializeField] protected float m_Multiplier = 0.4f;
-        [Tooltip("The maximum speed that the character can slide.")]
-        [SerializeField] protected float m_MaxSlideSpeed = 1;
-        [Tooltip("Optionally specifies the up direction that should override the character's up direction.")]
-        [SerializeField] protected Vector3 m_OverrideUpDirection;
+        [Tooltip("Steepness (in degrees) below which the character can slide.")] [SerializeField]
+        protected float m_MaxSlideLimit = 89f;
 
-        public float MinSlideLimit { get { return m_MinSlideLimit; } set { m_MinSlideLimit = value; } }
-        public float MaxSlideLimit { get { return m_MaxSlideLimit; } set { m_MaxSlideLimit = value; } }
-        public float Multiplier { get { return m_Multiplier; } set { m_Multiplier = value; } }
-        public float MaxSlideSpeed { get { return m_MaxSlideSpeed; } set { m_MaxSlideSpeed = value; } }
-        public Vector3 OverrideUpDirection { get { return m_OverrideUpDirection; } set { m_OverrideUpDirection = value; } }
+        [Tooltip("The maximum speed that the character can slide.")] [SerializeField]
+        protected float m_MaxSlideSpeed = 1;
+
+        [Tooltip("Steepness (in degrees) above which the character can slide.")] [SerializeField]
+        protected float m_MinSlideLimit = 40;
+
+        [Tooltip(
+            "Multiplier of the ground's slide value. The slide value is determined by (1 - dynamicFriction) of the ground's physic material.")]
+        [SerializeField]
+        protected float m_Multiplier = 0.4f;
+
+        [Tooltip("Optionally specifies the up direction that should override the character's up direction.")]
+        [SerializeField]
+        protected Vector3 m_OverrideUpDirection;
 
         private float m_SlideSpeed;
 
-        public override bool IsConcurrent { get { return true; } }
+        public float MinSlideLimit
+        {
+            get => m_MinSlideLimit;
+            set => m_MinSlideLimit = value;
+        }
+
+        public float MaxSlideLimit
+        {
+            get => m_MaxSlideLimit;
+            set => m_MaxSlideLimit = value;
+        }
+
+        public float Multiplier
+        {
+            get => m_Multiplier;
+            set => m_Multiplier = value;
+        }
+
+        public float MaxSlideSpeed
+        {
+            get => m_MaxSlideSpeed;
+            set => m_MaxSlideSpeed = value;
+        }
+
+        public Vector3 OverrideUpDirection
+        {
+            get => m_OverrideUpDirection;
+            set => m_OverrideUpDirection = value;
+        }
+
+        public override bool IsConcurrent => true;
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         public override void Awake()
         {
@@ -47,47 +78,44 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// Called when the ablity is tried to be started. If false is returned then the ability will not be started.
+        ///     Called when the ablity is tried to be started. If false is returned then the ability will not be started.
         /// </summary>
         /// <returns>True if the ability can be started.</returns>
         public override bool CanStartAbility()
         {
             // An attribute may prevent the ability from starting.
-            if (!base.CanStartAbility()) {
-                return false;
-            }
+            if (!base.CanStartAbility()) return false;
 
             return CanSlide();
         }
 
         /// <summary>
-        /// Returns true if the character can slide on the ground.
+        ///     Returns true if the character can slide on the ground.
         /// </summary>
         /// <returns>True if the character can slide on the ground.</returns>
         private bool CanSlide()
         {
             // The character cannot slide in the air.
-            if (!m_CharacterLocomotion.Grounded) {
-                return false;
-            }
+            if (!m_CharacterLocomotion.Grounded) return false;
 
             // The character cannot slide if the slope isn't steep enough or is too steep.
             var upDirection = m_OverrideUpDirection.sqrMagnitude > 0 ? m_OverrideUpDirection : m_CharacterLocomotion.Up;
             var slope = Vector3.Angle(upDirection, m_CharacterLocomotion.GroundRaycastHit.normal);
-            if (slope < m_MinSlideLimit + m_CharacterLocomotion.SlopeLimitSpacing || slope > m_MaxSlideLimit) {
+            if (slope < m_MinSlideLimit + m_CharacterLocomotion.SlopeLimitSpacing || slope > m_MaxSlideLimit)
                 return false;
-            }
 
             // Don't slide if the character can step over the object.
             var groundPoint = m_Transform.InverseTransformPoint(m_CharacterLocomotion.GroundRaycastHit.point);
-            if (groundPoint.y >= 0) {
+            if (groundPoint.y >= 0)
+            {
                 groundPoint.y = 0;
                 groundPoint = m_Transform.TransformPoint(groundPoint);
                 var direction = groundPoint - m_Transform.position;
-                if (m_CharacterLocomotion.OverlapCount((direction.normalized * (direction.magnitude + m_CharacterLocomotion.Radius)) +
-                    m_CharacterLocomotion.PlatformMovement + m_CharacterLocomotion.Up * (m_CharacterLocomotion.MaxStepHeight - m_CharacterLocomotion.ColliderSpacing)) == 0) {
+                if (m_CharacterLocomotion.OverlapCount(
+                        direction.normalized * (direction.magnitude + m_CharacterLocomotion.Radius) +
+                        m_CharacterLocomotion.PlatformMovement + m_CharacterLocomotion.Up *
+                        (m_CharacterLocomotion.MaxStepHeight - m_CharacterLocomotion.ColliderSpacing)) == 0)
                     return false;
-                }
             }
 
             // The character can slide.
@@ -95,7 +123,7 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// Update the controller's position values.
+        ///     Update the controller's position values.
         /// </summary>
         public override void UpdatePosition()
         {
@@ -109,13 +137,11 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
             var horizontalDirection = Vector3.ProjectOnPlane(direction, upDirection);
             // Only update the motor throttle if the character is moving into the slope.
             var dot = Vector3.Dot(horizontalMotorThrottle.normalized, horizontalDirection.normalized);
-            if (dot < 0) {
-                m_CharacterLocomotion.MotorThrottle *= (1 + dot);
-            }
+            if (dot < 0) m_CharacterLocomotion.MotorThrottle *= 1 + dot;
         }
 
         /// <summary>
-        /// Updates the ability after the character movements have been applied.
+        ///     Updates the ability after the character movements have been applied.
         /// </summary>
         public override void LateUpdate()
         {
@@ -125,22 +151,25 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
             var upDirection = m_OverrideUpDirection.sqrMagnitude > 0 ? m_OverrideUpDirection : m_CharacterLocomotion.Up;
             // Slide at a constant speed if the slope is within the slope limit.
             var slope = Vector3.Angle(groundRaycastHit.normal, upDirection);
-            if (slope < m_CharacterLocomotion.SlopeLimit) {
+            if (slope < m_CharacterLocomotion.SlopeLimit)
                 m_SlideSpeed = Mathf.Max(m_SlideSpeed, slide);
-            } else { // The slope is steeper then the slope limit. Slide with an accelerating slide speed.
+            else // The slope is steeper then the slope limit. Slide with an accelerating slide speed.
                 m_SlideSpeed += slide * (slope / m_MinSlideLimit);
-            }
             m_SlideSpeed = Mathf.Min(m_SlideSpeed, m_MaxSlideSpeed);
 
             // Add a force if the character should slide.
-            if (m_SlideSpeed > 0) {
-                var direction = Vector3.Cross(Vector3.Cross(groundRaycastHit.normal, -upDirection), groundRaycastHit.normal);
-                AddForce(m_SlideSpeed * m_CharacterLocomotion.TimeScale * Time.timeScale * Time.deltaTime * direction.normalized, 1, false, true);
+            if (m_SlideSpeed > 0)
+            {
+                var direction = Vector3.Cross(Vector3.Cross(groundRaycastHit.normal, -upDirection),
+                    groundRaycastHit.normal);
+                AddForce(
+                    m_SlideSpeed * m_CharacterLocomotion.TimeScale * Time.timeScale * Time.deltaTime *
+                    direction.normalized, 1, false, true);
             }
         }
 
         /// <summary>
-        /// Stop the ability from running.
+        ///     Stop the ability from running.
         /// </summary>
         /// <returns>True if the ability was stopped.</returns>
         public override bool CanStopAbility()
@@ -149,22 +178,23 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// The character has changed grounded state. 
+        ///     The character has changed grounded state.
         /// </summary>
         /// <param name="grounded">Is the character on the ground?</param>
         private void OnGrounded(bool grounded)
         {
-            if (grounded) {
-                if (!CanSlide()) {
-                    m_SlideSpeed = 0;
-                }
-            } else {
+            if (grounded)
+            {
+                if (!CanSlide()) m_SlideSpeed = 0;
+            }
+            else
+            {
                 StopAbility();
             }
         }
 
         /// <summary>
-        /// The character has been destroyed.
+        ///     The character has been destroyed.
         /// </summary>
         public override void OnDestroy()
         {

@@ -4,15 +4,15 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Items.Actions;
+using UnityEditor;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items.Actions
 {
-    using Opsive.UltimateCharacterController.Items.Actions;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using System;
-    using UnityEditor;
-
     /// <summary>
-    /// Shows a custom inspector for the Flashlight component.
+    ///     Shows a custom inspector for the Flashlight component.
     /// </summary>
     [CustomEditor(typeof(Flashlight))]
     public class FlashlightInspector : UsableItemInspector
@@ -20,7 +20,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items.Actions
         private Flashlight m_Flashlight;
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         protected override void OnEnable()
         {
@@ -30,7 +30,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items.Actions
         }
 
         /// <summary>
-        /// Returns the actions to draw before the State list is drawn.
+        ///     Returns the actions to draw before the State list is drawn.
         /// </summary>
         /// <returns>The actions to draw before the State list is drawn.</returns>
         protected override Action GetDrawCallback()
@@ -39,7 +39,8 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items.Actions
 
             baseCallback += () =>
             {
-                InspectorUtility.DrawAttributeModifier(m_AttributeManager, m_Flashlight.BatteryModifier, "Battery Attribute");
+                InspectorUtility.DrawAttributeModifier(m_AttributeManager, m_Flashlight.BatteryModifier,
+                    "Battery Attribute");
             };
 
             return baseCallback;

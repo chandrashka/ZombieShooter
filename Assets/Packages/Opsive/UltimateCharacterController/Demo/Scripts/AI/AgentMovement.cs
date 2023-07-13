@@ -4,38 +4,42 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Character.Abilities.AI;
+using Opsive.UltimateCharacterController.Character.Abilities.Items;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Demo.AI
 {
-    using Opsive.UltimateCharacterController.Character.Abilities.AI;
-    using Opsive.UltimateCharacterController.Character.Abilities.Items;
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// Moves the agent to random positions within a circle. No pathfinding is done.
+    ///     Moves the agent to random positions within a circle. No pathfinding is done.
     /// </summary>
     public class AgentMovement : PathfindingMovement
     {
-        [Tooltip("The radius of the position that the character can traverse to.")]
-        [SerializeField] protected float m_Radius = 3;
-        [Tooltip("The agent has arrived at the destination when the distance is less than the stopping distance.")]
-        [SerializeField] protected float m_StoppingDistance = 0.1f;
-        [Tooltip("The amount of time that the agent should wait at each destination.")]
-        [SerializeField] protected MinMaxFloat m_RandomWait = new MinMaxFloat(0.2f, 0.7f);
-
-        private Use m_UseAbility;
+        private float m_ArriveTime;
         private Vector3 m_Center;
         private Vector3 m_Destination;
         private Vector2 m_InputVector;
-        private float m_WaitTime;
-        private float m_ArriveTime;
 
-        public override Vector2 InputVector { get { return m_InputVector; } }
-        public override Vector3 DeltaRotation { get { return Vector3.zero; } }
-        public override bool HasArrived { get { return IsAtDestination(); } }
+        [Tooltip("The radius of the position that the character can traverse to.")] [SerializeField]
+        protected float m_Radius = 3;
+
+        [Tooltip("The amount of time that the agent should wait at each destination.")] [SerializeField]
+        protected MinMaxFloat m_RandomWait = new(0.2f, 0.7f);
+
+        [Tooltip("The agent has arrived at the destination when the distance is less than the stopping distance.")]
+        [SerializeField]
+        protected float m_StoppingDistance = 0.1f;
+
+        private Use m_UseAbility;
+        private float m_WaitTime;
+
+        public override Vector2 InputVector => m_InputVector;
+        public override Vector3 DeltaRotation => Vector3.zero;
+        public override bool HasArrived => IsAtDestination();
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         public override void Awake()
         {
@@ -47,7 +51,7 @@ namespace Opsive.UltimateCharacterController.Demo.AI
         }
 
         /// <summary>
-        /// Determines a new destination to move towards.
+        ///     Determines a new destination to move towards.
         /// </summary>
         private void DetermineDestination()
         {
@@ -57,7 +61,7 @@ namespace Opsive.UltimateCharacterController.Demo.AI
         }
 
         /// <summary>
-        /// Sets the destination of the pathfinding agent.
+        ///     Sets the destination of the pathfinding agent.
         /// </summary>
         /// <param name="destination">The position to move towards.</param>
         /// <returns>True if the destination was set.</returns>
@@ -69,7 +73,7 @@ namespace Opsive.UltimateCharacterController.Demo.AI
         }
 
         /// <summary>
-        /// Returns the destination of the pathfinding agent.
+        ///     Returns the destination of the pathfinding agent.
         /// </summary>
         /// <returns>The destination of the pathfinding agent.</returns>
         public override Vector3 GetDestination()
@@ -78,24 +82,23 @@ namespace Opsive.UltimateCharacterController.Demo.AI
         }
 
         /// <summary>
-        /// Updates the ability.
+        ///     Updates the ability.
         /// </summary>
         public override void Update()
         {
             // The Use ability uses root motion to control the movement so the pathfinding movement should not override that.
-            if (m_UseAbility.IsActive) {
-                return;
-            }
+            if (m_UseAbility.IsActive) return;
 
             // Choose a new destination after the agent has arrived at the current destination.
-            if (IsAtDestination()) {
-                if (m_ArriveTime == -1) {
+            if (IsAtDestination())
+            {
+                if (m_ArriveTime == -1)
+                {
                     m_WaitTime = m_RandomWait.RandomValue;
                     m_ArriveTime = Time.time;
                 }
-                if (m_ArriveTime + m_WaitTime < Time.time) {
-                    DetermineDestination();
-                }
+
+                if (m_ArriveTime + m_WaitTime < Time.time) DetermineDestination();
             }
 
             // The normalized velocity should be relative to the target rotation.
@@ -108,26 +111,23 @@ namespace Opsive.UltimateCharacterController.Demo.AI
         }
 
         /// <summary>
-        /// Ensure the move direction is valid.
+        ///     Ensure the move direction is valid.
         /// </summary>
         public override void ApplyPosition()
         {
-            if (IsAtDestination()) {
+            if (IsAtDestination())
+            {
                 // Prevent the character from jittering back and forth to land precisely on the target.
                 var direction = m_Transform.InverseTransformPoint(m_Destination);
                 var moveDirection = m_Transform.InverseTransformDirection(m_CharacterLocomotion.MoveDirection);
-                if (Mathf.Abs(moveDirection.x) > Mathf.Abs(direction.x)) {
-                    moveDirection.x = direction.x;
-                }
-                if (Mathf.Abs(moveDirection.z) > Mathf.Abs(direction.z)) {
-                    moveDirection.z = direction.z;
-                }
+                if (Mathf.Abs(moveDirection.x) > Mathf.Abs(direction.x)) moveDirection.x = direction.x;
+                if (Mathf.Abs(moveDirection.z) > Mathf.Abs(direction.z)) moveDirection.z = direction.z;
                 m_CharacterLocomotion.MoveDirection = m_Transform.TransformDirection(moveDirection);
             }
         }
 
         /// <summary>
-        /// Is the agent at the destination?
+        ///     Is the agent at the destination?
         /// </summary>
         /// <returns>True if the agent is at the destination.</returns>
         private bool IsAtDestination()

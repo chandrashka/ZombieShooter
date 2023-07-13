@@ -2,15 +2,27 @@
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.Rendering;
-using UnityEngine.Rendering;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace CartoonFX
 {
-    class CFXR_BuildShaderPreprocessor : IPreprocessShaders, IPreprocessBuildWithReport, IPostprocessBuildWithReport
+    internal class CFXR_BuildShaderPreprocessor : IPreprocessShaders, IPreprocessBuildWithReport,
+        IPostprocessBuildWithReport
     {
-        static int shaderVariantsRemoved;
-        static bool isUsingURP;
+        private static int shaderVariantsRemoved;
+        private static bool isUsingURP;
+
+        public void OnPostprocessBuild(BuildReport report)
+        {
+            if (shaderVariantsRemoved > 0)
+            {
+                var currentPipeline = isUsingURP ? "Universal" : "Built-in";
+                Debug.Log(string.Format(
+                    "<color=#ec7d38>[Cartoon FX Remaster]</color> {0} Render Pipeline detected, {1} Shader variants have been stripped from the build.",
+                    currentPipeline, shaderVariantsRemoved));
+            }
+        }
 
         // --------------------------------------------------------------------------------------------------------------------------------
         // IPreprocessBuildWithReport, IPostprocessBuildWithReport
@@ -27,32 +39,17 @@ namespace CartoonFX
             shaderVariantsRemoved = 0;
         }
 
-        public void OnPostprocessBuild(BuildReport report)
-        {
-            if (shaderVariantsRemoved > 0)
-            {
-                string currentPipeline = isUsingURP ? "Universal" : "Built-in";
-                Debug.Log(string.Format("<color=#ec7d38>[Cartoon FX Remaster]</color> {0} Render Pipeline detected, {1} Shader variants have been stripped from the build.", currentPipeline, shaderVariantsRemoved));
-            }
-        }
-
         // --------------------------------------------------------------------------------------------------------------------------------
         // IPreprocessShaders
 
-        public int callbackOrder
-        {
-            get { return 1000; }
-        }
+        public int callbackOrder => 1000;
 
-        public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> shaderCompilerData)
+        public void OnProcessShader(Shader shader, ShaderSnippetData snippet,
+            IList<ShaderCompilerData> shaderCompilerData)
         {
-            if (snippet.passType == PassType.ShadowCaster)
-            {
-                return;
-            }
-            
+            if (snippet.passType == PassType.ShadowCaster) return;
+
             if (shader.name.Contains("Cartoon FX/Remaster"))
-            {
                 // Strip Cartoon FX Remaster Shader variants based on current render pipeline
                 if ((isUsingURP && snippet.passType != PassType.ScriptableRenderPipeline) ||
                     (!isUsingURP && snippet.passType == PassType.ScriptableRenderPipeline))
@@ -60,7 +57,6 @@ namespace CartoonFX
                     shaderVariantsRemoved += shaderCompilerData.Count;
                     shaderCompilerData.Clear();
                 }
-            }
         }
     }
 }

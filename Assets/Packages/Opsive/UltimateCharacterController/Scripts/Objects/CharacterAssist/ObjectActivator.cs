@@ -4,25 +4,29 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.StateSystem;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Objects
 {
-    using Opsive.Shared.StateSystem;
-    using UnityEngine;
-
     /// <summary>
-    /// Activates or deactivates the GameObject based on the state.
+    ///     Activates or deactivates the GameObject based on the state.
     /// </summary>
     public class ObjectActivator : StateBehavior
     {
-        [Tooltip("Should the GameObject be activated?")]
-        [SerializeField] protected bool m_Active = true;
-
-        public bool Active { get { return m_Active; } set { m_Active = value; } }
+        [Tooltip("Should the GameObject be activated?")] [SerializeField]
+        protected bool m_Active = true;
 
         private GameObject m_GameObject;
 
+        public bool Active
+        {
+            get => m_Active;
+            set => m_Active = value;
+        }
+
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         protected override void Awake()
         {
@@ -32,7 +36,7 @@ namespace Opsive.UltimateCharacterController.Objects
         }
 
         /// <summary>
-        /// The StateManager has changed the active state on the current object.
+        ///     The StateManager has changed the active state on the current object.
         /// </summary>
         public override void StateChange()
         {

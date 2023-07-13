@@ -4,15 +4,16 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Events;
+using Opsive.Shared.Game;
+using Opsive.UltimateCharacterController.Character.Abilities.Items;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Character.Abilities
 {
-    using Opsive.Shared.Events;
-    using Opsive.Shared.Game;
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// Plays a full body animation in response to a melee counter attack.
+    ///     Plays a full body animation in response to a melee counter attack.
     /// </summary>
     [DefaultStartType(AbilityStartType.Manual)]
     [DefaultStopType(AbilityStopType.Manual)]
@@ -20,17 +21,23 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
     [DefaultAbilityIndex(13)]
     public class MeleeCounterAttackResponse : Ability
     {
-        [Tooltip("Specifies if the ability should stop when the OnAnimatorMeleeCounterAttackResponseComplete event is received or wait the specified amount of time before ending the ability.")]
-        [SerializeField] protected AnimationEventTrigger m_StopEvent = new AnimationEventTrigger(true, 0.2f);
-
-        public AnimationEventTrigger StopEvent { get { return m_StopEvent; } set { m_StopEvent = value; } }
-
         private int m_ResponseID;
 
-        public override int AbilityIntData { get { return m_ResponseID; } }
+        [Tooltip(
+            "Specifies if the ability should stop when the OnAnimatorMeleeCounterAttackResponseComplete event is received or wait the specified amount of time before ending the ability.")]
+        [SerializeField]
+        protected AnimationEventTrigger m_StopEvent = new(true, 0.2f);
+
+        public AnimationEventTrigger StopEvent
+        {
+            get => m_StopEvent;
+            set => m_StopEvent = value;
+        }
+
+        public override int AbilityIntData => m_ResponseID;
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         public override void Awake()
         {
@@ -40,7 +47,7 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// The character has been counter attacked. Play a response animation.
+        ///     The character has been counter attacked. Play a response animation.
         /// </summary>
         /// <param name="id">The ID of the counter attack.</param>
         public void StartResponse(int id)
@@ -50,20 +57,18 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// The ability has started.
+        ///     The ability has started.
         /// </summary>
         protected override void AbilityStarted()
         {
             base.AbilityStarted();
 
-            if (!m_StopEvent.WaitForAnimationEvent) {
-                SchedulerBase.ScheduleFixed(m_StopEvent.Duration, OnComplete);
-            }
+            if (!m_StopEvent.WaitForAnimationEvent) SchedulerBase.ScheduleFixed(m_StopEvent.Duration, OnComplete);
         }
 
         /// <summary>
-        /// Called when another ability is attempting to start and the current ability is active.
-        /// Returns true or false depending on if the new ability should be blocked from starting.
+        ///     Called when another ability is attempting to start and the current ability is active.
+        ///     Returns true or false depending on if the new ability should be blocked from starting.
         /// </summary>
         /// <param name="startingAbility">The ability that is starting.</param>
         /// <returns>True if the ability should be blocked.</returns>
@@ -73,21 +78,19 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// Called when the current ability is attempting to start and another ability is active.
-        /// Returns true or false depending on if the active ability should be stopped.
+        ///     Called when the current ability is attempting to start and another ability is active.
+        ///     Returns true or false depending on if the active ability should be stopped.
         /// </summary>
         /// <param name="activeAbility">The ability that is currently active.</param>
         /// <returns>True if the ability should be stopped.</returns>
         public override bool ShouldStopActiveAbility(Ability activeAbility)
         {
-            if (activeAbility is Items.Use) {
-                return true;
-            }
+            if (activeAbility is Use) return true;
             return base.ShouldStopActiveAbility(activeAbility);
         }
 
         /// <summary>
-        /// The animation is done playing - stop the ability.
+        ///     The animation is done playing - stop the ability.
         /// </summary>
         private void OnComplete()
         {
@@ -95,7 +98,7 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// The object has been destroyed.
+        ///     The object has been destroyed.
         /// </summary>
         public override void OnDestroy()
         {

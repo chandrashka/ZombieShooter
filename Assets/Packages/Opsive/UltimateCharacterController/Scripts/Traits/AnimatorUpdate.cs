@@ -4,13 +4,13 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Game;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Traits
 {
-    using Opsive.UltimateCharacterController.Game;
-    using UnityEngine;
-
     /// <summary>
-    /// Updates the Animator component at a fixed delta time.
+    ///     Updates the Animator component at a fixed delta time.
     /// </summary>
     [RequireComponent(typeof(Animator))]
     public class AnimatorUpdate : MonoBehaviour, IKinematicObject
@@ -19,15 +19,8 @@ namespace Opsive.UltimateCharacterController.Traits
 
         private int m_KinematicObjectIndex;
 
-        public int KinematicObjectIndex { set { m_KinematicObjectIndex = value; } }
-        public KinematicObjectManager.UpdateLocation UpdateLocation { 
-            get { 
-                return m_Animator.updateMode == AnimatorUpdateMode.AnimatePhysics ? KinematicObjectManager.UpdateLocation.FixedUpdate : KinematicObjectManager.UpdateLocation.Update; 
-            } 
-        }
-
         /// <summary>
-        /// Cache the componetn references.
+        ///     Cache the componetn references.
         /// </summary>
         private void Awake()
         {
@@ -36,7 +29,7 @@ namespace Opsive.UltimateCharacterController.Traits
         }
 
         /// <summary>
-        /// Registers the object with the KinematicObjectManager.
+        ///     Registers the object with the KinematicObjectManager.
         /// </summary>
         private void OnEnable()
         {
@@ -44,19 +37,29 @@ namespace Opsive.UltimateCharacterController.Traits
         }
 
         /// <summary>
-        /// Updates the Animator at a fixed delta time.
-        /// </summary>
-        public void Move()
-        {
-            m_Animator.Update(Time.fixedDeltaTime);
-        }
-
-        /// <summary>
-        /// Unregisters the object with the KinematicObjectManager.
+        ///     Unregisters the object with the KinematicObjectManager.
         /// </summary>
         private void OnDisable()
         {
             KinematicObjectManager.UnregisterKinematicObject(m_KinematicObjectIndex);
+        }
+
+        public int KinematicObjectIndex
+        {
+            set => m_KinematicObjectIndex = value;
+        }
+
+        public KinematicObjectManager.UpdateLocation UpdateLocation =>
+            m_Animator.updateMode == AnimatorUpdateMode.AnimatePhysics
+                ? KinematicObjectManager.UpdateLocation.FixedUpdate
+                : KinematicObjectManager.UpdateLocation.Update;
+
+        /// <summary>
+        ///     Updates the Animator at a fixed delta time.
+        /// </summary>
+        public void Move()
+        {
+            m_Animator.Update(Time.fixedDeltaTime);
         }
     }
 }

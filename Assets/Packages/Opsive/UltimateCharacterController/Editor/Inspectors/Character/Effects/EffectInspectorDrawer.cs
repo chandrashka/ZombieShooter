@@ -4,21 +4,22 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Character.Effects;
+using UnityEngine;
+using InspectorUtility = Opsive.UltimateCharacterController.Editor.Inspectors.Utility.InspectorUtility;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Character.Effects;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// Draws a custom inspector for the base Effect type.
+    ///     Draws a custom inspector for the base Effect type.
     /// </summary>
     [InspectorDrawer(typeof(Effect))]
     public class EffectInspectorDrawer : InspectorDrawer
     {
         /// <summary>
-        /// Called when the object should be drawn to the inspector.
+        ///     Called when the object should be drawn to the inspector.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
@@ -30,13 +31,13 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
         }
 
         /// <summary>
-        /// Draws the fields related to the inspector drawer.
+        ///     Draws the fields related to the inspector drawer.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
         protected virtual void DrawInspectorDrawerFields(object target, Object parent)
         {
-            Shared.Editor.Inspectors.Utility.ObjectInspector.DrawFields(target, false);
+            ObjectInspector.DrawFields(target, false);
         }
     }
 }

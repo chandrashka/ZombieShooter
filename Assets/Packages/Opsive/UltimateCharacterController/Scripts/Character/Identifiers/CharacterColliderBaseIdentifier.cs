@@ -4,12 +4,12 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Character.Identifiers
 {
-    using UnityEngine;
-
     /// <summary>
-    /// An identifier component used to specify where the character colliders are located.
+    ///     An identifier component used to specify where the character colliders are located.
     /// </summary>
     public class CharacterColliderBaseIdentifier : MonoBehaviour
     {

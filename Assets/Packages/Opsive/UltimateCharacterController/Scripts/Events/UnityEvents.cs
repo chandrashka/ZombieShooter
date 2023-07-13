@@ -4,94 +4,136 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Inventory;
+using Opsive.UltimateCharacterController.Camera.ViewTypes;
+using Opsive.UltimateCharacterController.Character.Abilities;
+using Opsive.UltimateCharacterController.Character.Abilities.Items;
+using Opsive.UltimateCharacterController.Character.MovementTypes;
+using Opsive.UltimateCharacterController.Items;
+using Opsive.UltimateCharacterController.SurfaceSystem;
+using UnityEngine;
+using UnityEngine.Events;
+
 namespace Opsive.UltimateCharacterController.Events
 {
-    using Opsive.Shared.Inventory;
-    using Opsive.UltimateCharacterController.Camera.ViewTypes;
-    using Opsive.UltimateCharacterController.Character.Abilities;
-    using Opsive.UltimateCharacterController.Character.Abilities.Items;
-    using Opsive.UltimateCharacterController.Character.MovementTypes;
-    using Opsive.UltimateCharacterController.Items;
-    using UnityEngine;
-    using UnityEngine.Events;
+    /// <summary>
+    ///     (float) UnityEvent subclass so the event will appear in the inspector.
+    /// </summary>
+    [Serializable]
+    public class UnityFloatEvent : UnityEvent<float>
+    {
+    }
 
     /// <summary>
-    /// (float) UnityEvent subclass so the event will appear in the inspector.
+    ///     (Transform) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable] public class UnityFloatEvent : UnityEvent<float> { }
+    [Serializable]
+    public class UnityTransformEvent : UnityEvent<Transform>
+    {
+    }
 
     /// <summary>
-    /// (Transform) UnityEvent subclass so the event will appear in the inspector.
+    ///     (MovementType, bool) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable] public class UnityTransformEvent : UnityEvent<Transform> { }
+    [Serializable]
+    public class UnityMovementTypeBoolEvent : UnityEvent<MovementType, bool>
+    {
+    }
 
     /// <summary>
-    /// (MovementType, bool) UnityEvent subclass so the event will appear in the inspector.
+    ///     (Ability, bool) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable]
-    public class UnityMovementTypeBoolEvent : UnityEvent<MovementType, bool> { }
+    [Serializable]
+    public class UnityAbilityBoolEvent : UnityEvent<Ability, bool>
+    {
+    }
 
     /// <summary>
-    /// (Ability, bool) UnityEvent subclass so the event will appear in the inspector.
+    ///     (ItemAbility, bool) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable]
-    public class UnityAbilityBoolEvent : UnityEvent<Ability, bool> { }
+    [Serializable]
+    public class UnityItemAbilityBoolEvent : UnityEvent<ItemAbility, bool>
+    {
+    }
 
     /// <summary>
-    /// (ItemAbility, bool) UnityEvent subclass so the event will appear in the inspector.
+    ///     (Item) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable]
-    public class UnityItemAbilityBoolEvent : UnityEvent<ItemAbility, bool> { }
+    [Serializable]
+    public class UnityItemEvent : UnityEvent<Item>
+    {
+    }
 
     /// <summary>
-    /// (Item) UnityEvent subclass so the event will appear in the inspector.
+    ///     (Item, int) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable] public class UnityItemEvent : UnityEvent<Item> { }
+    [Serializable]
+    public class UnityItemIntEvent : UnityEvent<Item, int>
+    {
+    }
 
     /// <summary>
-    /// (Item, int) UnityEvent subclass so the event will appear in the inspector.
+    ///     (IItemIdentifier, float) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable] public class UnityItemIntEvent : UnityEvent<Item, int> { }
+    [Serializable]
+    public class UnityItemIdentifierFloatEvent : UnityEvent<IItemIdentifier, float>
+    {
+    }
 
     /// <summary>
-    /// (IItemIdentifier, float) UnityEvent subclass so the event will appear in the inspector.
+    ///     (Item, bool, bool) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable]
-    public class UnityItemIdentifierFloatEvent : UnityEvent<IItemIdentifier, float> { }
+    [Serializable]
+    public class UnityItemBoolBoolEvent : UnityEvent<Item, bool, bool>
+    {
+    }
 
     /// <summary>
-    /// (Item, bool, bool) UnityEvent subclass so the event will appear in the inspector.
+    ///     (Item, float, bool, bool) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable] public class UnityItemBoolBoolEvent : UnityEvent<Item, bool, bool> { }
+    [Serializable]
+    public class UnityItemFloatBoolBoolEvent : UnityEvent<Item, float, bool, bool>
+    {
+    }
 
     /// <summary>
-    /// (Item, float, bool, bool) UnityEvent subclass so the event will appear in the inspector.
+    ///     (Item, RaycastHit, SurfaceImpact) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable] public class UnityItemFloatBoolBoolEvent : UnityEvent<Item, float, bool, bool> { }
+    [Serializable]
+    public class UnityItemRaycastHitSurfaceImpactEvent : UnityEvent<Item, RaycastHit, SurfaceImpact>
+    {
+    }
 
     /// <summary>
-    /// (Item, RaycastHit, SurfaceImpact) UnityEvent subclass so the event will appear in the inspector.
+    ///     (IItemIdentifier, float, bool, bool) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable] public class UnityItemRaycastHitSurfaceImpactEvent : UnityEvent<Item, RaycastHit, SurfaceSystem.SurfaceImpact> { }
+    [Serializable]
+    public class UnityItemIdentifierFloatBoolBoolEvent : UnityEvent<IItemIdentifier, float, bool, bool>
+    {
+    }
 
     /// <summary>
-    /// (IItemIdentifier, float, bool, bool) UnityEvent subclass so the event will appear in the inspector.
+    ///     (Vector3, Vector3, GameObject) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable] public class UnityItemIdentifierFloatBoolBoolEvent : UnityEvent<IItemIdentifier, float, bool, bool> { }
+    [Serializable]
+    public class UnityVector3Vector3GameObjectEvent : UnityEvent<Vector3, Vector3, GameObject>
+    {
+    }
 
     /// <summary>
-    /// (Vector3, Vector3, GameObject) UnityEvent subclass so the event will appear in the inspector.
+    ///     (float, Vector3, Vector3, GameObject) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable] public class UnityVector3Vector3GameObjectEvent : UnityEvent<Vector3, Vector3, GameObject> { }
+    [Serializable]
+    public class UnityFloatVector3Vector3GameObjectEvent : UnityEvent<float, Vector3, Vector3, GameObject>
+    {
+    }
 
     /// <summary>
-    /// (float, Vector3, Vector3, GameObject) UnityEvent subclass so the event will appear in the inspector.
+    ///     (ViewType, bool) UnityEvent subclass so the event will appear in the inspector.
     /// </summary>
-    [System.Serializable] public class UnityFloatVector3Vector3GameObjectEvent : UnityEvent<float, Vector3, Vector3, GameObject> { }
-
-    /// <summary>
-    /// (ViewType, bool) UnityEvent subclass so the event will appear in the inspector.
-    /// </summary>
-    [System.Serializable]
-    public class UnityViewTypeBoolEvent : UnityEvent<ViewType, bool> { }
+    [Serializable]
+    public class UnityViewTypeBoolEvent : UnityEvent<ViewType, bool>
+    {
+    }
 }

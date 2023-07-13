@@ -4,15 +4,15 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Game;
+using Opsive.UltimateCharacterController.Objects.CharacterAssist;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Demo
 {
-    using Opsive.UltimateCharacterController.Game;
-    using Opsive.UltimateCharacterController.Objects.CharacterAssist;
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// Resets the specified interactable objects when the character leaves the room.
+    ///     Resets the specified interactable objects when the character leaves the room.
     /// </summary>
     public class InteractRoomReset : MonoBehaviour
     {
@@ -20,29 +20,26 @@ namespace Opsive.UltimateCharacterController.Demo
         public GameObject[] m_InteractObjects;
 
         /// <summary>
-        /// An object has exited the trigger.
+        ///     An object has exited the trigger.
         /// </summary>
         /// <param name="other">The collider that exited the trigger.</param>
         private void OnTriggerExit(Collider other)
         {
             // A main character collider is required.
-            if (!MathUtility.InLayerMask(other.gameObject.layer, 1 << LayerManager.Character)) {
-                return;
-            }
+            if (!MathUtility.InLayerMask(other.gameObject.layer, 1 << LayerManager.Character)) return;
 
             ResetInteractObjects();
         }
 
         /// <summary>
-        /// Resets the interact room objects.
+        ///     Resets the interact room objects.
         /// </summary>
         private void ResetInteractObjects()
         {
-            for (int i = 0; i < m_InteractObjects.Length; ++i) {
+            for (var i = 0; i < m_InteractObjects.Length; ++i)
+            {
                 var animatedInteractables = m_InteractObjects[i].GetComponents<AnimatedInteractable>();
-                for (int j = 0; j < animatedInteractables.Length; ++j) {
-                    animatedInteractables[j].ResetInteract();
-                }
+                for (var j = 0; j < animatedInteractables.Length; ++j) animatedInteractables[j].ResetInteract();
             }
         }
     }

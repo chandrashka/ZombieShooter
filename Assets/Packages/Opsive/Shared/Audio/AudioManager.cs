@@ -4,52 +4,47 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
 namespace Opsive.Shared.Audio
 {
-    using UnityEngine;
-    using UnityEngine.SceneManagement;
-
     /// <summary>
-    /// The AudioManager manages the audio to ensure to ensure no two clips are playing on the same AudioSource at the same time.
+    ///     The AudioManager manages the audio to ensure to ensure no two clips are playing on the same AudioSource at the same
+    ///     time.
     /// </summary>
     public class AudioManager : MonoBehaviour
     {
         private static AudioManager s_Instance;
+        private static bool s_Initialized;
+
+        [Tooltip("A reference to the AudioManagerModule used by the AudioManager.")] [SerializeField]
+        protected AudioManagerModule m_AudioManagerModule;
+
+        private GameObject m_GameObject;
+
         private static AudioManager Instance
         {
             get
             {
-                if (!s_Initialized) {
+                if (!s_Initialized)
+                {
                     s_Instance = new GameObject("Audio Manager").AddComponent<AudioManager>();
                     s_Instance.Initialize(false);
                 }
+
                 return s_Instance;
             }
         }
-        private static bool s_Initialized;
 
-        [Tooltip("A reference to the AudioManagerModule used by the AudioManager.")]
-        [SerializeField] protected AudioManagerModule m_AudioManagerModule;
-
-        public AudioManagerModule AudioManagerModule { get { return m_AudioManagerModule; } set { m_AudioManagerModule = value; } }
-
-        private GameObject m_GameObject;
-
-        /// <summary>
-        /// The object has been enabled.
-        /// </summary>
-        private void OnEnable()
+        public AudioManagerModule AudioManagerModule
         {
-            // The object may have been enabled outside of the scene unloading.
-            if (s_Instance == null) {
-                s_Instance = this;
-                Initialize(false);
-                SceneManager.sceneUnloaded -= SceneUnloaded;
-            }
+            get => m_AudioManagerModule;
+            set => m_AudioManagerModule = value;
         }
 
         /// <summary>
-        /// The AudioManager can also play audio clips if the target GameObject is being disabled.
+        ///     The AudioManager can also play audio clips if the target GameObject is being disabled.
         /// </summary>
         private void Start()
         {
@@ -57,24 +52,45 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Initialize the Audio Manager.
+        ///     The object has been enabled.
+        /// </summary>
+        private void OnEnable()
+        {
+            // The object may have been enabled outside of the scene unloading.
+            if (s_Instance == null)
+            {
+                s_Instance = this;
+                Initialize(false);
+                SceneManager.sceneUnloaded -= SceneUnloaded;
+            }
+        }
+
+        /// <summary>
+        ///     The object has been disabled.
+        /// </summary>
+        private void OnDisable()
+        {
+            SceneManager.sceneUnloaded += SceneUnloaded;
+        }
+
+        /// <summary>
+        ///     Initialize the Audio Manager.
         /// </summary>
         protected virtual void Initialize(bool force)
         {
-            if(s_Initialized && ! force){ return; }
-            
+            if (s_Initialized && !force) return;
+
             s_Initialized = true;
-            
+
             m_GameObject = gameObject;
-            if (m_AudioManagerModule == null) {
+            if (m_AudioManagerModule == null)
                 m_AudioManagerModule = ScriptableObject.CreateInstance<AudioManagerModule>();
-            }
 
-            if (m_AudioManagerModule.DefaultAudioConfig == null) {
+            if (m_AudioManagerModule.DefaultAudioConfig == null)
                 m_AudioManagerModule.DefaultAudioConfig = ScriptableObject.CreateInstance<AudioConfig>();
-            }
 
-            if (m_AudioManagerModule.DefaultAudioConfig.AudioSourcePrefab == null) {
+            if (m_AudioManagerModule.DefaultAudioConfig.AudioSourcePrefab == null)
+            {
                 var audioSourceGameObject = new GameObject("AudioSource");
                 audioSourceGameObject.transform.parent = m_GameObject.transform;
                 var audioSource = audioSourceGameObject.AddComponent<AudioSource>();
@@ -85,25 +101,25 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Get the Audio Manager Module.
+        ///     Get the Audio Manager Module.
         /// </summary>
         /// <returns></returns>
         public static AudioManagerModule GetAudioManagerModule()
         {
             return Instance.AudioManagerModule;
         }
-        
+
         /// <summary>
-        /// Set the Audio Manager Module.
+        ///     Set the Audio Manager Module.
         /// </summary>
         /// <param name="audioManagerModule">The audio Manager Module to set.</param>
         public static void SetAudioManagerModule(AudioManagerModule audioManagerModule)
         {
-            Instance.AudioManagerModule  = audioManagerModule;
+            Instance.AudioManagerModule = audioManagerModule;
         }
 
         /// <summary>
-        /// Plays the audio clip.
+        ///     Plays the audio clip.
         /// </summary>
         /// <param name="gameObject">The GameObject that is playing the audio clip.</param>
         /// <param name="clip">The clip to play.</param>
@@ -114,7 +130,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip.
+        ///     Plays the audio clip.
         /// </summary>
         /// <param name="gameObject">The GameObject that is playing the audio clip.</param>
         /// <param name="clip">The clip to play.</param>
@@ -126,7 +142,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip with the specified delay.
+        ///     Plays the audio clip with the specified delay.
         /// </summary>
         /// <param name="gameObject">The GameObject that is playing the audio clip.</param>
         /// <param name="clip">The clip to play.</param>
@@ -138,7 +154,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip with the specified delay.
+        ///     Plays the audio clip with the specified delay.
         /// </summary>
         /// <param name="gameObject">The GameObject that is playing the audio clip.</param>
         /// <param name="clip">The clip to play.</param>
@@ -151,7 +167,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip.
+        ///     Plays the audio clip.
         /// </summary>
         /// <param name="gameObject">The GameObject that is playing the audio clip.</param>
         /// <param name="clip">The clip to play.</param>
@@ -163,7 +179,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip.
+        ///     Plays the audio clip.
         /// </summary>
         /// <param name="gameObject">The GameObject that is playing the audio clip.</param>
         /// <param name="clip">The clip to play.</param>
@@ -176,7 +192,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip.
+        ///     Plays the audio clip.
         /// </summary>
         /// <param name="gameObject">The GameObject that is playing the audio clip.</param>
         /// <param name="clip">The clip to play.</param>
@@ -189,7 +205,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip.
+        ///     Plays the audio clip.
         /// </summary>
         /// <param name="gameObject">The GameObject that is playing the audio clip.</param>
         /// <param name="clip">The clip to play.</param>
@@ -203,7 +219,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip.
+        ///     Plays the audio clip.
         /// </summary>
         /// <param name="gameObject">The GameObject that is playing the audio clip.</param>
         /// <param name="clip">The clip to play.</param>
@@ -215,7 +231,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip.
+        ///     Plays the audio clip.
         /// </summary>
         /// <param name="gameObject">The GameObject that is playing the audio clip.</param>
         /// <param name="audioConfig">The AudioConfig that should be played.</param>
@@ -226,7 +242,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip.
+        ///     Plays the audio clip.
         /// </summary>
         /// <param name="gameObject">The GameObject that shoud play the AudioClip.</param>
         /// <param name="clipInfo">The AudioClip and AudioConfig used to play the audio.</param>
@@ -237,21 +253,19 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Internal method which plays the audio clip.
+        ///     Internal method which plays the audio clip.
         /// </summary>
         /// <param name="playGameObject">The GameObject that should play the AudioClip.</param>
         /// <param name="clipInfo">The AudioClip and AudioConfig used to play the audio.</param>
         /// <returns>The result of playing the AudioClip.</returns>
         protected virtual PlayResult PlayInternal(GameObject playGameObject, AudioClipInfo clipInfo)
         {
-            if (playGameObject == null) {
-                playGameObject = m_GameObject;
-            }
+            if (playGameObject == null) playGameObject = m_GameObject;
             return m_AudioManagerModule.PlayAudio(playGameObject, clipInfo);
         }
 
         /// <summary>
-        /// Internal method which plays the audio clip.
+        ///     Internal method which plays the audio clip.
         /// </summary>
         /// <param name="playGameObject">The GameObject that is playing the audio clip.</param>
         /// <param name="clip">The clip to play.</param>
@@ -260,18 +274,19 @@ namespace Opsive.Shared.Audio
         /// <param name="loop">Does the clip loop?</param>
         /// <param name="delay">The number of seconds to delay the clip from playing.</param>
         /// <returns>The AudioSource that is playing the AudioClip (can be null).</returns>
-        protected virtual PlayResult PlayInternal(GameObject playGameObject, AudioClip clip, float volume, float pitch, bool loop, float delay)
+        protected virtual PlayResult PlayInternal(GameObject playGameObject, AudioClip clip, float volume, float pitch,
+            bool loop, float delay)
         {
             var audioModifier = new AudioModifier();
             audioModifier.LoopOverride = new BoolOverride(BoolOverride.Override.Constant, loop);
-            if (volume > -1) { audioModifier.VolumeOverride = new FloatOverride(FloatOverride.Override.Constant, volume); }
-            if (pitch > -1) { audioModifier.PitchOverride = new FloatOverride(FloatOverride.Override.Constant, pitch); }
-            if (delay > -1) { audioModifier.DelayOverride = new FloatOverride(FloatOverride.Override.Constant, delay); }
+            if (volume > -1) audioModifier.VolumeOverride = new FloatOverride(FloatOverride.Override.Constant, volume);
+            if (pitch > -1) audioModifier.PitchOverride = new FloatOverride(FloatOverride.Override.Constant, pitch);
+            if (delay > -1) audioModifier.DelayOverride = new FloatOverride(FloatOverride.Override.Constant, delay);
             return PlayInternal(playGameObject, new AudioClipInfo(clip, null, audioModifier));
         }
 
         /// <summary>
-        /// Plays the audio clip at the specified position.
+        ///     Plays the audio clip at the specified position.
         /// </summary>
         /// <param name="clip">The clip that should be played.</param>
         /// <param name="position">The position that the clip should be played at.</param>
@@ -282,7 +297,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip at the specified position.
+        ///     Plays the audio clip at the specified position.
         /// </summary>
         /// <param name="clip">The clip that should be played.</param>
         /// <param name="position">The position that the clip should be played at.</param>
@@ -295,7 +310,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Plays the audio clip at the specified position.
+        ///     Plays the audio clip at the specified position.
         /// </summary>
         /// <param name="clip">The clip that should be played.</param>
         /// <param name="audioConfig">Defines how the AudioClip should be played.</param>
@@ -303,50 +318,52 @@ namespace Opsive.Shared.Audio
         /// <returns>The result of playing the AudioClip.</returns>
         public static PlayResult PlayAtPosition(AudioClip clip, AudioConfig audioConfig, Vector3 position)
         {
-            return Instance.PlayAtPositionInternal(Instance.m_GameObject, new AudioClipInfo(clip, audioConfig), position);
+            return Instance.PlayAtPositionInternal(Instance.m_GameObject, new AudioClipInfo(clip, audioConfig),
+                position);
         }
 
         /// <summary>
-        /// Plays the audio clip at the specified position.
+        ///     Plays the audio clip at the specified position.
         /// </summary>
         /// <param name="audioConfig">Defines how the AudioClip should be played.</param>
         /// <param name="position">The position that the clip should be played at.</param>
         /// <returns>The result of playing the AudioClip.</returns>
         public static PlayResult PlayAtPosition(AudioConfig audioConfig, Vector3 position)
         {
-            return Instance.PlayAtPositionInternal(Instance.m_GameObject, new AudioClipInfo(null, audioConfig), position);
+            return Instance.PlayAtPositionInternal(Instance.m_GameObject, new AudioClipInfo(null, audioConfig),
+                position);
         }
 
         /// <summary>
-        /// Plays the audio clip at the specified position on the specified GameObject.
+        ///     Plays the audio clip at the specified position on the specified GameObject.
         /// </summary>
         /// <param name="gameObject">The GameObject that shoud play the clip.</param>
         /// <param name="clip">The clip that should be played.</param>
         /// <param name="audioConfig">Defines how the AudioClip should be played.</param>
         /// <param name="position">The position that the clip should be played at.</param>
         /// <returns>The result of playing the AudioClip.</returns>
-        public static PlayResult PlayAtPosition(GameObject gameObject, AudioClip clip, AudioConfig audioConfig, Vector3 position)
+        public static PlayResult PlayAtPosition(GameObject gameObject, AudioClip clip, AudioConfig audioConfig,
+            Vector3 position)
         {
             return Instance.PlayAtPositionInternal(gameObject, new AudioClipInfo(clip, audioConfig), position);
         }
 
         /// <summary>
-        /// Internal method which plays the audio clip at the specified position on the specified GameObject.
+        ///     Internal method which plays the audio clip at the specified position on the specified GameObject.
         /// </summary>
         /// <param name="playGameObject">The GameObject that shoud play the clip.</param>
         /// <param name="clipInfo">The AudioClip and config that should be played.</param>
         /// <param name="position">The position that the clip should be played at.</param>
         /// <returns>The result of playing the AudioClip.</returns>
-        protected virtual PlayResult PlayAtPositionInternal(GameObject playGameObject, AudioClipInfo clipInfo, Vector3 position)
+        protected virtual PlayResult PlayAtPositionInternal(GameObject playGameObject, AudioClipInfo clipInfo,
+            Vector3 position)
         {
-            if (playGameObject == null) {
-                playGameObject = m_GameObject;
-            }
+            if (playGameObject == null) playGameObject = m_GameObject;
             return m_AudioManagerModule.PlayAtPosition(playGameObject, clipInfo, position);
         }
 
         /// <summary>
-        /// Internal method which plays the audio clip at the specified position.
+        ///     Internal method which plays the audio clip at the specified position.
         /// </summary>
         /// <param name="clip">The clip that should be played.</param>
         /// <param name="position">The position that the clip should be played at.</param>
@@ -356,13 +373,14 @@ namespace Opsive.Shared.Audio
         protected virtual PlayResult PlayAtPositionInternal(AudioClip clip, Vector3 position, float volume, float pitch)
         {
             var audioModifier = new AudioModifier();
-            if (volume > -1) { audioModifier.VolumeOverride = new FloatOverride(FloatOverride.Override.Constant, volume); }
-            if (pitch > -1) { audioModifier.PitchOverride = new FloatOverride(FloatOverride.Override.Constant, pitch); }
-            return m_AudioManagerModule.PlayAtPosition(m_GameObject, new AudioClipInfo(clip, null, audioModifier), position);
+            if (volume > -1) audioModifier.VolumeOverride = new FloatOverride(FloatOverride.Override.Constant, volume);
+            if (pitch > -1) audioModifier.PitchOverride = new FloatOverride(FloatOverride.Override.Constant, pitch);
+            return m_AudioManagerModule.PlayAtPosition(m_GameObject, new AudioClipInfo(clip, null, audioModifier),
+                position);
         }
 
         /// <summary>
-        /// Stops any playing audio on the specified GameObject.
+        ///     Stops any playing audio on the specified GameObject.
         /// </summary>
         /// <param name="gameObject">The GameObject to stop the audio on.</param>
         public static AudioSource Stop(GameObject gameObject)
@@ -371,7 +389,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Stops any playing audio on the specified GameObject.
+        ///     Stops any playing audio on the specified GameObject.
         /// </summary>
         /// <param name="gameObject">The GameObject to stop the audio on.</param>
         /// <param name="audioConfig">The AudioConfig that should be stopped.</param>
@@ -382,7 +400,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Internal method which stops any playing audio on the specified GameObject and AudioConfig.
+        ///     Internal method which stops any playing audio on the specified GameObject and AudioConfig.
         /// </summary>
         /// <param name="playGameObject">The GameObject to stop the audio on.</param>
         /// <param name="audioConfig">The AudioConfig that should be stopped.</param>
@@ -392,7 +410,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Internal method which stops any playing audio on the specified GameObject and AudioConfig.
+        ///     Internal method which stops any playing audio on the specified GameObject and AudioConfig.
         /// </summary>
         /// <param name="gameObject">The GameObject to stop the audio on.</param>
         /// <param name="playResult">The PlayResult from when the audio was played.</param>
@@ -402,7 +420,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Internal method which stops any playing audio on the specified GameObject and AudioConfig.
+        ///     Internal method which stops any playing audio on the specified GameObject and AudioConfig.
         /// </summary>
         /// <param name="playGameObject">The GameObject to stop the audio on.</param>
         /// <param name="playResult">The PlayResult from when the audio was played.</param>
@@ -412,15 +430,13 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Copies the AudioSource properties from the original AudioSource to the new AudioSource.
+        ///     Copies the AudioSource properties from the original AudioSource to the new AudioSource.
         /// </summary>
         /// <param name="originalAudioSource">The original AudioSource to copy from.</param>
         /// <param name="newAudioSource">The AudioSource to copy to.</param>
         public static void CopyAudioProperties(AudioSource originalAudioSource, AudioSource newAudioSource)
         {
-            if (originalAudioSource == null || newAudioSource == null) {
-                return;
-            }
+            if (originalAudioSource == null || newAudioSource == null) return;
             newAudioSource.bypassEffects = originalAudioSource.bypassEffects;
             newAudioSource.bypassListenerEffects = originalAudioSource.bypassListenerEffects;
             newAudioSource.bypassReverbZones = originalAudioSource.bypassReverbZones;
@@ -447,7 +463,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Reset the initialized variable when the scene is no longer loaded.
+        ///     Reset the initialized variable when the scene is no longer loaded.
         /// </summary>
         /// <param name="scene">The scene that was unloaded.</param>
         private void SceneUnloaded(Scene scene)
@@ -458,15 +474,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// The object has been disabled.
-        /// </summary>
-        private void OnDisable()
-        {
-            SceneManager.sceneUnloaded += SceneUnloaded;
-        }
-
-        /// <summary>
-        /// Reset the static variables for domain reloading.
+        ///     Reset the static variables for domain reloading.
         /// </summary>
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void DomainReset()

@@ -75,6 +75,7 @@ GameObject:
   - component: {fileID: 6635579657866694777}
   - component: {fileID: 2026358862769337866}
   - component: {fileID: 1646467340917986924}
+  - component: {fileID: -9054184785150961920}
   m_Layer: 0
   m_Name: SM_Chr_Zombie_Female_01
   m_TagString: Untagged
@@ -197,7 +198,7 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 0
+  m_Constraints: 4
   m_CollisionDetection: 0
 --- !u!114 &1646467340917986924
 MonoBehaviour:
@@ -211,9 +212,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 558fce635305d6649bc543afb4d2fa51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 1
+  speed: 2
   player: {fileID: 0}
   animator: {fileID: 95496151978713162}
+  damage: 5
+--- !u!114 &-9054184785150961920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1015224441584018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 660d38987ac9bcf4f89e82bf2397cee2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  health: 10
+  killed: 0
+  enemyManager: {fileID: 0}
 --- !u!1 &1015304274438944
 GameObject:
   m_ObjectHideFlags: 0
@@ -2815,8 +2832,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.40920776, y: 0.2783776, z: 0.38197824}
-  m_Center: {x: -0.20460391, y: 0.025450096, z: -0.00000011920929}
+  m_Size: {x: 0.4092078, y: 0.33565244, z: 0.5027139}
+  m_Center: {x: -0.20460247, y: -0.003187337, z: -0.01426328}
 --- !u!54 &7125445784024563713
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -3878,8 +3895,8 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.16803439
-  m_Center: {x: -0.005434811, y: 0.09549453, z: 0.015188546}
+  m_Radius: 0.20256206
+  m_Center: {x: -0.010503843, y: 0.09549454, z: 0.017235056}
 --- !u!54 &8537506845924867171
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -6757,8 +6774,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.14509046, y: 0.27836922, z: 0.38197827}
-  m_Center: {x: -0.03138745, y: 0.0010077655, z: 0.00000013411045}
+  m_Size: {x: 0.1639374, y: 0.29174533, z: 0.5015637}
+  m_Center: {x: -0.040810768, y: 0.007695907, z: -0.0060603917}
 --- !u!54 &4888601148372852395
 Rigidbody:
   m_ObjectHideFlags: 0

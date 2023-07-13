@@ -4,25 +4,30 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.AnimatorAudioStates
 {
-    using UnityEngine;
-
     /// <summary>
-    /// The Sequence state will move from one state to the in a sequence order.
+    ///     The Sequence state will move from one state to the in a sequence order.
     /// </summary>
     public class Sequence : AnimatorAudioStateSelector
     {
-        [Tooltip("Resets the index back to the start after the specified delay. Set to -1 to never reset.")]
-        [SerializeField] protected float m_ResetDelay = -1;
-
-        public float ResetDelay { get { return m_ResetDelay; } set { m_ResetDelay = value; } }
-
         private int m_CurrentIndex = -1;
         private float m_LastUsedTime = -1;
 
+        [Tooltip("Resets the index back to the start after the specified delay. Set to -1 to never reset.")]
+        [SerializeField]
+        protected float m_ResetDelay = -1;
+
+        public float ResetDelay
+        {
+            get => m_ResetDelay;
+            set => m_ResetDelay = value;
+        }
+
         /// <summary>
-        /// Starts or stops the state selection.
+        ///     Starts or stops the state selection.
         /// </summary>
         /// <param name="start">Is the object starting?</param>
         public override void StartStopStateSelection(bool start)
@@ -30,13 +35,12 @@ namespace Opsive.UltimateCharacterController.Items.AnimatorAudioStates
             base.StartStopStateSelection(start);
 
             // The Sequence task can reset which index is returned if the next state is selected too slowly. 
-            if (start && m_ResetDelay != -1 && m_LastUsedTime != -1 && m_LastUsedTime + m_ResetDelay < Time.time) {
+            if (start && m_ResetDelay != -1 && m_LastUsedTime != -1 && m_LastUsedTime + m_ResetDelay < Time.time)
                 m_CurrentIndex = -1;
-            }
         }
 
         /// <summary>
-        /// Returns the current state index. -1 indicates this index is not set by the class.
+        ///     Returns the current state index. -1 indicates this index is not set by the class.
         /// </summary>
         /// <returns>The current state index.</returns>
         public override int GetStateIndex()
@@ -45,7 +49,7 @@ namespace Opsive.UltimateCharacterController.Items.AnimatorAudioStates
         }
 
         /// <summary>
-        /// Moves to the next state.
+        ///     Moves to the next state.
         /// </summary>
         /// <returns>Was the state changed successfully?</returns>
         public override bool NextState()
@@ -54,17 +58,15 @@ namespace Opsive.UltimateCharacterController.Items.AnimatorAudioStates
             m_LastUsedTime = Time.time;
             var count = 0;
             var size = m_States.Length;
-            if (size == 0) {
-                return false;
-            }
-            do {
+            if (size == 0) return false;
+            do
+            {
                 m_CurrentIndex = (m_CurrentIndex + 1) % size;
                 count++;
             } while ((!IsStateValid(m_CurrentIndex) || !m_States[m_CurrentIndex].Enabled) && count <= size);
+
             var stateChange = count <= size;
-            if (stateChange) {
-                ChangeStates(lastIndex, m_CurrentIndex);
-            }
+            if (stateChange) ChangeStates(lastIndex, m_CurrentIndex);
             return stateChange;
         }
     }

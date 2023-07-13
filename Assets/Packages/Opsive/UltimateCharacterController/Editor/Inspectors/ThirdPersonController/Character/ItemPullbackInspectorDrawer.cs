@@ -4,72 +4,68 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Character.Abilities;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Character;
+using Opsive.UltimateCharacterController.Game;
+using Opsive.UltimateCharacterController.ThirdPersonController.Character.Abilities.Items;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEditor;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonController.Character.Abilities
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Character.Abilities;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Character;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using Opsive.UltimateCharacterController.Game;
-    using Opsive.UltimateCharacterController.ThirdPersonController.Character.Abilities.Items;
-    using Opsive.UltimateCharacterController.Utility;
-    using System;
-    using UnityEditor;
-    using UnityEngine;
-
     /// <summary>
-    /// Draws a custom inspector for the ItemPullback Ability.
+    ///     Draws a custom inspector for the ItemPullback Ability.
     /// </summary>
     [InspectorDrawer(typeof(ItemPullback))]
     public class ItemPullbackColliderInspector : AbilityInspectorDrawer
     {
         /// <summary>
-        /// The ability has been added to the Ultimate Character Locomotion. Perform any initialization.
+        ///     The ability has been added to the Ultimate Character Locomotion. Perform any initialization.
         /// </summary>
         /// <param name="ability">The ability that has been added.</param>
         /// <param name="parent">The parent of the added ability.</param>
-        public override void AbilityAdded(Ability ability, UnityEngine.Object parent)
+        public override void AbilityAdded(Ability ability, Object parent)
         {
             AddCollider(ability as ItemPullback, (parent as Component).gameObject);
         }
 
         /// <summary>
-        /// The ability has been removed from the Ultimate Character Locomotion. Perform any destruction.
+        ///     The ability has been removed from the Ultimate Character Locomotion. Perform any destruction.
         /// </summary>
         /// <param name="ability">The ability that has been removed.</param>
         /// <param name="parent">The parent of the removed ability.</param>
-        public override void AbilityRemoved(Ability ability, UnityEngine.Object parent)
+        public override void AbilityRemoved(Ability ability, Object parent)
         {
             var itemPullbackAbility = ability as ItemPullback;
-            if (itemPullbackAbility.Collider != null) {
-                RemoveCollider(itemPullbackAbility);
-            }
+            if (itemPullbackAbility.Collider != null) RemoveCollider(itemPullbackAbility);
         }
 
         /// <summary>
-        /// Allows abilities to draw custom controls under the "Editor" foldout of the ability inspector.
+        ///     Allows abilities to draw custom controls under the "Editor" foldout of the ability inspector.
         /// </summary>
         /// <param name="ability">The ability whose editor controls are being retrieved.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
         /// <returns>Any custom editor controls. Can be null.</returns>
-        public override Action GetEditorCallback(Ability ability, UnityEngine.Object parent)
+        public override Action GetEditorCallback(Ability ability, Object parent)
         {
             var baseCallback = base.GetEditorCallback(ability, parent);
 
             baseCallback += () =>
             {
                 EditorGUILayout.BeginHorizontal();
-                GUILayout.Space(Shared.Editor.Inspectors.Utility.InspectorUtility.IndentWidth * 2);
+                GUILayout.Space(InspectorUtility.IndentWidth * 2);
                 var itemPullbackAbility = ability as ItemPullback;
                 GUI.enabled = itemPullbackAbility.Collider == null;
-                if (GUILayout.Button("Add Collider")) {
+                if (GUILayout.Button("Add Collider"))
                     AddCollider(itemPullbackAbility, (parent as Component).gameObject);
-                }
 
                 GUI.enabled = itemPullbackAbility.Collider != null;
-                if (GUILayout.Button("Remove Collider")) {
-                    RemoveCollider(itemPullbackAbility);
-                }
+                if (GUILayout.Button("Remove Collider")) RemoveCollider(itemPullbackAbility);
                 GUI.enabled = true;
                 EditorGUILayout.EndHorizontal();
             };
@@ -78,7 +74,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
         }
 
         /// <summary>
-        /// Adds the collider to the ability.
+        ///     Adds the collider to the ability.
         /// </summary>
         /// <param name="itemPullbackAbility">The ability to add the collider to.</param>
         /// <param name="parent">The parent of the item pullback ability.</param>
@@ -86,9 +82,8 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
         {
             // Position the collider under the Colliders GameObject if it exists.
             Transform collidersTransform;
-            if ((collidersTransform = parent.transform.Find("Colliders")) != null) {
+            if ((collidersTransform = parent.transform.Find("Colliders")) != null)
                 parent = collidersTransform.gameObject;
-            }
             var itemPullbackCollider = new GameObject("Item Pullback Collider");
             itemPullbackCollider.layer = LayerManager.SubCharacter;
             itemPullbackCollider.transform.SetParentOrigin(parent.transform);
@@ -101,12 +96,12 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
         }
 
         /// <summary>
-        /// Removes the collider from the ability.
+        ///     Removes the collider from the ability.
         /// </summary>
         /// <param name="itemPullbackAbility">The ability to remove the collider from.</param>
         private void RemoveCollider(ItemPullback itemPullbackAbility)
         {
-            UnityEngine.Object.DestroyImmediate(itemPullbackAbility.Collider.gameObject, true);
+            Object.DestroyImmediate(itemPullbackAbility.Collider.gameObject, true);
             itemPullbackAbility.Collider = null;
         }
     }

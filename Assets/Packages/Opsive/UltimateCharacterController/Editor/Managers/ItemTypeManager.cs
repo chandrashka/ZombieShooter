@@ -4,64 +4,43 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Editor.Controls;
+using Opsive.UltimateCharacterController.Inventory;
+using UnityEditor;
+using UnityEditor.IMGUI.Controls;
+using UnityEngine;
+using InspectorUtility = Opsive.UltimateCharacterController.Editor.Inspectors.Utility.InspectorUtility;
+using Object = UnityEngine.Object;
+
 namespace Opsive.UltimateCharacterController.Editor.Managers
 {
-    using Opsive.UltimateCharacterController.Editor.Controls;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using Opsive.UltimateCharacterController.Inventory;
-    using System;
-    using System.Collections.Generic;
-    using UnityEditor;
-    using UnityEditor.IMGUI.Controls;
-    using UnityEngine;
-
     /// <summary>
-    /// The ItemTypeManager will draw any ItemType properties
+    ///     The ItemTypeManager will draw any ItemType properties
     /// </summary>
     [Serializable]
     [OrderedEditorItem("Item Types", 3)]
     public class ItemTypeManager : Manager
     {
         private static GUIStyle s_TreeRowHeaderGUIStyle;
-        public static GUIStyle TreeRowHeaderGUIStyle
-        {
-            get
-            {
-                if (s_TreeRowHeaderGUIStyle == null) {
-                    s_TreeRowHeaderGUIStyle = new GUIStyle("RL Header");
-                    // The header background image should stretch with the size of the rect.
-                    s_TreeRowHeaderGUIStyle.fixedHeight = 0;
-                    s_TreeRowHeaderGUIStyle.stretchHeight = true;
-                }
-                return s_TreeRowHeaderGUIStyle;
-            }
-        }
         private static GUIStyle s_TreeRowBackgroundGUIStyle;
-        public static GUIStyle TreeRowBackgroundGUIStyle
-        {
-            get
-            {
-                if (s_TreeRowBackgroundGUIStyle == null) {
-                    s_TreeRowBackgroundGUIStyle = new GUIStyle("RL Background");
-                }
-                return s_TreeRowBackgroundGUIStyle;
-            }
-        }
-
-        private string[] m_ToolbarStrings = { "Item Types", "Categories"};
         [SerializeField] private ItemCollection m_ItemCollection;
         [SerializeField] private bool m_DrawItemType = true;
         [SerializeField] private string m_CategoryName;
         [SerializeField] private string m_ItemTypeName;
         [SerializeField] private TreeViewState m_CategoryTreeViewState;
         [SerializeField] private TreeViewState m_ItemTypeTreeViewState;
-        private FlatTreeView<CategoryCollectionModal> m_CategoryTreeView;
-        private FlatTreeView<ItemTypeCollectionModal> m_ItemTypeTreeView;
         private SearchField m_CategorySearchField;
+        private FlatTreeView<CategoryCollectionModal> m_CategoryTreeView;
         private SearchField m_ItemTypeSearchField;
+        private FlatTreeView<ItemTypeCollectionModal> m_ItemTypeTreeView;
+
+        private string[] m_ToolbarStrings = { "Item Types", "Categories" };
 
         /// <summary>
-        /// Default ItemTypeManager constructor.
+        ///     Default ItemTypeManager constructor.
         /// </summary>
         public ItemTypeManager()
         {
@@ -88,8 +67,33 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             Undo.undoRedoPerformed += OnUndoRedo;
         }
 
+        public static GUIStyle TreeRowHeaderGUIStyle
+        {
+            get
+            {
+                if (s_TreeRowHeaderGUIStyle == null)
+                {
+                    s_TreeRowHeaderGUIStyle = new GUIStyle("RL Header");
+                    // The header background image should stretch with the size of the rect.
+                    s_TreeRowHeaderGUIStyle.fixedHeight = 0;
+                    s_TreeRowHeaderGUIStyle.stretchHeight = true;
+                }
+
+                return s_TreeRowHeaderGUIStyle;
+            }
+        }
+
+        public static GUIStyle TreeRowBackgroundGUIStyle
+        {
+            get
+            {
+                if (s_TreeRowBackgroundGUIStyle == null) s_TreeRowBackgroundGUIStyle = new GUIStyle("RL Background");
+                return s_TreeRowBackgroundGUIStyle;
+            }
+        }
+
         /// <summary>
-        /// Unsubscribe from any events when the object is destroyed.
+        ///     Unsubscribe from any events when the object is destroyed.
         /// </summary>
         ~ItemTypeManager()
         {
@@ -99,28 +103,28 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// Initialize the manager after deserialization.
+        ///     Initialize the manager after deserialization.
         /// </summary>
         public override void Initialize(MainManagerWindow mainManagerWindow)
         {
             base.Initialize(mainManagerWindow);
 
             // Look for the ItemCollection within the scene if it isn't already populated.
-            if (m_ItemCollection == null) {
-                m_ItemCollection = ManagerUtility.FindItemCollection(m_MainManagerWindow);
-            }
+            if (m_ItemCollection == null) m_ItemCollection = ManagerUtility.FindItemCollection(m_MainManagerWindow);
 
             // The ItemCollection may have been serialized.
-            if (m_ItemCollection != null) {
+            if (m_ItemCollection != null)
+            {
                 // The category may be invalid.
                 var categories = m_ItemCollection.Categories;
-                if (categories != null) {
-                    for (int i = categories.Length - 1; i > -1; --i) {
-                        if (categories[i] != null) {
-                            continue;
-                        }
+                if (categories != null)
+                {
+                    for (var i = categories.Length - 1; i > -1; --i)
+                    {
+                        if (categories[i] != null) continue;
                         ArrayUtility.RemoveAt(ref categories, i);
                     }
+
                     m_ItemCollection.Categories = categories;
                 }
 
@@ -149,30 +153,35 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// Draws the ItemTypeManager.
+        ///     Draws the ItemTypeManager.
         /// </summary>
         public override void OnGUI()
         {
-            var toolbarSelection = GUILayout.Toolbar(m_DrawItemType ? 0 : 1, m_ToolbarStrings, EditorStyles.toolbarButton);
+            var toolbarSelection =
+                GUILayout.Toolbar(m_DrawItemType ? 0 : 1, m_ToolbarStrings, EditorStyles.toolbarButton);
             m_DrawItemType = toolbarSelection == 0;
             GUILayout.Space(10);
 
-            if (m_DrawItemType) {
-                GUILayout.Label("Item Types", Shared.Editor.Inspectors.Utility.InspectorStyles.CenterBoldLabel);
-            } else {
-                GUILayout.Label("Categories", Shared.Editor.Inspectors.Utility.InspectorStyles.CenterBoldLabel);
-            }
+            if (m_DrawItemType)
+                GUILayout.Label("Item Types", InspectorStyles.CenterBoldLabel);
+            else
+                GUILayout.Label("Categories", InspectorStyles.CenterBoldLabel);
 
             EditorGUILayout.BeginHorizontal();
-            var itemCollection = EditorGUILayout.ObjectField("Item Collection", m_ItemCollection, typeof(ItemCollection), false) as ItemCollection;
-            if (GUILayout.Button("Create", GUILayout.MaxWidth(100))) {
-                var path = EditorUtility.SaveFilePanel("Save Item Collection", "Assets", "ItemCollection.asset", "asset");
-                if (path.Length != 0 && Application.dataPath.Length < path.Length) {
+            var itemCollection =
+                EditorGUILayout.ObjectField("Item Collection", m_ItemCollection, typeof(ItemCollection), false) as
+                    ItemCollection;
+            if (GUILayout.Button("Create", GUILayout.MaxWidth(100)))
+            {
+                var path = EditorUtility.SaveFilePanel("Save Item Collection", "Assets", "ItemCollection.asset",
+                    "asset");
+                if (path.Length != 0 && Application.dataPath.Length < path.Length)
+                {
                     itemCollection = ScriptableObject.CreateInstance<ItemCollection>();
                     var category = ScriptableObject.CreateInstance<Category>();
                     category.ID = Category.GenerateID();
                     category.name = "Items";
-                    itemCollection.Categories = new Category[] { category };
+                    itemCollection.Categories = new[] { category };
 
                     // Save the collection.
                     path = string.Format("Assets/{0}", path.Substring(Application.dataPath.Length + 1));
@@ -183,48 +192,58 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                     AssetDatabase.ImportAsset(path);
                 }
             }
+
             EditorGUILayout.EndHorizontal();
 
-            if (itemCollection != m_ItemCollection) {
+            if (itemCollection != m_ItemCollection)
+            {
                 m_ItemCollection = itemCollection;
-                if (m_ItemCollection != null) {
-                    EditorPrefs.SetString(ManagerUtility.LastItemCollectionGUIDString, AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(itemCollection)));
+                if (m_ItemCollection != null)
+                {
+                    EditorPrefs.SetString(ManagerUtility.LastItemCollectionGUIDString,
+                        AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(itemCollection)));
                     (m_CategoryTreeView.TreeModal as CategoryCollectionModal).ItemCollection = m_ItemCollection;
                     (m_ItemTypeTreeView.TreeModal as ItemTypeCollectionModal).ItemCollection = m_ItemCollection;
-                } else {
+                }
+                else
+                {
                     EditorPrefs.SetString(ManagerUtility.LastItemCollectionGUIDString, string.Empty);
                     (m_CategoryTreeView.TreeModal as CategoryCollectionModal).ItemCollection = null;
                     (m_ItemTypeTreeView.TreeModal as ItemTypeCollectionModal).ItemCollection = null;
                 }
+
                 m_CategoryTreeView.Reload();
                 m_ItemTypeTreeView.Reload();
             }
 
             // ItemCollection must be populated in order to create Categories/ItemTypes.
-            if (m_ItemCollection == null) {
-                EditorGUILayout.HelpBox("An ItemCollection must be selected. Use the \"Create\" button to create a new collection.", MessageType.Error);
+            if (m_ItemCollection == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "An ItemCollection must be selected. Use the \"Create\" button to create a new collection.",
+                    MessageType.Error);
                 return;
             }
 
-            if (m_DrawItemType) {
+            if (m_DrawItemType)
                 DrawItemTypes();
-            } else {
+            else
                 DrawCategories();
-            }
         }
 
         /// <summary>
-        /// Draws the Categories editor.
+        ///     Draws the Categories editor.
         /// </summary>
         private void DrawCategories()
         {
             var categories = m_ItemCollection.Categories;
-            if (categories == null) {
+            if (categories == null)
+            {
                 // At least one category needs to exist.
                 var category = ScriptableObject.CreateInstance<Category>();
                 category.ID = Category.GenerateID();
                 category.name = "Items";
-                categories = m_ItemCollection.Categories = new Category[] { category };
+                categories = m_ItemCollection.Categories = new[] { category };
 
                 AssetDatabase.AddObjectToAsset(category, AssetDatabase.GetAssetPath(m_ItemCollection));
                 AssetDatabase.SaveAssets();
@@ -234,8 +253,11 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             EditorGUILayout.BeginHorizontal();
             GUI.SetNextControlName("CategoryName");
             m_CategoryName = EditorGUILayout.TextField("Name", m_CategoryName);
-            GUI.enabled = !string.IsNullOrEmpty(m_CategoryName) && (m_CategoryTreeView.TreeModal as CategoryCollectionModal).IsUniqueName(m_CategoryName);
-            if (GUILayout.Button("Add", GUILayout.Width(100)) || (Event.current.keyCode == KeyCode.Return && GUI.GetNameOfFocusedControl() == "CategoryName")) {
+            GUI.enabled = !string.IsNullOrEmpty(m_CategoryName) &&
+                          (m_CategoryTreeView.TreeModal as CategoryCollectionModal).IsUniqueName(m_CategoryName);
+            if (GUILayout.Button("Add", GUILayout.Width(100)) || (Event.current.keyCode == KeyCode.Return &&
+                                                                  GUI.GetNameOfFocusedControl() == "CategoryName"))
+            {
                 // Create the new Category.
                 var category = ScriptableObject.CreateInstance<Category>();
                 category.ID = Category.GenerateID();
@@ -254,22 +276,27 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                 GUI.FocusControl("");
                 m_CategoryTreeView.Reload();
             }
+
             EditorGUILayout.EndHorizontal();
             GUI.enabled = true;
             GUILayout.Space(5);
 
-            if (categories != null) {
+            if (categories != null)
+            {
                 var guiRect = GUILayoutUtility.GetLastRect();
                 var height = m_MainManagerWindow.position.height - guiRect.yMax - 21;
-                m_CategoryTreeView.searchString = m_CategorySearchField.OnGUI(new Rect(0, guiRect.yMax, m_MainManagerWindow.position.width - m_MainManagerWindow.MenuWidth - 2, 20), m_CategoryTreeView.searchString);
-                m_CategoryTreeView.OnGUI(new Rect(0, guiRect.yMax + 20, m_MainManagerWindow.position.width - m_MainManagerWindow.MenuWidth - 1, height));
+                m_CategoryTreeView.searchString = m_CategorySearchField.OnGUI(
+                    new Rect(0, guiRect.yMax, m_MainManagerWindow.position.width - m_MainManagerWindow.MenuWidth - 2,
+                        20), m_CategoryTreeView.searchString);
+                m_CategoryTreeView.OnGUI(new Rect(0, guiRect.yMax + 20,
+                    m_MainManagerWindow.position.width - m_MainManagerWindow.MenuWidth - 1, height));
                 // OnGUI doesn't update the GUILayout rect so add a blank space to account for it.
                 GUILayout.Space(height + 10);
             }
         }
 
         /// <summary>
-        /// Draws the ItemTypes editor.
+        ///     Draws the ItemTypes editor.
         /// </summary>
         private void DrawItemTypes()
         {
@@ -278,14 +305,16 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             EditorGUILayout.BeginHorizontal();
             GUI.SetNextControlName("ItemTypeName");
             m_ItemTypeName = EditorGUILayout.TextField("Name", m_ItemTypeName);
-            GUI.enabled = !string.IsNullOrEmpty(m_ItemTypeName) && (m_ItemTypeTreeView.TreeModal as ItemTypeCollectionModal).IsUniqueName(m_ItemTypeName);
-            if (GUILayout.Button("Add", GUILayout.Width(100)) || (Event.current.keyCode == KeyCode.Return && GUI.GetNameOfFocusedControl() == "ItemTypeName")) {
+            GUI.enabled = !string.IsNullOrEmpty(m_ItemTypeName) &&
+                          (m_ItemTypeTreeView.TreeModal as ItemTypeCollectionModal).IsUniqueName(m_ItemTypeName);
+            if (GUILayout.Button("Add", GUILayout.Width(100)) || (Event.current.keyCode == KeyCode.Return &&
+                                                                  GUI.GetNameOfFocusedControl() == "ItemTypeName"))
+            {
                 // Create the new ItemType.
                 var itemType = ScriptableObject.CreateInstance<ItemType>();
                 itemType.name = m_ItemTypeName;
-                if (m_ItemCollection.Categories != null && m_ItemCollection.Categories.Length > 0) {
-                    itemType.CategoryIDs = new uint[] { m_ItemCollection.Categories[0].ID };
-                }
+                if (m_ItemCollection.Categories != null && m_ItemCollection.Categories.Length > 0)
+                    itemType.CategoryIDs = new[] { m_ItemCollection.Categories[0].ID };
 
                 // Add the ItemType to the ItemCollection.
                 Array.Resize(ref itemTypes, itemTypes != null ? itemTypes.Length + 1 : 1);
@@ -297,7 +326,8 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                 AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_ItemCollection));
 
                 // Select the newly added item.
-                m_ItemTypeTreeView.SetSelection(new List<int>() { (int)itemType.ID }, TreeViewSelectionOptions.FireSelectionChanged);
+                m_ItemTypeTreeView.SetSelection(new List<int> { (int)itemType.ID },
+                    TreeViewSelectionOptions.FireSelectionChanged);
 
                 // Reset.
                 EditorUtility.SetDirty(m_ItemCollection);
@@ -305,22 +335,27 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                 GUI.FocusControl("");
                 m_ItemTypeTreeView.Reload();
             }
+
             EditorGUILayout.EndHorizontal();
             GUI.enabled = true;
             GUILayout.Space(5);
 
-            if (itemTypes != null && itemTypes.Length > 0) {
+            if (itemTypes != null && itemTypes.Length > 0)
+            {
                 var guiRect = GUILayoutUtility.GetLastRect();
                 var height = m_MainManagerWindow.position.height - guiRect.yMax - 21;
-                m_ItemTypeTreeView.searchString = m_ItemTypeSearchField.OnGUI(new Rect(0, guiRect.yMax, m_MainManagerWindow.position.width - m_MainManagerWindow.MenuWidth - 2, 20), m_ItemTypeTreeView.searchString);
-                m_ItemTypeTreeView.OnGUI(new Rect(0, guiRect.yMax + 20, m_MainManagerWindow.position.width - m_MainManagerWindow.MenuWidth - 1, height));
+                m_ItemTypeTreeView.searchString = m_ItemTypeSearchField.OnGUI(
+                    new Rect(0, guiRect.yMax, m_MainManagerWindow.position.width - m_MainManagerWindow.MenuWidth - 2,
+                        20), m_ItemTypeTreeView.searchString);
+                m_ItemTypeTreeView.OnGUI(new Rect(0, guiRect.yMax + 20,
+                    m_MainManagerWindow.position.width - m_MainManagerWindow.MenuWidth - 1, height));
                 // OnGUI doesn't update the GUILayout rect so add a blank space to account for it.
                 GUILayout.Space(height + 10);
             }
         }
 
         /// <summary>
-        /// Save the current state of the tree before it is changed for the undo manager.
+        ///     Save the current state of the tree before it is changed for the undo manager.
         /// </summary>
         private void OnTreeWillChange()
         {
@@ -328,7 +363,7 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// The tree has changed - mark for serialization.
+        ///     The tree has changed - mark for serialization.
         /// </summary>
         private void OnTreeChange()
         {
@@ -337,7 +372,7 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// The tree has changed - mark for serialization and reload the tree.
+        ///     The tree has changed - mark for serialization and reload the tree.
         /// </summary>
         private void OnTreeChangeReload()
         {
@@ -348,7 +383,7 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// Reload the TreeView with an undo redo.
+        ///     Reload the TreeView with an undo redo.
         /// </summary>
         private void OnUndoRedo()
         {
@@ -359,33 +394,30 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
     }
 
     /// <summary>
-    /// The CategoryCollectionModal inherits TreeModal to provide a tree modal for the category class.
+    ///     The CategoryCollectionModal inherits TreeModal to provide a tree modal for the category class.
     /// </summary>
     public class CategoryCollectionModal : TreeModal
     {
         // Specifies the height of the row.
         private const float c_RowHeight = 26;
+
         // Specifies the height of the selected row.
         private const float c_SelectedRowHeight = 60;
 
-        private ItemCollection m_ItemCollection;
-
-        public ItemCollection ItemCollection { get { return m_ItemCollection; } set { m_ItemCollection = value; } }
+        public ItemCollection ItemCollection { get; set; }
 
         /// <summary>
-        /// Returns the number of rows in the tree.
+        ///     Returns the number of rows in the tree.
         /// </summary>
         /// <returns>The number of rows in the tree.</returns>
         public override int GetRowCount()
         {
-            if (m_ItemCollection == null || m_ItemCollection.Categories == null) {
-                return 0;
-            }
-            return m_ItemCollection.Categories.Length;
+            if (ItemCollection == null || ItemCollection.Categories == null) return 0;
+            return ItemCollection.Categories.Length;
         }
 
         /// <summary>
-        /// Returns the height of the row.
+        ///     Returns the height of the row.
         /// </summary>
         /// <param name="item">The item that occupies the row with the requested height.</param>
         /// <param name="state">The state of the tree.</param>
@@ -396,7 +428,7 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// Draws the GUI for the row.
+        ///     Draws the GUI for the row.
         /// </summary>
         /// <param name="rowRect">The rect of the row being drawn.</param>
         /// <param name="item">The item that occupies the row which is being drawn.</param>
@@ -419,50 +451,45 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             EditorGUI.BeginChangeCheck();
 
             // Draws the category controls.
-            if (DrawControls(rowRect, item.id)) {
-                if (EditorGUI.EndChangeCheck()) {
+            if (DrawControls(rowRect, item.id))
+            {
+                if (EditorGUI.EndChangeCheck())
+                {
                     // Serialize the changes.
-                    EditorUtility.SetDirty(m_ItemCollection);
-                    if (m_AfterModalChange != null) {
-                        m_AfterModalChange();
-                    }
+                    EditorUtility.SetDirty(ItemCollection);
+                    if (m_AfterModalChange != null) m_AfterModalChange();
                 }
+
                 return;
             }
 
             // If the category is selected then draw the details.
-            if (isSelected) {
-                DrawDetails(rowRect, item.id);
-            }
+            if (isSelected) DrawDetails(rowRect, item.id);
 
-            if (EditorGUI.EndChangeCheck()) {
+            if (EditorGUI.EndChangeCheck())
+            {
                 // Serialize the changes.
-                EditorUtility.SetDirty(m_ItemCollection);
-                if (m_AfterModalChange != null) {
-                    m_AfterModalChange();
-                }
+                EditorUtility.SetDirty(ItemCollection);
+                if (m_AfterModalChange != null) m_AfterModalChange();
             }
         }
 
         /// <summary>
-        /// Draws the background of the Category.
+        ///     Draws the background of the Category.
         /// </summary>
         /// <param name="rowRect">The rect to draw the background in.</param>
         /// <param name="isSelected">Is the current Category selected?</param>
         private void DrawBackground(Rect rowRect, bool isSelected)
         {
-            if (Event.current.type != EventType.Repaint) {
-                return;
-            }
+            if (Event.current.type != EventType.Repaint) return;
 
             var rect = rowRect;
             // If the row is selected then clamp the header background to the row height to prevent it from taking up the entire height.
-            if (isSelected) {
-                rect.height = c_RowHeight;
-            }
+            if (isSelected) rect.height = c_RowHeight;
             ItemTypeManager.TreeRowHeaderGUIStyle.Draw(rect, false, false, false, false);
 
-            if (isSelected) {
+            if (isSelected)
+            {
                 rect.y += rect.height;
                 rect.height = rowRect.height - rect.height;
                 ItemTypeManager.TreeRowBackgroundGUIStyle.Draw(rect, false, false, false, false);
@@ -470,7 +497,7 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// Draws the header of the Category.
+        ///     Draws the header of the Category.
         /// </summary>
         /// <param name="rowRect">The rect of the Category row.</param>
         /// <param name="id">The id of the Category to draw the header of.</param>
@@ -479,14 +506,12 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         {
             var rect = rowRect;
             rect.x += 4;
-            if (isSelected) {
-                rect.y -= 17;
-            }
-            GUI.Label(rect, m_ItemCollection.Categories[id].name);
+            if (isSelected) rect.y -= 17;
+            GUI.Label(rect, ItemCollection.Categories[id].name);
         }
 
         /// <summary>
-        /// Draws the identify, duplicate and delete buttons for the category.
+        ///     Draws the identify, duplicate and delete buttons for the category.
         /// </summary>
         /// <param name="rowRect">The rect of the category row.</param>
         /// <param name="id">The id of the category to draw the controls of.</param>
@@ -498,13 +523,15 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             duplicateRect.width = 20;
             duplicateRect.y += 4;
             duplicateRect.height = 16;
-            if (GUI.Button(duplicateRect, Shared.Editor.Inspectors.Utility.InspectorStyles.DuplicateIcon, Shared.Editor.Inspectors.Utility.InspectorStyles.NoPaddingButtonStyle)) {
+            if (GUI.Button(duplicateRect, InspectorStyles.DuplicateIcon, InspectorStyles.NoPaddingButtonStyle))
+            {
                 // Generate a unique name for the category.
-                var categories = m_ItemCollection.Categories;
+                var categories = ItemCollection.Categories;
                 var category = categories[id];
                 var index = 1;
                 string name;
-                do {
+                do
+                {
                     name = category.name + " (" + index + ")";
                     index++;
                 } while (!IsUniqueName(name));
@@ -512,15 +539,15 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                 var clonedCategory = ScriptableObject.CreateInstance<Category>();
                 clonedCategory.ID = Category.GenerateID();
                 clonedCategory.name = name;
-                AssetDatabase.AddObjectToAsset(clonedCategory, m_ItemCollection);
+                AssetDatabase.AddObjectToAsset(clonedCategory, ItemCollection);
 
                 // Add the Category to the ItemCollection.
                 Array.Resize(ref categories, categories.Length + 1);
                 categories[categories.Length - 1] = clonedCategory;
-                m_ItemCollection.Categories = categories;
-                EditorUtility.SetDirty(m_ItemCollection);
+                ItemCollection.Categories = categories;
+                EditorUtility.SetDirty(ItemCollection);
                 AssetDatabase.SaveAssets();
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_ItemCollection));
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(ItemCollection));
                 return true;
             }
 
@@ -529,46 +556,50 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             deleteRect.width = 18;
             deleteRect.y += 4;
             deleteRect.height = 16;
-            GUI.enabled = m_ItemCollection.Categories.Length > 1;
-            if (GUI.Button(deleteRect, Shared.Editor.Inspectors.Utility.InspectorStyles.DeleteIcon, Shared.Editor.Inspectors.Utility.InspectorStyles.NoPaddingButtonStyle)) {
+            GUI.enabled = ItemCollection.Categories.Length > 1;
+            if (GUI.Button(deleteRect, InspectorStyles.DeleteIcon, InspectorStyles.NoPaddingButtonStyle))
+            {
                 // The category can't be deleted if other ItemTypes depend on it.
                 var canRemove = true;
-                for (int i = 0; i < m_ItemCollection.ItemTypes.Length; ++i) {
-                    var categoryIDs = m_ItemCollection.ItemTypes[i].CategoryIDs;
-                    for (int j = 0; j < categoryIDs.Length; ++j) {
-                        if (categoryIDs[j] == m_ItemCollection.Categories[id].ID) {
-                            EditorUtility.DisplayDialog("Unable to Delete", "Unable to delete the category: the ItemType " + m_ItemCollection.ItemTypes[i].name + " uses this category", "OK");
+                for (var i = 0; i < ItemCollection.ItemTypes.Length; ++i)
+                {
+                    var categoryIDs = ItemCollection.ItemTypes[i].CategoryIDs;
+                    for (var j = 0; j < categoryIDs.Length; ++j)
+                        if (categoryIDs[j] == ItemCollection.Categories[id].ID)
+                        {
+                            EditorUtility.DisplayDialog("Unable to Delete",
+                                "Unable to delete the category: the ItemType " + ItemCollection.ItemTypes[i].name +
+                                " uses this category", "OK");
                             canRemove = false;
                             break;
                         }
-                    }
-                    if (!canRemove) {
-                        break;
-                    }
+
+                    if (!canRemove) break;
                 }
 
-                if (canRemove) {
-                    if (m_BeforeModalChange != null) {
-                        m_BeforeModalChange();
-                    }
+                if (canRemove)
+                {
+                    if (m_BeforeModalChange != null) m_BeforeModalChange();
 
                     // Remove the category.
-                    Undo.DestroyObjectImmediate(m_ItemCollection.Categories[id]);
-                    var categories = new List<Category>(m_ItemCollection.Categories);
+                    Undo.DestroyObjectImmediate(ItemCollection.Categories[id]);
+                    var categories = new List<Category>(ItemCollection.Categories);
                     categories.RemoveAt(id);
-                    m_ItemCollection.Categories = categories.ToArray();
-                    EditorUtility.SetDirty(m_ItemCollection);
-                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_ItemCollection));
+                    ItemCollection.Categories = categories.ToArray();
+                    EditorUtility.SetDirty(ItemCollection);
+                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(ItemCollection));
                 }
+
                 GUI.enabled = true;
                 return true;
             }
+
             GUI.enabled = true;
             return false;
         }
 
         /// <summary>
-        /// Draws the details of the category.
+        ///     Draws the details of the category.
         /// </summary>
         /// <param name="rowRect">The rect of the category row.</param>
         /// <param name="id">The id of the category to draw the details of.</param>
@@ -577,136 +608,129 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             var rect = rowRect;
             rect.x += 4;
             rect.y += c_RowHeight;
-            Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(m_ItemCollection, "Category Change");
+            Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(ItemCollection, "Category Change");
 
-            var category = m_ItemCollection.Categories[id];
+            var category = ItemCollection.Categories[id];
 
             // Name property.
             var nameRect = rect;
             nameRect.y += 6;
             nameRect.height = 16;
             nameRect.width -= 16;
-            var name = InspectorUtility.DrawEditorWithoutSelectAll(() => InspectorUtility.ClampTextField(nameRect, "Name", category.name, 22));
+            var name = InspectorUtility.DrawEditorWithoutSelectAll(() =>
+                InspectorUtility.ClampTextField(nameRect, "Name", category.name, 22));
             // The name must be unique.
-            if (name != category.name) {
-                if (IsUniqueName(name)) {
+            if (name != category.name)
+                if (IsUniqueName(name))
+                {
                     category.name = name;
                     AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(category));
                 }
-            }
         }
 
         /// <summary>
-        /// Is the category name unique?
+        ///     Is the category name unique?
         /// </summary>
         /// <param name="name">The name of the category.</param>
         /// <returns>True if the category name is unique.</returns>
         public bool IsUniqueName(string name)
         {
-            if (m_ItemCollection.Categories == null) {
-                return true;
-            }
-            for (int i = 0; i < m_ItemCollection.Categories.Length; ++i) {
-                if (String.Compare(m_ItemCollection.Categories[i].name.ToLower(), name.ToLower(), StringComparison.Ordinal) == 0) {
+            if (ItemCollection.Categories == null) return true;
+            for (var i = 0; i < ItemCollection.Categories.Length; ++i)
+                if (string.Compare(ItemCollection.Categories[i].name.ToLower(), name.ToLower(),
+                        StringComparison.Ordinal) == 0)
                     return false;
-                }
-            }
             return true;
         }
 
         /// <summary>
-        /// Moves the rows to the specified index.
+        ///     Moves the rows to the specified index.
         /// </summary>
         /// <param name="rows">The rows being moved.</param>
         /// <param name="insertIndex">The index to insert the rows at.</param>
         /// <returns>An updated list of row ids.</returns>
         public override List<int> MoveRows(List<int> rows, int insertIndex)
         {
-            if (m_BeforeModalChange != null) {
-                m_BeforeModalChange();
-            }
+            if (m_BeforeModalChange != null) m_BeforeModalChange();
 
             var insertIDs = new List<int>();
-            var categories = m_ItemCollection.Categories;
+            var categories = ItemCollection.Categories;
             // Move the rows in the array. This method will shift each rows without needing to allocate a new array for each move.
-            for (int i = 0; i < rows.Count; ++i) {
+            for (var i = 0; i < rows.Count; ++i)
+            {
                 // Shift the array rows up to make space for the moved rows.
-                if (insertIndex < rows[i]) {
+                if (insertIndex < rows[i])
+                {
                     var insertElement = categories[rows[i]];
-                    for (int j = rows[i]; j > insertIndex + i; --j) {
-                        categories[j] = categories[j - 1];
-                    }
+                    for (var j = rows[i]; j > insertIndex + i; --j) categories[j] = categories[j - 1];
                     categories[insertIndex + i] = insertElement;
-                } else {
+                }
+                else
+                {
                     // Shift the array rows down to make space for the moved rows.
                     insertIndex--;
                     var insertElement = categories[rows[i] - i];
-                    for (int j = rows[i] - i; j < insertIndex + i; ++j) {
-                        categories[j] = categories[j + 1];
-                    }
+                    for (var j = rows[i] - i; j < insertIndex + i; ++j) categories[j] = categories[j + 1];
                     categories[insertIndex + i] = insertElement;
                 }
+
                 insertIDs.Add(insertIndex + i);
             }
+
             return insertIDs;
         }
 
         /// <summary>
-        /// Does the specified row id match the search?
+        ///     Does the specified row id match the search?
         /// </summary>
         /// <param name="id">The id of the row.</param>
         /// <param name="searchString">The string value of the search.</param>
         /// <returns>True if the row matches the search string.</returns>
         public override bool MatchesSearch(int id, string searchString)
         {
-            return m_ItemCollection.Categories[id].name.IndexOf(searchString, StringComparison.OrdinalIgnoreCase) >= 0;
+            return ItemCollection.Categories[id].name.IndexOf(searchString, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         /// <summary>
-        /// Is the specified item selected?
+        ///     Is the specified item selected?
         /// </summary>
         /// <param name="item">The item to test against.</param>
         /// <param name="state">The state of the TreeView.</param>
         /// <returns>True if the item is selected.</returns>
         private bool IsSelected(TreeViewItem item, TreeViewState state)
         {
-            if (state.selectedIDs.Count > 0) {
-                if (item.id == state.selectedIDs[0]) { // Only one row can be selected at a time.
+            if (state.selectedIDs.Count > 0)
+                if (item.id == state.selectedIDs[0]) // Only one row can be selected at a time.
                     return true;
-                }
-            }
             return false;
         }
     }
 
     /// <summary>
-    /// The ItemTypeCollectionModal inherits TreeModal to provide a tree modal for the ItemType class.
+    ///     The ItemTypeCollectionModal inherits TreeModal to provide a tree modal for the ItemType class.
     /// </summary>
     public class ItemTypeCollectionModal : TreeModal
     {
         // Specifies the height of the row.
         private const float c_RowHeight = 26;
+
         // Specifies the height of the selected row.
         private const float c_SelectedRowHeight = 164;
 
-        private ItemCollection m_ItemCollection;
-
-        public ItemCollection ItemCollection { get { return m_ItemCollection; } set { m_ItemCollection = value; } }
+        public ItemCollection ItemCollection { get; set; }
 
         /// <summary>
-        /// Returns the number of rows in the tree.
+        ///     Returns the number of rows in the tree.
         /// </summary>
         /// <returns>The number of rows in the tree.</returns>
         public override int GetRowCount()
         {
-            if (m_ItemCollection == null || m_ItemCollection.ItemTypes == null) {
-                return 0;
-            }
-            return m_ItemCollection.ItemTypes.Length;
+            if (ItemCollection == null || ItemCollection.ItemTypes == null) return 0;
+            return ItemCollection.ItemTypes.Length;
         }
 
         /// <summary>
-        /// Returns the height of the row.
+        ///     Returns the height of the row.
         /// </summary>
         /// <param name="item">The item that occupies the row with the requested height.</param>
         /// <param name="state">The state of the tree.</param>
@@ -717,7 +741,7 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// Draws the GUI for the row.
+        ///     Draws the GUI for the row.
         /// </summary>
         /// <param name="rowRect">The rect of the row being drawn.</param>
         /// <param name="item">The item that occupies the row which is being drawn.</param>
@@ -740,50 +764,45 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             EditorGUI.BeginChangeCheck();
 
             // Draws the ItemType controls.
-            if (DrawControls(rowRect, item.id)) {
-                if (EditorGUI.EndChangeCheck()) {
+            if (DrawControls(rowRect, item.id))
+            {
+                if (EditorGUI.EndChangeCheck())
+                {
                     // Serialize the changes.
-                    EditorUtility.SetDirty(m_ItemCollection);
-                    if (m_AfterModalChange != null) {
-                        m_AfterModalChange();
-                    }
+                    EditorUtility.SetDirty(ItemCollection);
+                    if (m_AfterModalChange != null) m_AfterModalChange();
                 }
+
                 return;
             }
 
             // If the ItemType is selected then draw the details.
-            if (isSelected) {
-                DrawDetails(rowRect, item.id);
-            }
+            if (isSelected) DrawDetails(rowRect, item.id);
 
-            if (EditorGUI.EndChangeCheck()) {
+            if (EditorGUI.EndChangeCheck())
+            {
                 // Serialize the changes.
-                EditorUtility.SetDirty(m_ItemCollection);
-                if (m_AfterModalChange != null) {
-                    m_AfterModalChange();
-                }
+                EditorUtility.SetDirty(ItemCollection);
+                if (m_AfterModalChange != null) m_AfterModalChange();
             }
         }
 
         /// <summary>
-        /// Draws the background of the ItemType.
+        ///     Draws the background of the ItemType.
         /// </summary>
         /// <param name="rowRect">The rect to draw the background in.</param>
         /// <param name="isSelected">Is the current ItemType selected?</param>
         private void DrawBackground(Rect rowRect, bool isSelected)
         {
-            if (Event.current.type != EventType.Repaint) {
-                return;
-            }
+            if (Event.current.type != EventType.Repaint) return;
 
             var rect = rowRect;
             // If the row is selected then clamp the header background to the row height to prevent it from taking up the entire height.
-            if (isSelected) {
-                rect.height = c_RowHeight;
-            }
+            if (isSelected) rect.height = c_RowHeight;
             ItemTypeManager.TreeRowHeaderGUIStyle.Draw(rect, false, false, false, false);
 
-            if (isSelected) {
+            if (isSelected)
+            {
                 rect.y += rect.height;
                 rect.height = rowRect.height - rect.height;
                 ItemTypeManager.TreeRowBackgroundGUIStyle.Draw(rect, false, false, false, false);
@@ -791,7 +810,7 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// Draws the header of the ItemType.
+        ///     Draws the header of the ItemType.
         /// </summary>
         /// <param name="rowRect">The rect of the ItemType row.</param>
         /// <param name="id">The id of the ItemType to draw the header of.</param>
@@ -800,16 +819,15 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         {
             var rect = rowRect;
             rect.x += 4;
-            if (isSelected) {
+            if (isSelected)
                 rect.y -= 67;
-            } else {
+            else
                 rect.y += 2;
-            }
-            GUI.Label(rect, m_ItemCollection.ItemTypes[id].name);
+            GUI.Label(rect, ItemCollection.ItemTypes[id].name);
         }
 
         /// <summary>
-        /// Draws the identify, duplicate and delete buttons for the ItemType.
+        ///     Draws the identify, duplicate and delete buttons for the ItemType.
         /// </summary>
         /// <param name="rowRect">The rect of the ItemType row.</param>
         /// <param name="id">The id of the ItemType to draw the controls of.</param>
@@ -821,8 +839,9 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             identifyRect.width = 20;
             identifyRect.y += 4;
             identifyRect.height = 16;
-            if (GUI.Button(identifyRect, Shared.Editor.Inspectors.Utility.InspectorStyles.InfoIcon, Shared.Editor.Inspectors.Utility.InspectorStyles.NoPaddingButtonStyle)) {
-                Selection.activeObject = m_ItemCollection.ItemTypes[id];
+            if (GUI.Button(identifyRect, InspectorStyles.InfoIcon, InspectorStyles.NoPaddingButtonStyle))
+            {
+                Selection.activeObject = ItemCollection.ItemTypes[id];
                 EditorGUIUtility.PingObject(Selection.activeObject);
             }
 
@@ -831,28 +850,31 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             duplicateRect.width = 20;
             duplicateRect.y += 4;
             duplicateRect.height = 16;
-            if (GUI.Button(duplicateRect, Shared.Editor.Inspectors.Utility.InspectorStyles.DuplicateIcon, Shared.Editor.Inspectors.Utility.InspectorStyles.NoPaddingButtonStyle)) {
-                var itemType = m_ItemCollection.ItemTypes[id];
-                var clonedItemType = UnityEngine.Object.Instantiate(itemType);
+            if (GUI.Button(duplicateRect, InspectorStyles.DuplicateIcon, InspectorStyles.NoPaddingButtonStyle))
+            {
+                var itemType = ItemCollection.ItemTypes[id];
+                var clonedItemType = Object.Instantiate(itemType);
                 // Generate a unique name for the item.
                 var index = 1;
                 string name;
-                do {
+                do
+                {
                     name = itemType.name + " (" + index + ")";
                     index++;
                 } while (!IsUniqueName(name));
+
                 clonedItemType.name = name;
 
                 // Add the ItemType to the ItemCollection.
-                var itemTypes = m_ItemCollection.ItemTypes;
+                var itemTypes = ItemCollection.ItemTypes;
                 Array.Resize(ref itemTypes, itemTypes.Length + 1);
                 clonedItemType.ID = (uint)itemTypes.Length - 1;
                 itemTypes[itemTypes.Length - 1] = clonedItemType;
-                m_ItemCollection.ItemTypes = itemTypes;
-                AssetDatabase.AddObjectToAsset(clonedItemType, m_ItemCollection);
-                EditorUtility.SetDirty(m_ItemCollection);
+                ItemCollection.ItemTypes = itemTypes;
+                AssetDatabase.AddObjectToAsset(clonedItemType, ItemCollection);
+                EditorUtility.SetDirty(ItemCollection);
                 AssetDatabase.SaveAssets();
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_ItemCollection));
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(ItemCollection));
                 return true;
             }
 
@@ -861,30 +883,28 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             deleteRect.width = 18;
             deleteRect.y += 4;
             deleteRect.height = 16;
-            if (GUI.Button(deleteRect, Shared.Editor.Inspectors.Utility.InspectorStyles.DeleteIcon, Shared.Editor.Inspectors.Utility.InspectorStyles.NoPaddingButtonStyle)) {
-                if (m_BeforeModalChange != null) {
-                    m_BeforeModalChange();
-                }
+            if (GUI.Button(deleteRect, InspectorStyles.DeleteIcon, InspectorStyles.NoPaddingButtonStyle))
+            {
+                if (m_BeforeModalChange != null) m_BeforeModalChange();
 
                 // Remove the ItemType.
-                var itemTypes = new List<ItemType>(m_ItemCollection.ItemTypes);
-                Undo.DestroyObjectImmediate(m_ItemCollection.ItemTypes[id]);
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_ItemCollection));
+                var itemTypes = new List<ItemType>(ItemCollection.ItemTypes);
+                Undo.DestroyObjectImmediate(ItemCollection.ItemTypes[id]);
+                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(ItemCollection));
                 itemTypes.RemoveAt(id);
-                m_ItemCollection.ItemTypes = itemTypes.ToArray();
-                EditorUtility.SetDirty(m_ItemCollection);
+                ItemCollection.ItemTypes = itemTypes.ToArray();
+                EditorUtility.SetDirty(ItemCollection);
 
                 // Update all of the ItemIDs.
-                for (int i = 0; i < itemTypes.Count; ++i) {
-                    m_ItemCollection.ItemTypes[i].ID = (uint)i;
-                }
+                for (var i = 0; i < itemTypes.Count; ++i) ItemCollection.ItemTypes[i].ID = (uint)i;
                 return true;
             }
+
             return false;
         }
 
         /// <summary>
-        /// Draws the details of the ItemType.
+        ///     Draws the details of the ItemType.
         /// </summary>
         /// <param name="rowRect">The rect of the ItemType row.</param>
         /// <param name="id">The id of the ItemType to draw the details of.</param>
@@ -894,7 +914,7 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             rect.x += 4;
             rect.y += c_RowHeight;
 
-            var itemType = m_ItemCollection.ItemTypes[id];
+            var itemType = ItemCollection.ItemTypes[id];
             Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(itemType, "ItemType Change");
 
             // Name and description properties.
@@ -904,13 +924,14 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             nameRect.height = 16;
 
             // Prevent the label from being far away from the text.
-            var name = InspectorUtility.DrawEditorWithoutSelectAll(() => InspectorUtility.ClampTextField(nameRect, "Name", itemType.name, 2));
-            if (itemType.name != name) {
-                if (IsUniqueName(name)) {
+            var name = InspectorUtility.DrawEditorWithoutSelectAll(() =>
+                InspectorUtility.ClampTextField(nameRect, "Name", itemType.name, 2));
+            if (itemType.name != name)
+                if (IsUniqueName(name))
+                {
                     itemType.name = name;
-                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(m_ItemCollection));
+                    AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(ItemCollection));
                 }
-            }
 
             // Allow for a description of the ItemType.
             var descriptionRect = nameRect;
@@ -920,7 +941,8 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             descriptionRect.y += descriptionRect.height + 2;
             descriptionRect.width -= 2;
             descriptionRect.height = 42;
-            itemType.Description = InspectorUtility.DrawEditorWithoutSelectAll(() => EditorGUI.TextArea(descriptionRect, itemType.Description, Shared.Editor.Inspectors.Utility.InspectorStyles.WordWrapTextArea));
+            itemType.Description = InspectorUtility.DrawEditorWithoutSelectAll(() =>
+                EditorGUI.TextArea(descriptionRect, itemType.Description, InspectorStyles.WordWrapTextArea));
 
             // The ItemType must belong to a category.
             var categoryRect = rect;
@@ -928,32 +950,33 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             categoryRect.height = 16;
             categoryRect.width -= 12;
 
-            if (m_ItemCollection.Categories.Length == 0) {
-                EditorGUI.LabelField(categoryRect, "No categories exist. Categories can be created within the Category tab.");
-            } else {
+            if (ItemCollection.Categories.Length == 0)
+            {
+                EditorGUI.LabelField(categoryRect,
+                    "No categories exist. Categories can be created within the Category tab.");
+            }
+            else
+            {
                 var selectedMask = 0;
-                var categoryNames = new string[m_ItemCollection.Categories.Length];
-                for (int i = 0; i < categoryNames.Length; ++i) {
-                    if (m_ItemCollection.Categories[i] == null) {
-                        continue;
-                    }
-                    categoryNames[i] = m_ItemCollection.Categories[i].name;
-                    var categoryIDs = m_ItemCollection.ItemTypes[id].CategoryIDs;
-                    for (int j = 0; j < categoryIDs.Length; ++j) {
-                        if (categoryIDs[j] == m_ItemCollection.Categories[i].ID) {
+                var categoryNames = new string[ItemCollection.Categories.Length];
+                for (var i = 0; i < categoryNames.Length; ++i)
+                {
+                    if (ItemCollection.Categories[i] == null) continue;
+                    categoryNames[i] = ItemCollection.Categories[i].name;
+                    var categoryIDs = ItemCollection.ItemTypes[id].CategoryIDs;
+                    for (var j = 0; j < categoryIDs.Length; ++j)
+                        if (categoryIDs[j] == ItemCollection.Categories[i].ID)
                             selectedMask |= 1 << i;
-                        }
-                    }
                 }
 
-                var categoryMask = InspectorUtility.ClampMaskField(categoryRect, "Category", selectedMask, categoryNames, 55);
-                if (categoryMask != selectedMask) {
+                var categoryMask =
+                    InspectorUtility.ClampMaskField(categoryRect, "Category", selectedMask, categoryNames, 55);
+                if (categoryMask != selectedMask)
+                {
                     var selectedIDs = new List<uint>();
-                    for (int i = 0; i < categoryNames.Length; ++i) {
-                        if ((categoryMask & (1 << i)) == (1 << i)) {
-                            selectedIDs.Add(m_ItemCollection.Categories[i].ID);
-                        }
-                    }
+                    for (var i = 0; i < categoryNames.Length; ++i)
+                        if ((categoryMask & (1 << i)) == 1 << i)
+                            selectedIDs.Add(ItemCollection.Categories[i].ID);
                     itemType.CategoryIDs = selectedIDs.ToArray();
                 }
             }
@@ -961,92 +984,96 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             // The ItemType can set a max capacity to restrict the item amount.
             var capacityRect = categoryRect;
             capacityRect.y = capacityRect.yMax + 4;
-            itemType.Capacity = InspectorUtility.DrawEditorWithoutSelectAll(() => InspectorUtility.ClampIntField(capacityRect, "Capacity", itemType.Capacity, 59));
+            itemType.Capacity = InspectorUtility.DrawEditorWithoutSelectAll(() =>
+                InspectorUtility.ClampIntField(capacityRect, "Capacity", itemType.Capacity, 59));
         }
 
         /// <summary>
-        /// Is the item type name unique?
+        ///     Is the item type name unique?
         /// </summary>
         /// <param name="name">The name of the item type.</param>
         /// <returns>True if the item type is unique.</returns>
         public bool IsUniqueName(string name)
         {
-            if (m_ItemCollection.ItemTypes == null) {
-                return true;
-            }
-            for (int i = 0; i < m_ItemCollection.ItemTypes.Length; ++i) {
-                if (String.Compare(m_ItemCollection.ItemTypes[i].name.ToLower(), name.ToLower(), StringComparison.Ordinal)== 0) {
+            if (ItemCollection.ItemTypes == null) return true;
+            for (var i = 0; i < ItemCollection.ItemTypes.Length; ++i)
+                if (string.Compare(ItemCollection.ItemTypes[i].name.ToLower(), name.ToLower(),
+                        StringComparison.Ordinal) == 0)
                     return false;
-                }
-            }
             return true;
         }
 
         /// <summary>
-        /// Moves the rows to the specified index.
+        ///     Moves the rows to the specified index.
         /// </summary>
         /// <param name="rows">The rows being moved.</param>
         /// <param name="insertIndex">The index to insert the rows at.</param>
         /// <returns>An updated list of row ids.</returns>
         public override List<int> MoveRows(List<int> rows, int insertIndex)
         {
-            if (m_BeforeModalChange != null) {
-                m_BeforeModalChange();
-            }
+            if (m_BeforeModalChange != null) m_BeforeModalChange();
 
             var insertIDs = new List<int>();
-            var itemTypes = m_ItemCollection.ItemTypes;
+            var itemTypes = ItemCollection.ItemTypes;
             // Move the rows in the array. This method will shift each rows without needing to allocate a new array for each move.
-            for (int i = 0; i < rows.Count; ++i) {
+            for (var i = 0; i < rows.Count; ++i)
+            {
                 // Shift the array rows up to make space for the moved rows.
-                if (insertIndex < rows[i]) {
+                if (insertIndex < rows[i])
+                {
                     var insertElement = itemTypes[rows[i]];
-                    for (int j = rows[i]; j > insertIndex + i; --j) {
+                    for (var j = rows[i]; j > insertIndex + i; --j)
+                    {
                         itemTypes[j] = itemTypes[j - 1];
                         itemTypes[j].ID = (uint)j;
                     }
-                    itemTypes[insertIndex + i] = insertElement;
-                    itemTypes[insertIndex + i].ID = (uint)(insertIndex + i);
-                } else {
-                    // Shift the array rows down to make space for the moved rows.
-                    insertIndex--;
-                    var insertElement = itemTypes[rows[i] - i];
-                    for (int j = rows[i] - i; j < insertIndex + i; ++j) {
-                        itemTypes[j] = itemTypes[j + 1];
-                        itemTypes[j].ID = (uint)j;
-                    }
+
                     itemTypes[insertIndex + i] = insertElement;
                     itemTypes[insertIndex + i].ID = (uint)(insertIndex + i);
                 }
+                else
+                {
+                    // Shift the array rows down to make space for the moved rows.
+                    insertIndex--;
+                    var insertElement = itemTypes[rows[i] - i];
+                    for (var j = rows[i] - i; j < insertIndex + i; ++j)
+                    {
+                        itemTypes[j] = itemTypes[j + 1];
+                        itemTypes[j].ID = (uint)j;
+                    }
+
+                    itemTypes[insertIndex + i] = insertElement;
+                    itemTypes[insertIndex + i].ID = (uint)(insertIndex + i);
+                }
+
                 insertIDs.Add(insertIndex + i);
             }
+
             return insertIDs;
         }
 
         /// <summary>
-        /// Does the specified row id match the search?
+        ///     Does the specified row id match the search?
         /// </summary>
         /// <param name="id">The id of the row.</param>
         /// <param name="searchString">The string value of the search.</param>
         /// <returns>True if the row matches the search string.</returns>
         public override bool MatchesSearch(int id, string searchString)
         {
-            return m_ItemCollection.ItemTypes[id].name.IndexOf(searchString, StringComparison.OrdinalIgnoreCase) >= 0;
+            return ItemCollection.ItemTypes[id].name.IndexOf(searchString, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         /// <summary>
-        /// Is the specified item selected?
+        ///     Is the specified item selected?
         /// </summary>
         /// <param name="item">The item to test against.</param>
         /// <param name="state">The state of the TreeView.</param>
         /// <returns>True if the item is selected.</returns>
         private bool IsSelected(TreeViewItem item, TreeViewState state)
         {
-            if (state.selectedIDs.Count > 0) {
-                if (item.id == state.selectedIDs[0]) { // Only one row can be selected at a time.
+            if (state.selectedIDs.Count > 0)
+                if (item.id == state.selectedIDs[0]) // Only one row can be selected at a time.
                     return true;
-                }
-            }
             return false;
         }
     }

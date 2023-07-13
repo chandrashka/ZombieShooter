@@ -4,18 +4,18 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Traits.Damage;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Networking.Traits
 {
-    using UnityEngine;
-    using Opsive.UltimateCharacterController.Traits.Damage;
-
     /// <summary>
-    /// Defines an object that can take damage over the network using the Health component.
+    ///     Defines an object that can take damage over the network using the Health component.
     /// </summary>
     public interface INetworkHealthMonitor
     {
         /// <summary>
-        /// The object has taken been damaged.
+        ///     The object has taken been damaged.
         /// </summary>
         /// <param name="amount">The amount of damage taken.</param>
         /// <param name="position">The position of the damage.</param>
@@ -25,10 +25,11 @@ namespace Opsive.UltimateCharacterController.Networking.Traits
         /// <param name="radius">The radius of the explosive damage. If 0 then a non-explosive force will be used.</param>
         /// <param name="originator">The object that did the damage.</param>
         /// <param name="hitCollider">The Collider that was hit.</param>
-        void OnDamage(float amount, Vector3 position, Vector3 direction, float forceMagnitude, int frames, float radius, IDamageOriginator originator, Collider hitCollider);
+        void OnDamage(float amount, Vector3 position, Vector3 direction, float forceMagnitude, int frames, float radius,
+            IDamageOriginator originator, Collider hitCollider);
 
         /// <summary>
-        /// The object is no longer alive.
+        ///     The object is no longer alive.
         /// </summary>
         /// <param name="position">The position of the damage.</param>
         /// <param name="force">The amount of force applied to the object while taking the damage.</param>
@@ -36,7 +37,8 @@ namespace Opsive.UltimateCharacterController.Networking.Traits
         void Die(Vector3 position, Vector3 force, GameObject attacker);
 
         /// <summary>
-        /// Adds amount to health and then to the shield if there is still an amount remaining. Will not go over the maximum health or shield value.
+        ///     Adds amount to health and then to the shield if there is still an amount remaining. Will not go over the maximum
+        ///     health or shield value.
         /// </summary>
         /// <param name="amount">The amount of health or shield to add.</param>
         void Heal(float amount);

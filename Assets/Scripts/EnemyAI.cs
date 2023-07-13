@@ -4,32 +4,53 @@ using UnityEngine;
 public class EnemyAI : MonoBehaviour
 {
     [SerializeField] private float speed;
-    public GameObject player;
-    private Rigidbody m_Rigidbody;
     [SerializeField] private Animator animator;
+    [SerializeField] private float damage;
+    
     private static readonly int Moving = Animator.StringToHash("moving");
     private static readonly int Punch = Animator.StringToHash("punch");
-    private const float Damage = 0.1f;
-
-    void Start()
+    
+    private float m_TimeToAttack;
+    private const float TimeBetweenAttacks = 1f;
+    
+    public bool isKilled;
+    private Rigidbody m_Rigidbody;
+    
+    public GameObject player;
+    
+    private void Start()
     {
         m_Rigidbody = GetComponent<Rigidbody>();
     }
-    
-    void FixedUpdate()
+
+    private void FixedUpdate()
     {
-        if (Physics.Raycast(transform.position, transform.forward, 1f,  
+        if (isKilled) return;
+        if (Physics.Raycast(transform.position, transform.forward, 1f,
                 LayerMask.GetMask("Character", "SubCharacter")))
         {
-            animator.SetTrigger(Punch);
-            var health = player.GetComponent<CharacterHealth>();
-            health.Damage(Damage);
+            if (m_TimeToAttack <= 0)
+            {
+                Attack();
+                m_TimeToAttack = TimeBetweenAttacks;
+            }
+            else
+            {
+                m_TimeToAttack -= Time.deltaTime;
+            }
         }
         else
         {
             animator.SetBool(Moving, true);
             MoveToPlayer();
         }
+    }
+
+    private void Attack()
+    {
+        animator.SetTrigger(Punch);
+        var health = player.GetComponent<CharacterHealth>();
+        health.Damage(damage);
     }
 
     private void MoveToPlayer()

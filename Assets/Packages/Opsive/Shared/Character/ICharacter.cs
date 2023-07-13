@@ -4,12 +4,12 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.Shared.Character
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Interface representing the character GameObject.
+    ///     Interface representing the character GameObject.
     /// </summary>
     public interface ICharacter
     {

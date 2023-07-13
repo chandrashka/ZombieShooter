@@ -4,20 +4,31 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using Opsive.Shared.Input;
+using Opsive.Shared.StateSystem;
+using Opsive.Shared.Utility;
+using Opsive.UltimateCharacterController.Character;
+using Opsive.UltimateCharacterController.Character.Abilities;
+using Opsive.UltimateCharacterController.Character.Abilities.AI;
+using Opsive.UltimateCharacterController.Character.Abilities.Items;
+using Opsive.UltimateCharacterController.Character.Identifiers;
+using Opsive.UltimateCharacterController.Character.MovementTypes;
+using Opsive.UltimateCharacterController.Game;
+using Opsive.UltimateCharacterController.Inventory;
+using Opsive.UltimateCharacterController.Items;
+using Opsive.UltimateCharacterController.ThirdPersonController.Character;
+using Opsive.UltimateCharacterController.Traits;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.AI;
+using Object = UnityEngine.Object;
+
 namespace Opsive.UltimateCharacterController.Utility.Builders
 {
-    using Opsive.Shared.StateSystem;
-    using Opsive.UltimateCharacterController.Character;
-    using Opsive.UltimateCharacterController.Character.Abilities;
-    using Opsive.UltimateCharacterController.Character.Identifiers;
-    using Opsive.UltimateCharacterController.Character.MovementTypes;
-    using Opsive.UltimateCharacterController.Game;
-    using Opsive.UltimateCharacterController.Inventory;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     /// <summary>
-    /// Allows for the Ultimate Character Controller components to be added/removed at runtime.
+    ///     Allows for the Ultimate Character Controller components to be added/removed at runtime.
     /// </summary>
     public static class CharacterBuilder
     {
@@ -25,7 +36,7 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
         private const string c_MoveTowardsStateGUID = "69afbe578b168cd4f99b2873bfca1a8f";
 
         /// <summary>
-        /// Adds the essnetial components to the specified character and sets the MovementType.
+        ///     Adds the essnetial components to the specified character and sets the MovementType.
         /// </summary>
         /// <param name="character">The GameObject of the character.</param>
         /// <param name="addAnimator">Should the animator components be added?</param>
@@ -36,52 +47,50 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
         /// <param name="firstPersonHiddenObjects">The objects that should be hidden in first person view.</param>
         /// <param name="invisibleShadowCasterMaterial">The shadow caster material applied to the invisible first person objects.</param>
         /// <param name="aiAgent">Is the character an AI agent?</param>
-        public static void BuildCharacter(GameObject character, bool addAnimator, RuntimeAnimatorController animatorController, string firstPersonMovementType, string thirdPersonMovementType, bool startFirstPersonPerspective,
+        public static void BuildCharacter(GameObject character, bool addAnimator,
+            RuntimeAnimatorController animatorController, string firstPersonMovementType,
+            string thirdPersonMovementType, bool startFirstPersonPerspective,
             GameObject[] firstPersonHiddenObjects, Material invisibleShadowCasterMaterial, bool aiAgent)
         {
             // Determine if the ThirdPersonObject component should be added or the invisible object renderer should be directly set to the invisible shadow caster.
-            if (firstPersonHiddenObjects != null) {
-                for (int i = 0; i < firstPersonHiddenObjects.Length; ++i) {
-                    if (firstPersonHiddenObjects[i] == null) {
-                        continue;
-                    }
+            if (firstPersonHiddenObjects != null)
+                for (var i = 0; i < firstPersonHiddenObjects.Length; ++i)
+                {
+                    if (firstPersonHiddenObjects[i] == null) continue;
 
-                    if (string.IsNullOrEmpty(thirdPersonMovementType)) {
+                    if (string.IsNullOrEmpty(thirdPersonMovementType))
+                    {
                         var renderers = firstPersonHiddenObjects[i].GetComponents<Renderer>();
-                        for (int j = 0; j < renderers.Length; ++j) {
+                        for (var j = 0; j < renderers.Length; ++j)
+                        {
                             var materials = renderers[j].sharedMaterials;
-                            for (int k = 0; k < materials.Length; ++k) {
-                                materials[k] = invisibleShadowCasterMaterial;
-                            }
+                            for (var k = 0; k < materials.Length; ++k) materials[k] = invisibleShadowCasterMaterial;
                             renderers[j].sharedMaterials = materials;
                         }
                     }
+
                     firstPersonHiddenObjects[i].AddComponent<ThirdPersonObject>();
                 }
-            }
 
-            AddEssentials(character, addAnimator, animatorController, !string.IsNullOrEmpty(firstPersonMovementType) && !string.IsNullOrEmpty(thirdPersonMovementType), invisibleShadowCasterMaterial, aiAgent);
+            AddEssentials(character, addAnimator, animatorController,
+                !string.IsNullOrEmpty(firstPersonMovementType) && !string.IsNullOrEmpty(thirdPersonMovementType),
+                invisibleShadowCasterMaterial, aiAgent);
 
             // The last added MovementType is starting movement type.
-            if (startFirstPersonPerspective) {
-                if (!string.IsNullOrEmpty(thirdPersonMovementType)) {
-                    AddMovementType(character, thirdPersonMovementType);
-                }
-                if (!string.IsNullOrEmpty(firstPersonMovementType)) {
-                    AddMovementType(character, firstPersonMovementType);
-                }
-            } else {
-                if (!string.IsNullOrEmpty(firstPersonMovementType)) {
-                    AddMovementType(character, firstPersonMovementType);
-                }
-                if (!string.IsNullOrEmpty(thirdPersonMovementType)) {
-                    AddMovementType(character, thirdPersonMovementType);
-                }
+            if (startFirstPersonPerspective)
+            {
+                if (!string.IsNullOrEmpty(thirdPersonMovementType)) AddMovementType(character, thirdPersonMovementType);
+                if (!string.IsNullOrEmpty(firstPersonMovementType)) AddMovementType(character, firstPersonMovementType);
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(firstPersonMovementType)) AddMovementType(character, firstPersonMovementType);
+                if (!string.IsNullOrEmpty(thirdPersonMovementType)) AddMovementType(character, thirdPersonMovementType);
             }
         }
 
         /// <summary>
-        /// Adds the Ultimate Character Controller essential components to the specified character.
+        ///     Adds the Ultimate Character Controller essential components to the specified character.
         /// </summary>
         /// <param name="character">The character to add the components to.</param>
         /// <param name="addAnimator">Should the animator components be added?</param>
@@ -89,27 +98,25 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
         /// <param name="addPerspectiveMonitor">Should the perspective monitor be added?</param>
         /// <param name="invisibleShadowCasterMaterial">The shadow caster material applied to the invisible first person objects.</param>
         /// <param name="aiAgent">Is the character an AI agent?</param>
-        public static void AddEssentials(GameObject character, bool addAnimator, RuntimeAnimatorController animatorController, bool addPerspectiveMonitor, Material invisibleShadowCasterMaterial, bool aiAgent)
+        public static void AddEssentials(GameObject character, bool addAnimator,
+            RuntimeAnimatorController animatorController, bool addPerspectiveMonitor,
+            Material invisibleShadowCasterMaterial, bool aiAgent)
         {
-            if (!aiAgent) {
-                character.tag = "Player";
-            }
+            if (!aiAgent) character.tag = "Player";
             character.layer = LayerManager.Character;
-            if (character.GetComponent<CharacterLayerManager>() == null) {
+            if (character.GetComponent<CharacterLayerManager>() == null)
                 character.AddComponent<CharacterLayerManager>();
-            }
 
             var rigidbody = character.GetComponent<Rigidbody>();
-            if (rigidbody == null) {
-                rigidbody = character.AddComponent<Rigidbody>();
-            }
+            if (rigidbody == null) rigidbody = character.AddComponent<Rigidbody>();
             rigidbody.useGravity = false;
             rigidbody.isKinematic = true;
             rigidbody.constraints = RigidbodyConstraints.FreezeAll;
 
             GameObject collider = null;
             var colliderIdentifier = character.GetComponent<CharacterColliderBaseIdentifier>();
-            if (colliderIdentifier == null) {
+            if (colliderIdentifier == null)
+            {
                 var colliders = new GameObject("Colliders");
                 colliders.layer = LayerManager.Character;
                 colliders.transform.SetParentOrigin(character.transform);
@@ -122,31 +129,37 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
                 capsuleCollider.radius = 0.4f;
             }
 
-            if (addAnimator) {
-                AddAnimator(character, animatorController, aiAgent);
-            }
+            if (addAnimator) AddAnimator(character, animatorController, aiAgent);
 
-            if (character.GetComponent<UltimateCharacterLocomotion>() == null) {
+            if (character.GetComponent<UltimateCharacterLocomotion>() == null)
+            {
 #if UNITY_EDITOR
                 var characterLocomotion = character.AddComponent<UltimateCharacterLocomotion>();
-                if (!Application.isPlaying) {
+                if (!Application.isPlaying)
+                {
                     // The Moving and Move Towards states should automatically be added.
-                    var movingPresetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(c_MovingStateGUID);
-                    var moveTowardsPresetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(c_MoveTowardsStateGUID);
-                    if (!string.IsNullOrEmpty(movingPresetPath) || !string.IsNullOrEmpty(moveTowardsPresetPath)) {
-                        var movingPreset = UnityEditor.AssetDatabase.LoadAssetAtPath(movingPresetPath, typeof(PersistablePreset)) as PersistablePreset;
-                        var moveTowardsPreset = UnityEditor.AssetDatabase.LoadAssetAtPath(moveTowardsPresetPath, typeof(PersistablePreset)) as PersistablePreset;
-                        if (movingPreset != null || moveTowardsPreset != null) {
+                    var movingPresetPath = AssetDatabase.GUIDToAssetPath(c_MovingStateGUID);
+                    var moveTowardsPresetPath = AssetDatabase.GUIDToAssetPath(c_MoveTowardsStateGUID);
+                    if (!string.IsNullOrEmpty(movingPresetPath) || !string.IsNullOrEmpty(moveTowardsPresetPath))
+                    {
+                        var movingPreset =
+                            AssetDatabase.LoadAssetAtPath(movingPresetPath, typeof(PersistablePreset)) as
+                                PersistablePreset;
+                        var moveTowardsPreset =
+                            AssetDatabase.LoadAssetAtPath(moveTowardsPresetPath, typeof(PersistablePreset)) as
+                                PersistablePreset;
+                        if (movingPreset != null || moveTowardsPreset != null)
+                        {
                             var states = characterLocomotion.States;
-                            System.Array.Resize(ref states, states.Length + (movingPreset != null ? 1 : 0) + (moveTowardsPreset != null ? 1 : 0));
+                            Array.Resize(ref states,
+                                states.Length + (movingPreset != null ? 1 : 0) + (moveTowardsPreset != null ? 1 : 0));
                             // Default must always be at the end.
                             states[states.Length - 1] = states[0];
-                            if (movingPreset != null) { 
+                            if (movingPreset != null)
                                 states[states.Length - 2] = new State("Moving", movingPreset, null);
-                            }
-                            if (moveTowardsPreset != null) {
-                                states[states.Length - 2 - (movingPreset != null ? 1 : 0)] = new State("MoveTowards", moveTowardsPreset, null);
-                            }
+                            if (moveTowardsPreset != null)
+                                states[states.Length - 2 - (movingPreset != null ? 1 : 0)] =
+                                    new State("MoveTowards", moveTowardsPreset, null);
                             characterLocomotion.States = states;
                         }
                     }
@@ -156,37 +169,43 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
 #endif
             }
 
-            if (collider != null) {
+            if (collider != null)
+            {
                 var positioner = collider.AddComponent<CapsuleColliderPositioner>();
                 positioner.FirstEndCapTarget = character.transform;
 
                 var animator = character.GetComponent<Animator>();
-                if (animator != null) {
+                if (animator != null)
+                {
                     // The CapsuleColliderPositioner should follow the character's movements.
                     var head = animator.GetBoneTransform(HumanBodyBones.Head);
-                    if (head != null) {
+                    if (head != null)
+                    {
                         positioner.SecondEndCapTarget = head;
-                        positioner.RotationBone = positioner.PositionBone = animator.GetBoneTransform(HumanBodyBones.Hips);
+                        positioner.RotationBone =
+                            positioner.PositionBone = animator.GetBoneTransform(HumanBodyBones.Hips);
                     }
                 }
             }
 
-            if (aiAgent) {
+            if (aiAgent)
+            {
                 AddAIAgent(character);
-            } else {
+            }
+            else
+            {
                 AddUnityInput(character);
 
-                if (character.GetComponent<UltimateCharacterLocomotionHandler>() == null) {
+                if (character.GetComponent<UltimateCharacterLocomotionHandler>() == null)
                     character.AddComponent<UltimateCharacterLocomotionHandler>();
-                }
             }
 
 #if THIRD_PERSON_CONTROLLER
-            if (addPerspectiveMonitor && character.GetComponent<ThirdPersonController.Character.PerspectiveMonitor>() == null) {
-                var perspectiveMonitor = character.AddComponent<ThirdPersonController.Character.PerspectiveMonitor>();
-                if (perspectiveMonitor.InvisibleMaterial == null) {
+            if (addPerspectiveMonitor && character.GetComponent<PerspectiveMonitor>() == null)
+            {
+                var perspectiveMonitor = character.AddComponent<PerspectiveMonitor>();
+                if (perspectiveMonitor.InvisibleMaterial == null)
                     perspectiveMonitor.InvisibleMaterial = invisibleShadowCasterMaterial;
-                }
             }
 #endif
 
@@ -195,7 +214,7 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
         }
 
         /// <summary>
-        /// Adds the animator with the specified controller to the character.
+        ///     Adds the animator with the specified controller to the character.
         /// </summary>
         /// <param name="character">The character to add the animator to.</param>
         /// <param name="animatorController">A reference to the animator controller.</param>
@@ -203,51 +222,44 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
         public static void AddAnimator(GameObject character, RuntimeAnimatorController animatorController, bool aiAgent)
         {
             Animator animator;
-            if ((animator = character.GetComponent<Animator>()) == null) {
-                animator = character.AddComponent<Animator>();
-            }
+            if ((animator = character.GetComponent<Animator>()) == null) animator = character.AddComponent<Animator>();
             animator.runtimeAnimatorController = animatorController;
-            if (!aiAgent) {
-                animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-            }
+            if (!aiAgent) animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
 
-            if (character.GetComponent<AnimatorMonitor>() == null) {
-                character.AddComponent<AnimatorMonitor>();
-            }
+            if (character.GetComponent<AnimatorMonitor>() == null) character.AddComponent<AnimatorMonitor>();
         }
 
         /// <summary>
-        /// Removes the animator from the character.
+        ///     Removes the animator from the character.
         /// </summary>
         /// <param name="character">The character to remove the animator from.</param>
         public static void RemoveAnimator(GameObject character)
         {
             var animator = character.GetComponent<Animator>();
-            if (animator != null) {
-                Object.DestroyImmediate(animator, true);
-            }
+            if (animator != null) Object.DestroyImmediate(animator, true);
 
             var animatorMonitor = character.GetComponent<AnimatorMonitor>();
-            if (animatorMonitor != null) {
-                Object.DestroyImmediate(animatorMonitor, true);
-            }
+            if (animatorMonitor != null) Object.DestroyImmediate(animatorMonitor, true);
         }
 
         /// <summary>
-        /// Sets the GameObject to the specified layer. Will recursively set the children unless the child contains a component that shouldn't be set.
+        ///     Sets the GameObject to the specified layer. Will recursively set the children unless the child contains a component
+        ///     that shouldn't be set.
         /// </summary>
         /// <param name="gameObject">The GameObject to set.</param>
         /// <param name="layer">The layer to set the GameObject to.</param>
-        /// <param name="characterLayer">The layer of the character. GameObjects with this layer will not be set to the specified layer.</param>
+        /// <param name="characterLayer">
+        ///     The layer of the character. GameObjects with this layer will not be set to the specified
+        ///     layer.
+        /// </param>
         private static void SetRecursiveLayer(GameObject gameObject, int layer, int characterLayer)
         {
             var children = gameObject.transform.childCount;
-            for (int i = 0; i < children; ++i) {
+            for (var i = 0; i < children; ++i)
+            {
                 var child = gameObject.transform.GetChild(i);
                 // Do not set the layer if the child is already set to the Character layer or contains the item identifier components.
-                if (child.gameObject.layer == characterLayer || child.GetComponent<Items.ItemPlacement>() != null) {
-                    continue;
-                }
+                if (child.gameObject.layer == characterLayer || child.GetComponent<ItemPlacement>() != null) continue;
 
 #if FIRST_PERSON_CONTROLLER
                 // First person objects do not need to be set.
@@ -264,82 +276,68 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
         }
 
         /// <summary>
-        /// Removes the Ultimate Character Controller essential components from the specified character.
+        ///     Removes the Ultimate Character Controller essential components from the specified character.
         /// </summary>
         /// <param name="character">The character to remove the components from.</param>
         public static void RemoveEssentials(GameObject character)
         {
             var rigidbody = character.GetComponent<Rigidbody>();
-            if (rigidbody != null) {
-                Object.DestroyImmediate(rigidbody, true);
-            }
+            if (rigidbody != null) Object.DestroyImmediate(rigidbody, true);
 
             var collider = character.GetComponent<CharacterColliderBaseIdentifier>();
-            if (collider != null) {
-                Object.DestroyImmediate(collider, true);
-            }
+            if (collider != null) Object.DestroyImmediate(collider, true);
 
             var ultimateCharacterLocomotion = character.GetComponent<UltimateCharacterLocomotion>();
-            if (ultimateCharacterLocomotion != null) {
-                Object.DestroyImmediate(ultimateCharacterLocomotion, true);
-            }
+            if (ultimateCharacterLocomotion != null) Object.DestroyImmediate(ultimateCharacterLocomotion, true);
 
             var ultimateCharacterLocomotionHandler = character.GetComponent<UltimateCharacterLocomotionHandler>();
-            if (ultimateCharacterLocomotionHandler != null) {
+            if (ultimateCharacterLocomotionHandler != null)
                 Object.DestroyImmediate(ultimateCharacterLocomotionHandler, true);
-            }
 
             var localLookSource = character.GetComponent<LocalLookSource>();
-            if (localLookSource != null) {
-                Object.DestroyImmediate(localLookSource, true);
-            }
+            if (localLookSource != null) Object.DestroyImmediate(localLookSource, true);
 
             var layerManager = character.GetComponent<CharacterLayerManager>();
-            if (layerManager != null) {
-                Object.DestroyImmediate(layerManager, true);
-            }
+            if (layerManager != null) Object.DestroyImmediate(layerManager, true);
 
 #if THIRD_PERSON_CONTROLLER
-            var perspectiveMonitor = character.GetComponent<ThirdPersonController.Character.PerspectiveMonitor>();
-            if (perspectiveMonitor != null) {
-                Object.DestroyImmediate(perspectiveMonitor, true);
-            }
+            var perspectiveMonitor = character.GetComponent<PerspectiveMonitor>();
+            if (perspectiveMonitor != null) Object.DestroyImmediate(perspectiveMonitor, true);
 #endif
         }
 
         /// <summary>
-        /// Adds the specified MovementType to the character.
+        ///     Adds the specified MovementType to the character.
         /// </summary>
         /// <param name="character">The character to add the MovementType to.</param>
         /// <param name="movementType">The MovementType to add.</param>
         public static void AddMovementType(GameObject character, string movementType)
         {
             var ultimateCharacterLocomotion = character.GetComponent<UltimateCharacterLocomotion>();
-            if (ultimateCharacterLocomotion != null) {
+            if (ultimateCharacterLocomotion != null)
+            {
                 // Don't allow duplicate MovementTypes.
-                var type = System.Type.GetType(movementType);
+                var type = Type.GetType(movementType);
                 ultimateCharacterLocomotion.DeserializeMovementTypes();
                 var movementTypes = ultimateCharacterLocomotion.MovementTypes;
                 var add = true;
-                if (movementTypes != null) {
-                    for (int i = 0; i < movementTypes.Length; ++i) {
-                        if (movementTypes[i].GetType() == type) {
+                if (movementTypes != null)
+                    for (var i = 0; i < movementTypes.Length; ++i)
+                        if (movementTypes[i].GetType() == type)
                             add = false;
-                        }
-                    }
-                }
-                if (add) {
+                if (add)
+                {
                     var movementTypesList = new List<MovementType>();
-                    if (movementTypes != null) {
-                        movementTypesList.AddRange(movementTypes);
-                    }
-                    var movementTypeObj = System.Activator.CreateInstance(type) as MovementType;
+                    if (movementTypes != null) movementTypesList.AddRange(movementTypes);
+                    var movementTypeObj = Activator.CreateInstance(type) as MovementType;
                     movementTypesList.Add(movementTypeObj);
                     ultimateCharacterLocomotion.MovementTypes = movementTypesList.ToArray();
-                    ultimateCharacterLocomotion.MovementTypeData = Shared.Utility.Serialization.Serialize<MovementType>(movementTypesList);
+                    ultimateCharacterLocomotion.MovementTypeData =
+                        Serialization.Serialize<MovementType>(movementTypesList);
 
                     // If the character has already been initialized then the movement type should be initialized.
-                    if (Application.isPlaying) {
+                    if (Application.isPlaying)
+                    {
                         movementTypeObj.Initialize(ultimateCharacterLocomotion);
                         movementTypeObj.Awake();
                     }
@@ -351,7 +349,7 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
         }
 
         /// <summary>
-        /// Adds the non-essential Ultimate Character Controller components to the character.
+        ///     Adds the non-essential Ultimate Character Controller components to the character.
         /// </summary>
         /// <param name="character">The character to add the components to.</param>
         /// <param name="aiAgent">Is the character an AI agent?</param>
@@ -363,226 +361,211 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
         /// <param name="addFootEffects">Should the CharacterFootEffects component be added?</param>
         /// <param name="addStandardAbilities">Should the standard abilities be added?</param>
         /// <param name="addNavMeshAgent">Should the NavMeshAgent component be added?</param>
-        public static void BuildCharacterComponents(GameObject character, bool aiAgent, bool addItems, 
-            ItemCollection itemCollection, bool firstPersonItems, bool addHealth, bool addUnityIK, bool addFootEffects, bool addStandardAbilities, bool addNavMeshAgent)
+        public static void BuildCharacterComponents(GameObject character, bool aiAgent, bool addItems,
+            ItemCollection itemCollection, bool firstPersonItems, bool addHealth, bool addUnityIK, bool addFootEffects,
+            bool addStandardAbilities, bool addNavMeshAgent)
         {
-            if (addItems) {
-                AddItemSupport(character, itemCollection, aiAgent, firstPersonItems);
-            }
-            if (addHealth) {
-                AddHealth(character);
-            }
-            if (addUnityIK) {
-                AddUnityIK(character);
-            }
-            if (addFootEffects) {
-                AddFootEffects(character);
-            }
-            if (addStandardAbilities) {
+            if (addItems) AddItemSupport(character, itemCollection, aiAgent, firstPersonItems);
+            if (addHealth) AddHealth(character);
+            if (addUnityIK) AddUnityIK(character);
+            if (addFootEffects) AddFootEffects(character);
+            if (addStandardAbilities)
+            {
                 // Add the Jump, Fall, Speed Change, and Height Change abilities.
                 var characterLocomotion = character.GetComponent<UltimateCharacterLocomotion>();
-                var jump = AbilityBuilder.AddAbility(characterLocomotion, typeof(Character.Abilities.Jump));
-                if (characterLocomotion.GetComponent<Animator>() == null) {
+                var jump = AbilityBuilder.AddAbility(characterLocomotion, typeof(Jump));
+                if (characterLocomotion.GetComponent<Animator>() == null)
+                {
                     (jump as Jump).JumpEvent = new AnimationEventTrigger(false, 0);
                     AbilityBuilder.SerializeAbilities(characterLocomotion);
                 }
-                AbilityBuilder.AddAbility(characterLocomotion, typeof(Character.Abilities.Fall));
-                AbilityBuilder.AddAbility(characterLocomotion, typeof(Character.Abilities.MoveTowards));
-                AbilityBuilder.AddAbility(characterLocomotion, typeof(Character.Abilities.SpeedChange));
-                AbilityBuilder.AddAbility(characterLocomotion, typeof(Character.Abilities.HeightChange));
+
+                AbilityBuilder.AddAbility(characterLocomotion, typeof(Fall));
+                AbilityBuilder.AddAbility(characterLocomotion, typeof(MoveTowards));
+                AbilityBuilder.AddAbility(characterLocomotion, typeof(SpeedChange));
+                AbilityBuilder.AddAbility(characterLocomotion, typeof(HeightChange));
                 // The abilities should not use an input related start type.
-                if (aiAgent) {
-                    var abilities = characterLocomotion.GetAbilities<Character.Abilities.Ability>();
-                    for (int i = 0; i < abilities.Length; ++i) {
-                        if (abilities[i].StartType != Character.Abilities.Ability.AbilityStartType.Automatic &&
-                            abilities[i].StartType != Character.Abilities.Ability.AbilityStartType.Manual) {
-                            abilities[i].StartType = Character.Abilities.Ability.AbilityStartType.Manual;
-                        }
-                        if (abilities[i].StopType != Character.Abilities.Ability.AbilityStopType.Automatic &&
-                            abilities[i].StopType != Character.Abilities.Ability.AbilityStopType.Manual) {
-                            abilities[i].StopType = Character.Abilities.Ability.AbilityStopType.Manual;
-                        }
-                        if (abilities[i] is Character.Abilities.Items.Use) {
-                            abilities[i].StopType = Character.Abilities.Ability.AbilityStopType.Manual;
-                        }
+                if (aiAgent)
+                {
+                    var abilities = characterLocomotion.GetAbilities<Ability>();
+                    for (var i = 0; i < abilities.Length; ++i)
+                    {
+                        if (abilities[i].StartType != Ability.AbilityStartType.Automatic &&
+                            abilities[i].StartType != Ability.AbilityStartType.Manual)
+                            abilities[i].StartType = Ability.AbilityStartType.Manual;
+                        if (abilities[i].StopType != Ability.AbilityStopType.Automatic &&
+                            abilities[i].StopType != Ability.AbilityStopType.Manual)
+                            abilities[i].StopType = Ability.AbilityStopType.Manual;
+                        if (abilities[i] is Use) abilities[i].StopType = Ability.AbilityStopType.Manual;
                     }
+
                     AbilityBuilder.SerializeAbilities(characterLocomotion);
                 }
             }
-            if (addNavMeshAgent) {
+
+            if (addNavMeshAgent)
+            {
                 var characterLocomotion = character.GetComponent<UltimateCharacterLocomotion>();
                 var abilities = characterLocomotion.Abilities;
                 var index = abilities != null ? abilities.Length : 0;
-                if (abilities != null) {
-                    for (int i = 0; i < abilities.Length; ++i) {
-                        if (abilities[i] is Character.Abilities.SpeedChange) {
+                if (abilities != null)
+                    for (var i = 0; i < abilities.Length; ++i)
+                        if (abilities[i] is SpeedChange)
+                        {
                             index = i;
                             break;
                         }
-                    }
-                }
+
                 // The ability should be positioned before the SpeedChange ability.
-                AbilityBuilder.AddAbility(characterLocomotion, typeof(Character.Abilities.AI.NavMeshAgentMovement), index);
-                var navMeshAgent = character.GetComponent<UnityEngine.AI.NavMeshAgent>();
-                if (navMeshAgent != null) {
-                    navMeshAgent.stoppingDistance = 0.1f;
-                }
+                AbilityBuilder.AddAbility(characterLocomotion, typeof(NavMeshAgentMovement), index);
+                var navMeshAgent = character.GetComponent<NavMeshAgent>();
+                if (navMeshAgent != null) navMeshAgent.stoppingDistance = 0.1f;
             }
-            if (addItems) {
+
+            if (addItems)
+            {
                 // Add the Equip, Aim, Use, and Reload item abilities.
                 var characterLocomotion = character.GetComponent<UltimateCharacterLocomotion>();
 #if ULTIMATE_CHARACTER_CONTROLLER_SHOOTER
-                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(Character.Abilities.Items.Reload));
+                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(Reload));
 #endif
-                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(Character.Abilities.Items.Use));
-                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(Character.Abilities.Items.EquipUnequip));
-                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(Character.Abilities.Items.ToggleEquip));
-                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(Character.Abilities.Items.EquipNext));
-                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(Character.Abilities.Items.EquipPrevious));
-                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(Character.Abilities.Items.EquipScroll));
-                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(Character.Abilities.Items.Aim));
+                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(Use));
+                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(EquipUnequip));
+                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(ToggleEquip));
+                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(EquipNext));
+                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(EquipPrevious));
+                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(EquipScroll));
+                AbilityBuilder.AddItemAbility(characterLocomotion, typeof(Aim));
                 // The buttons should not use an input related start type.
-                if (aiAgent) {
-                    var itemAbilities = characterLocomotion.GetAbilities<Character.Abilities.Items.ItemAbility>();
-                    for (int i = 0; i < itemAbilities.Length; ++i) {
-                        if (itemAbilities[i].StartType != Character.Abilities.Ability.AbilityStartType.Automatic &&
-                            itemAbilities[i].StartType != Character.Abilities.Ability.AbilityStartType.Manual) {
-                            itemAbilities[i].StartType = Character.Abilities.Ability.AbilityStartType.Manual;
-                        }
-                        if (itemAbilities[i].StopType != Character.Abilities.Ability.AbilityStopType.Automatic &&
-                            itemAbilities[i].StopType != Character.Abilities.Ability.AbilityStopType.Manual) {
-                            itemAbilities[i].StopType = Character.Abilities.Ability.AbilityStopType.Manual;
-                        }
+                if (aiAgent)
+                {
+                    var itemAbilities = characterLocomotion.GetAbilities<ItemAbility>();
+                    for (var i = 0; i < itemAbilities.Length; ++i)
+                    {
+                        if (itemAbilities[i].StartType != Ability.AbilityStartType.Automatic &&
+                            itemAbilities[i].StartType != Ability.AbilityStartType.Manual)
+                            itemAbilities[i].StartType = Ability.AbilityStartType.Manual;
+                        if (itemAbilities[i].StopType != Ability.AbilityStopType.Automatic &&
+                            itemAbilities[i].StopType != Ability.AbilityStopType.Manual)
+                            itemAbilities[i].StopType = Ability.AbilityStopType.Manual;
                     }
+
                     AbilityBuilder.SerializeItemAbilities(characterLocomotion);
                 }
 
                 // The ItemEquipVerifier needs to be added after the item abilities.
-                AbilityBuilder.AddAbility(characterLocomotion, typeof(Character.Abilities.ItemEquipVerifier));
+                AbilityBuilder.AddAbility(characterLocomotion, typeof(ItemEquipVerifier));
                 AbilityBuilder.SerializeAbilities(characterLocomotion);
             }
         }
 
         /// <summary>
-        /// Adds the ai agent components to the character.
+        ///     Adds the ai agent components to the character.
         /// </summary>
         /// <param name="character">The character to add the ai agent components to.</param>
         public static void AddAIAgent(GameObject character)
         {
-            if (character.GetComponent<LocalLookSource>() == null) {
-                character.AddComponent<LocalLookSource>();
-            }
+            if (character.GetComponent<LocalLookSource>() == null) character.AddComponent<LocalLookSource>();
 
             var locomotionHandler = character.GetComponent<UltimateCharacterLocomotionHandler>();
-            if (locomotionHandler != null) {
-                Object.DestroyImmediate(locomotionHandler, true);
-            }
+            if (locomotionHandler != null) Object.DestroyImmediate(locomotionHandler, true);
 
             var itemHandler = character.GetComponent<ItemHandler>();
-            if (itemHandler != null) {
-                Object.DestroyImmediate(itemHandler, true);
-            }
+            if (itemHandler != null) Object.DestroyImmediate(itemHandler, true);
 
             RemoveUnityInput(character);
         }
 
         /// <summary>
-        /// Removes the ai agent components from the character.
+        ///     Removes the ai agent components from the character.
         /// </summary>
         /// <param name="character">The character to remove the ai agent components to.</param>
         public static void RemoveAIAgent(GameObject character)
         {
             var localLookSource = character.GetComponent<LocalLookSource>();
-            if (localLookSource != null) {
-                Object.DestroyImmediate(localLookSource, true);
-            }
+            if (localLookSource != null) Object.DestroyImmediate(localLookSource, true);
 
-            if (character.GetComponent<UltimateCharacterLocomotionHandler>() == null) {
+            if (character.GetComponent<UltimateCharacterLocomotionHandler>() == null)
                 character.AddComponent<UltimateCharacterLocomotionHandler>();
-            }
 
-            if (character.GetComponent<ItemHandler>() == null) {
-                character.AddComponent<ItemHandler>();
-            }
+            if (character.GetComponent<ItemHandler>() == null) character.AddComponent<ItemHandler>();
 
             AddUnityInput(character);
-            AbilityBuilder.RemoveAbility<Character.Abilities.AI.NavMeshAgentMovement>(character.GetComponent<UltimateCharacterLocomotion>());
+            AbilityBuilder.RemoveAbility<NavMeshAgentMovement>(character.GetComponent<UltimateCharacterLocomotion>());
 
-            var navMeshAgent = character.GetComponent<UnityEngine.AI.NavMeshAgent>();
-            if (navMeshAgent != null) {
-                Object.DestroyImmediate(navMeshAgent, true);
-            }
+            var navMeshAgent = character.GetComponent<NavMeshAgent>();
+            if (navMeshAgent != null) Object.DestroyImmediate(navMeshAgent, true);
         }
 
         /// <summary>
-        /// Adds the UnityInput component to the character.
+        ///     Adds the UnityInput component to the character.
         /// </summary>
         /// <param name="character">The character to add the UnityInput component to.</param>
         public static void AddUnityInput(GameObject character)
         {
-            if (character.GetComponent<Shared.Input.UnityInput>() == null) {
-                character.AddComponent<Shared.Input.UnityInput>();
-            }
+            if (character.GetComponent<UnityInput>() == null) character.AddComponent<UnityInput>();
         }
 
         /// <summary>
-        /// Removes the UnityInput component from the character.
+        ///     Removes the UnityInput component from the character.
         /// </summary>
         /// <param name="character">The character to remove the UnityInput component from.</param>
         public static void RemoveUnityInput(GameObject character)
         {
-            var unityInput = character.GetComponent<Shared.Input.UnityInput>();
-            if (unityInput != null) {
-                Object.DestroyImmediate(unityInput, true);
-            }
+            var unityInput = character.GetComponent<UnityInput>();
+            if (unityInput != null) Object.DestroyImmediate(unityInput, true);
         }
 
         /// <summary>
-        /// Adds support for items to the character.
+        ///     Adds support for items to the character.
         /// </summary>
         /// <param name="character">The character to add support for items to.</param>
         /// <param name="itemCollection">A reference to the inventory's ItemCollection.</param>
         /// <param name="aiAgent">Is the character an AI agent?</param>
         /// <param name="firstPersonItems">Does the character support first person items?</param>
-        public static void AddItemSupport(GameObject character, ItemCollection itemCollection, bool aiAgent, bool firstPersonItems)
+        public static void AddItemSupport(GameObject character, ItemCollection itemCollection, bool aiAgent,
+            bool firstPersonItems)
         {
             // Even if the character doesn't have an animator the items may make use of one.
-            if (character.GetComponent<AnimatorMonitor>() == null) {
-                character.AddComponent<AnimatorMonitor>();
-            }
+            if (character.GetComponent<AnimatorMonitor>() == null) character.AddComponent<AnimatorMonitor>();
 
-            if (character.GetComponentInChildren<Items.ItemPlacement>() == null) {
+            if (character.GetComponentInChildren<ItemPlacement>() == null)
+            {
                 var items = new GameObject("Items");
                 items.transform.parent = character.transform;
-                items.AddComponent<Items.ItemPlacement>();
+                items.AddComponent<ItemPlacement>();
             }
 
             var animator = character.GetComponent<Animator>();
-            if (animator != null) {
+            if (animator != null)
+            {
                 var head = animator.GetBoneTransform(HumanBodyBones.Head);
-                if (head != null) {
+                if (head != null)
+                {
                     var leftHand = animator.GetBoneTransform(HumanBodyBones.LeftHand);
                     var rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
-                    if (leftHand != null && rightHand != null) {
-                        if (leftHand.GetComponentInChildren<Items.ItemSlot>() == null) {
+                    if (leftHand != null && rightHand != null)
+                    {
+                        if (leftHand.GetComponentInChildren<ItemSlot>() == null)
+                        {
                             var items = new GameObject("Items");
                             items.transform.SetParentOrigin(leftHand.transform);
-                            var itemSlot = items.AddComponent<Items.ItemSlot>();
+                            var itemSlot = items.AddComponent<ItemSlot>();
                             itemSlot.ID = 1;
                         }
-                        if (rightHand.GetComponentInChildren<Items.ItemSlot>() == null) {
+
+                        if (rightHand.GetComponentInChildren<ItemSlot>() == null)
+                        {
                             var items = new GameObject("Items");
                             items.transform.SetParentOrigin(rightHand.transform);
-                            items.AddComponent<Items.ItemSlot>();
+                            items.AddComponent<ItemSlot>();
                         }
                     }
                 }
             }
 
             // Items use the inventory for being equip/unequip.
-            if (character.GetComponent<Inventory>() == null) {
-                character.AddComponent<Inventory>();
-            }
+            if (character.GetComponent<Inventory.Inventory>() == null) character.AddComponent<Inventory.Inventory>();
 
 #if FIRST_PERSON_CONTROLLER
             if (firstPersonItems && character.GetComponentInChildren<FirstPersonController.Character.FirstPersonObjects>() == null) {
@@ -593,134 +576,107 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
 #endif
 
             ItemSetManager itemSetManager;
-            if ((itemSetManager = character.GetComponent<ItemSetManager>()) == null) {
+            if ((itemSetManager = character.GetComponent<ItemSetManager>()) == null)
                 itemSetManager = character.AddComponent<ItemSetManager>();
-            }
             itemSetManager.ItemCollection = itemCollection;
-            if (!aiAgent && character.GetComponent<ItemHandler>() == null) {
-                character.AddComponent<ItemHandler>();
-            }
+            if (!aiAgent && character.GetComponent<ItemHandler>() == null) character.AddComponent<ItemHandler>();
         }
 
         /// <summary>
-        /// Removes support for items from the character.
+        ///     Removes support for items from the character.
         /// </summary>
         /// <param name="character">The character to remove support for the items from.</param>
         public static void RemoveItemSupport(GameObject character)
         {
             var animatorMonitor = character.GetComponent<ItemHandler>();
-            if (animatorMonitor != null && character.GetComponent<Animator>() == null) {
+            if (animatorMonitor != null && character.GetComponent<Animator>() == null)
                 character.AddComponent<Animator>();
-            }
             var itemHandler = character.GetComponent<ItemHandler>();
-            if (itemHandler != null) {
-                Object.DestroyImmediate(itemHandler, true);
-            }
-            var itemPlacement = character.GetComponentInChildren<Items.ItemPlacement>();
-            if (itemPlacement != null) {
-                Object.DestroyImmediate(itemPlacement.gameObject, true);
-            }
+            if (itemHandler != null) Object.DestroyImmediate(itemHandler, true);
+            var itemPlacement = character.GetComponentInChildren<ItemPlacement>();
+            if (itemPlacement != null) Object.DestroyImmediate(itemPlacement.gameObject, true);
 #if FIRST_PERSON_CONTROLLER
-            var firstPersonObjects = character.GetComponentInChildren<FirstPersonController.Character.FirstPersonObjects>();
+            var firstPersonObjects =
+ character.GetComponentInChildren<FirstPersonController.Character.FirstPersonObjects>();
             if (firstPersonObjects != null) {
                 Object.DestroyImmediate(firstPersonObjects, true);
             }
 #endif
 
-            var itemSlots = character.GetComponentsInChildren<Items.ItemSlot>();
-            if (itemSlots != null && itemSlots.Length > 0) {
-                for (int i = itemSlots.Length - 1; i >= 0; --i) {
+            var itemSlots = character.GetComponentsInChildren<ItemSlot>();
+            if (itemSlots != null && itemSlots.Length > 0)
+                for (var i = itemSlots.Length - 1; i >= 0; --i)
                     Object.DestroyImmediate(itemSlots[i].gameObject, true);
-                }
-            }
 
-            var inventory = character.GetComponent<Inventory>();
-            if (inventory != null) {
-                Object.DestroyImmediate(inventory, true);
-            }
+            var inventory = character.GetComponent<Inventory.Inventory>();
+            if (inventory != null) Object.DestroyImmediate(inventory, true);
 
             var itemSetManager = character.GetComponent<ItemSetManager>();
-            if (itemSetManager != null) {
-                Object.DestroyImmediate(itemSetManager, true);
-            }
+            if (itemSetManager != null) Object.DestroyImmediate(itemSetManager, true);
         }
 
         /// <summary>
-        /// Adds the health components to the character.
+        ///     Adds the health components to the character.
         /// </summary>
         /// <param name="character">The character to add the health components to.</param>
         public static void AddHealth(GameObject character)
         {
-            if (character.GetComponent<Traits.AttributeManager>() == null) {
-                character.AddComponent<Traits.AttributeManager>();
-            }
+            if (character.GetComponent<AttributeManager>() == null) character.AddComponent<AttributeManager>();
 
-            if (character.GetComponent<Traits.CharacterHealth>() == null) {
-                character.AddComponent<Traits.CharacterHealth>();
-            }
+            if (character.GetComponent<CharacterHealth>() == null) character.AddComponent<CharacterHealth>();
 
-            if (character.GetComponent<Traits.CharacterRespawner>() == null) {
-                character.AddComponent<Traits.CharacterRespawner>();
-            }
+            if (character.GetComponent<CharacterRespawner>() == null) character.AddComponent<CharacterRespawner>();
         }
 
         /// <summary>
-        /// Removes the health components from the character.
+        ///     Removes the health components from the character.
         /// </summary>
         /// <param name="character">The character to remove the health components from.</param>
         public static void RemoveHealth(GameObject character)
         {
-            var health = character.GetComponent<Traits.CharacterHealth>();
-            if (health != null) {
-                Object.DestroyImmediate(health, true);
-            }
+            var health = character.GetComponent<CharacterHealth>();
+            if (health != null) Object.DestroyImmediate(health, true);
 
-            var attributeManager = character.GetComponent<Traits.AttributeManager>();
-            if (attributeManager != null) {
-                Object.DestroyImmediate(attributeManager, true);
-            }
+            var attributeManager = character.GetComponent<AttributeManager>();
+            if (attributeManager != null) Object.DestroyImmediate(attributeManager, true);
 
-            var respawner = character.GetComponent<Traits.CharacterRespawner>();
-            if (respawner != null) {
-                Object.DestroyImmediate(respawner, true);
-            }
+            var respawner = character.GetComponent<CharacterRespawner>();
+            if (respawner != null) Object.DestroyImmediate(respawner, true);
         }
 
         /// <summary>
-        /// Adds the CharacterIK component to the character.
+        ///     Adds the CharacterIK component to the character.
         /// </summary>
         /// <param name="character">The character to add the CharacterIK component to.</param>
         public static void AddUnityIK(GameObject character)
         {
-            if (character.GetComponent<CharacterIK>() == null) {
-                character.AddComponent<CharacterIK>();
-            }
+            if (character.GetComponent<CharacterIK>() == null) character.AddComponent<CharacterIK>();
         }
 
         /// <summary>
-        /// Removes the CharacterIK component from the character.
+        ///     Removes the CharacterIK component from the character.
         /// </summary>
         /// <param name="character">The character to remove the CharacterIK component from.</param>
         public static void RemoveUnityIK(GameObject character)
         {
             var characterIK = character.GetComponent<CharacterIK>();
-            if (characterIK != null) {
-                Object.DestroyImmediate(characterIK, true);
-            }
+            if (characterIK != null) Object.DestroyImmediate(characterIK, true);
         }
 
         /// <summary>
-        /// Adds the CharacterFootEffects component to the character.
+        ///     Adds the CharacterFootEffects component to the character.
         /// </summary>
         /// <param name="character">The character to add the CharacterFootEffects component to.</param>
         public static void AddFootEffects(GameObject character)
         {
-            if (character.GetComponent<CharacterFootEffects>() == null) {
+            if (character.GetComponent<CharacterFootEffects>() == null)
+            {
                 var footEffects = character.AddComponent<CharacterFootEffects>();
                 footEffects.InitializeHumanoidFeet(true);
 
                 // If the character doesn't have any feet then the foot effects should use the AudioSource on the main character GameObject.
-                if (footEffects.Feet == null || footEffects.Feet.Length == 0) {
+                if (footEffects.Feet == null || footEffects.Feet.Length == 0)
+                {
                     var audioSource = character.AddComponent<AudioSource>();
                     audioSource.spatialBlend = 1;
                     audioSource.playOnAwake = false;
@@ -729,15 +685,13 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
         }
 
         /// <summary>
-        /// Removes the CharacterFootEffects component from the character.
+        ///     Removes the CharacterFootEffects component from the character.
         /// </summary>
         /// <param name="character">The character to remove the CharacterFootEffects component from.</param>
         public static void RemoveFootEffects(GameObject character)
         {
             var footEffects = character.GetComponent<CharacterFootEffects>();
-            if (footEffects != null) {
-                Object.DestroyImmediate(footEffects, true);
-            }
+            if (footEffects != null) Object.DestroyImmediate(footEffects, true);
         }
     }
 }

@@ -4,45 +4,56 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Input;
+using UnityEngine.Scripting;
+
 namespace Opsive.UltimateCharacterController.Character.Abilities.Starters
 {
-    using Opsive.Shared.Input;
-
     /// <summary>
-    /// The AbilityStarter allows a custom object to decide when the ability should start.
+    ///     The AbilityStarter allows a custom object to decide when the ability should start.
     /// </summary>
-    [System.Serializable]
-    [UnityEngine.Scripting.Preserve]
+    [Serializable]
+    [Preserve]
     public abstract class AbilityStarter
     {
         protected Ability m_Ability;
 
         /// <summary>
-        /// Initializes the starter to the specified ability.
+        ///     Initializes the starter to the specified ability.
         /// </summary>
         /// <param name="ability">The ability that owns the starter.</param>
-        public virtual void Initialize(Ability ability) { m_Ability = ability; }
+        public virtual void Initialize(Ability ability)
+        {
+            m_Ability = ability;
+        }
 
         /// <summary>
-        /// Can the starter start the ability?
+        ///     Can the starter start the ability?
         /// </summary>
         /// <param name="playerInput">A reference to the input component.</param>
         /// <returns>True if the starter can start the ability.</returns>
         public abstract bool CanInputStartAbility(PlayerInput playerInput);
 
         /// <summary>
-        /// The ability has started.
+        ///     The ability has started.
         /// </summary>
-        public virtual void AbilityStarted() { }
+        public virtual void AbilityStarted()
+        {
+        }
 
         /// <summary>
-        /// The ability has stopped running.
+        ///     The ability has stopped running.
         /// </summary>
-        public virtual void AbilityStopped() { }
+        public virtual void AbilityStopped()
+        {
+        }
 
         /// <summary>
-        /// The object has been destroyed.
+        ///     The object has been destroyed.
         /// </summary>
-        public virtual void OnDestroy() { }
+        public virtual void OnDestroy()
+        {
+        }
     }
 }

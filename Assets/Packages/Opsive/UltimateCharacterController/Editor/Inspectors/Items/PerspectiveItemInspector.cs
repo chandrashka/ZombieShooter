@@ -4,23 +4,23 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Editor.Inspectors.StateSystem;
+using Opsive.UltimateCharacterController.Character;
+using Opsive.UltimateCharacterController.Items;
+using UnityEditor;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items
 {
-    using Opsive.Shared.Editor.Inspectors.StateSystem;
-    using Opsive.UltimateCharacterController.Character;
-    using Opsive.UltimateCharacterController.Items;
-    using System;
-    using UnityEditor;
-    using UnityEngine;
-
     /// <summary>
-    /// Shows a custom inspector for the PerspectiveItem component.
+    ///     Shows a custom inspector for the PerspectiveItem component.
     /// </summary>
     [CustomEditor(typeof(PerspectiveItem))]
     public abstract class PerspectiveItemInspector : StateBehaviorInspector
     {
         /// <summary>
-        /// Returns the actions to draw before the State list is drawn.
+        ///     Returns the actions to draw before the State list is drawn.
         /// </summary>
         /// <returns>The actions to draw before the State list is drawn.</returns>
         protected override Action GetDrawCallback()
@@ -29,22 +29,24 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items
 
             baseCallback += () =>
             {
-                if (Foldout("Render")) {
+                if (Foldout("Render"))
+                {
                     EditorGUI.indentLevel++;
                     GUI.enabled = !Application.isPlaying;
                     var objectProperty = PropertyFromName("m_Object");
                     EditorGUILayout.PropertyField(objectProperty);
                     GUI.enabled = true;
-                    if (objectProperty.objectReferenceValue == null || EditorUtility.IsPersistent(objectProperty.objectReferenceValue) ||
-                        (objectProperty.objectReferenceValue as GameObject).transform.IsChildOf((target as PerspectiveItem).transform)) {
+                    if (objectProperty.objectReferenceValue == null ||
+                        EditorUtility.IsPersistent(objectProperty.objectReferenceValue) ||
+                        (objectProperty.objectReferenceValue as GameObject).transform.IsChildOf(
+                            (target as PerspectiveItem).transform))
                         DrawSpawnParentProperties();
-                    } else if (!Application.isPlaying) {
+                    else if (!Application.isPlaying)
                         // The object must a GameObject and a child of the current character.
-                        if ((objectProperty.objectReferenceValue as GameObject) == null ||
-                            (objectProperty.objectReferenceValue as GameObject).GetComponentInParent<ItemHandler>() != (target as PerspectiveItem).GetComponentInParent<ItemHandler>()) {
+                        if (objectProperty.objectReferenceValue as GameObject == null ||
+                            (objectProperty.objectReferenceValue as GameObject).GetComponentInParent<ItemHandler>() !=
+                            (target as PerspectiveItem).GetComponentInParent<ItemHandler>())
                             objectProperty.objectReferenceValue = null;
-                        }
-                    }
                     DrawRenderProperties();
                     EditorGUI.indentLevel--;
                 }
@@ -54,23 +56,26 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items
         }
 
         /// <summary>
-        /// Draws the options for spawning based on a parent.
+        ///     Draws the options for spawning based on a parent.
         /// </summary>
-        protected virtual void DrawSpawnParentProperties() { }
-
-        /// <summary>
-        /// Checks to see if the Object reference value exists. If it doesn't then a warning will be displayed.
-        /// </summary>
-        protected void CheckForObject()
+        protected virtual void DrawSpawnParentProperties()
         {
-            if (PropertyFromName("m_Object").objectReferenceValue == null) {
-                EditorGUILayout.HelpBox("An Object is required if the item is visible.", MessageType.Warning);
-            }
         }
 
         /// <summary>
-        /// Draws the options for the render foldout.
+        ///     Checks to see if the Object reference value exists. If it doesn't then a warning will be displayed.
         /// </summary>
-        protected virtual void DrawRenderProperties() { }
+        protected void CheckForObject()
+        {
+            if (PropertyFromName("m_Object").objectReferenceValue == null)
+                EditorGUILayout.HelpBox("An Object is required if the item is visible.", MessageType.Warning);
+        }
+
+        /// <summary>
+        ///     Draws the options for the render foldout.
+        /// </summary>
+        protected virtual void DrawRenderProperties()
+        {
+        }
     }
 }

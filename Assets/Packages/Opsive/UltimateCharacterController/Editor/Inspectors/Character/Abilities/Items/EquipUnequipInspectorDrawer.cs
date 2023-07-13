@@ -4,22 +4,24 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.UltimateCharacterController.Character.Abilities.Items;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
+using UnityEditor;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character.Abilities.Items
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Character.Abilities.Items;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using UnityEditor;
-    using UnityEngine;
-
     /// <summary>
-    /// Draws a custom inspector for the EquipUnequip ItemAbility.
+    ///     Draws a custom inspector for the EquipUnequip ItemAbility.
     /// </summary>
     [InspectorDrawer(typeof(EquipUnequip))]
     public class EquipUnequipInspectorDrawer : ItemSetAbilityBaseInspectorDrawer
     {
         /// <summary>
-        /// Draws the fields related to the inspector drawer.
+        ///     Draws the fields related to the inspector drawer.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
@@ -27,11 +29,11 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character.Abiliti
         {
             // Draw AutoEquip manually so it'll use the MaskField.
             var autoEquip = (int)InspectorUtility.GetFieldValue<EquipUnequip.AutoEquipType>(target, "m_AutoEquip");
-            var equipString = System.Enum.GetNames(typeof(EquipUnequip.AutoEquipType));
-            var value = EditorGUILayout.MaskField(new GUIContent("Auto Equip", InspectorUtility.GetFieldTooltip(target, "m_AutoEquip")), autoEquip, equipString);
-            if (value != autoEquip) {
-                InspectorUtility.SetFieldValue(target, "m_AutoEquip", value);
-            }
+            var equipString = Enum.GetNames(typeof(EquipUnequip.AutoEquipType));
+            var value = EditorGUILayout.MaskField(
+                new GUIContent("Auto Equip", InspectorUtility.GetFieldTooltip(target, "m_AutoEquip")), autoEquip,
+                equipString);
+            if (value != autoEquip) InspectorUtility.SetFieldValue(target, "m_AutoEquip", value);
 
             base.DrawInspectorDrawerFields(target, parent);
         }

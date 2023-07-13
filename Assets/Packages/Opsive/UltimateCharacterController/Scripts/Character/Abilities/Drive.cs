@@ -4,21 +4,23 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Events;
+using Opsive.Shared.Game;
+using Opsive.Shared.Utility;
+using Opsive.UltimateCharacterController.Character.Abilities.Items;
+using Opsive.UltimateCharacterController.Game;
+using Opsive.UltimateCharacterController.Objects.CharacterAssist;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Character.Abilities
 {
-    using Opsive.Shared.Events;
-    using Opsive.Shared.Game;
-    using Opsive.Shared.Utility;
 #if ULTIMATE_CHARACTER_CONTROLLER_MULTIPLAYER
     using Opsive.UltimateCharacterController.Networking;
 #endif
-    using Opsive.UltimateCharacterController.Game;
-    using Opsive.UltimateCharacterController.Objects.CharacterAssist;
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
 
     /// <summary>
-    /// Ability that uses the IDriveSource interface to drive a vehicle.
+    ///     Ability that uses the IDriveSource interface to drive a vehicle.
     /// </summary>
     [DefaultInputName("Action")]
     [DefaultState("Drive")]
@@ -35,31 +37,54 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
     [DefaultEquippedSlots(0)]
     public class Drive : DetectObjectAbilityBase
     {
-        [Tooltip("Should the character teleport for the enter and exit animations?")]
-        [SerializeField] protected bool m_TeleportEnterExit;
-        [Tooltip("Can the Drive ability aim?")]
-        [SerializeField] protected bool m_CanAim;
-        [Tooltip("The speed at which the character moves towards the seat location.")]
-        [SerializeField] protected float m_MoveSpeed = 0.2f;
-        [Tooltip("The speed at which the character rotates towards the seat location.")]
-        [SerializeField] protected float m_RotationSpeed = 2f;
-        [Tooltip("When the character enters the vehicle should the SkinnedMeshRenderer be disabled?")]
-        [SerializeField] protected bool m_DisableMeshRenderers;
+        [Tooltip("Should the character teleport for the enter and exit animations?")] [SerializeField]
+        protected bool m_TeleportEnterExit;
 
-        public bool TeleportEnterExit { get => m_TeleportEnterExit; set => m_TeleportEnterExit = value; }
-        public bool CanAim { get => m_CanAim; set => m_CanAim = value; }
-        public float MoveSpeed { get => m_MoveSpeed; set => m_MoveSpeed = value; }
-        public float RotationSpeed { get => m_RotationSpeed; set => m_RotationSpeed = value; }
+        [Tooltip("Can the Drive ability aim?")] [SerializeField]
+        protected bool m_CanAim;
+
+        [Tooltip("The speed at which the character moves towards the seat location.")] [SerializeField]
+        protected float m_MoveSpeed = 0.2f;
+
+        [Tooltip("The speed at which the character rotates towards the seat location.")] [SerializeField]
+        protected float m_RotationSpeed = 2f;
+
+        [Tooltip("When the character enters the vehicle should the SkinnedMeshRenderer be disabled?")] [SerializeField]
+        protected bool m_DisableMeshRenderers;
+
+        public bool TeleportEnterExit
+        {
+            get => m_TeleportEnterExit;
+            set => m_TeleportEnterExit = value;
+        }
+
+        public bool CanAim
+        {
+            get => m_CanAim;
+            set => m_CanAim = value;
+        }
+
+        public float MoveSpeed
+        {
+            get => m_MoveSpeed;
+            set => m_MoveSpeed = value;
+        }
+
+        public float RotationSpeed
+        {
+            get => m_RotationSpeed;
+            set => m_RotationSpeed = value;
+        }
 
         /// <summary>
-        /// Specifies the current status of the character.
+        ///     Specifies the current status of the character.
         /// </summary>
         private enum DriveState
         {
-            Enter,          // The character is entering the vehicle.
-            Drive,          // The character is driving the vehicle.
-            Exit,           // The character is exiting the vehicle.
-            ExitComplete    // The character has exited the vehicle.    
+            Enter, // The character is entering the vehicle.
+            Drive, // The character is driving the vehicle.
+            Exit, // The character is exiting the vehicle.
+            ExitComplete // The character has exited the vehicle.    
         }
 
         private IDriveSource m_DriveSource;
@@ -72,13 +97,13 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         private INetworkInfo m_NetworkInfo;
 #endif
         private KinematicObjectManager.UpdateLocation m_StartUpdateLocation;
-        private float m_Epsilon = 0.99999f;
+        private readonly float m_Epsilon = 0.99999f;
 
-        public override int AbilityIntData { get { return m_DriveSource.AnimatorID + (int)m_DriveState; } }
-        public override float AbilityFloatData { get { return m_CharacterLocomotion.RawInputVector.x; } }
+        public override int AbilityIntData => m_DriveSource.AnimatorID + (int)m_DriveState;
+        public override float AbilityFloatData => m_CharacterLocomotion.RawInputVector.x;
 
         /// <summary>
-        /// Initializes the default values.
+        ///     Initializes the default values.
         /// </summary>
         public override void Awake()
         {
@@ -94,83 +119,91 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// Validates the object to ensure it is valid for the current ability.
+        ///     Validates the object to ensure it is valid for the current ability.
         /// </summary>
         /// <param name="obj">The object being validated.</param>
         /// <param name="raycastHit">The raycast hit of the detected object. Will be null for trigger detections.</param>
-        /// <returns>True if the object is valid. The object may not be valid if it doesn't have an ability-specific component attached.</returns>
+        /// <returns>
+        ///     True if the object is valid. The object may not be valid if it doesn't have an ability-specific component
+        ///     attached.
+        /// </returns>
         protected override bool ValidateObject(GameObject obj, RaycastHit? raycastHit)
         {
-            if (!base.ValidateObject(obj, raycastHit)) {
-                return false;
-            }
+            if (!base.ValidateObject(obj, raycastHit)) return false;
 
             m_DriveSource = obj.GetCachedParentComponent<IDriveSource>();
-            if (m_DriveSource == null) {
-                return false;
-            }
+            if (m_DriveSource == null) return false;
 
             return true;
         }
 
         /// <summary>
-        /// Called when the ablity is tried to be started. If false is returned then the ability will not be started.
+        ///     Called when the ablity is tried to be started. If false is returned then the ability will not be started.
         /// </summary>
         /// <returns>True if the ability can be started.</returns>
         public override bool CanStartAbility()
         {
-            if (!base.CanStartAbility()) {
-                return false;
-            }
+            if (!base.CanStartAbility()) return false;
 
             return GetValidStartLocation() != null;
         }
 
         /// <summary>
-        /// Returns a valid start location.
+        ///     Returns a valid start location.
         /// </summary>
         /// <returns>A valid start location (can be null).</returns>
         protected virtual MoveTowardsLocation GetValidStartLocation()
         {
             // At least one ability start location must be on the ground and not obstructed by any object.
             var startLocations = m_DriveSource.GameObject.GetComponentsInChildren<MoveTowardsLocation>();
-            for (int i = 0; i < startLocations.Length; ++i) {
+            for (var i = 0; i < startLocations.Length; ++i)
+            {
                 // If the start location has a collider then it should be clear of any other objects.
                 var collider = startLocations[i].gameObject.GetCachedComponent<Collider>();
-                if (collider == null || !ColliderOverlap(collider)) {
-                    return startLocations[i];
-                }
+                if (collider == null || !ColliderOverlap(collider)) return startLocations[i];
             }
+
             return null;
         }
 
         /// <summary>
-        /// Is the collider overlapping with any other objects?
+        ///     Is the collider overlapping with any other objects?
         /// </summary>
         /// <param name="collider">The collider to determine if it is overlapping with another object.</param>
         /// <returns>True if the collider is overlapping.</returns>
         private bool ColliderOverlap(Collider collider)
         {
-            if (collider == null) {
-                return true;
-            }
+            if (collider == null) return true;
 
             int hitCount;
             var colliderTransform = collider.transform;
-            if (collider is CapsuleCollider) {
+            if (collider is CapsuleCollider)
+            {
                 Vector3 startEndCap, endEndCap;
                 var capsuleCollider = collider as CapsuleCollider;
-                MathUtility.CapsuleColliderEndCaps(capsuleCollider, colliderTransform.TransformPoint(capsuleCollider.center), colliderTransform.rotation, out startEndCap, out endEndCap);
-                hitCount = Physics.OverlapCapsuleNonAlloc(startEndCap, endEndCap, capsuleCollider.radius * MathUtility.ColliderRadiusMultiplier(capsuleCollider), m_OverlapColliders,
-                                m_CharacterLayerManager.IgnoreInvisibleCharacterWaterLayers, QueryTriggerInteraction.Ignore);
-            } else if (collider is BoxCollider) {
+                MathUtility.CapsuleColliderEndCaps(capsuleCollider,
+                    colliderTransform.TransformPoint(capsuleCollider.center), colliderTransform.rotation,
+                    out startEndCap, out endEndCap);
+                hitCount = Physics.OverlapCapsuleNonAlloc(startEndCap, endEndCap,
+                    capsuleCollider.radius * MathUtility.ColliderRadiusMultiplier(capsuleCollider), m_OverlapColliders,
+                    m_CharacterLayerManager.IgnoreInvisibleCharacterWaterLayers, QueryTriggerInteraction.Ignore);
+            }
+            else if (collider is BoxCollider)
+            {
                 var boxCollider = collider as BoxCollider;
-                hitCount = Physics.OverlapBoxNonAlloc(colliderTransform.TransformPoint(boxCollider.center), Vector3.Scale(boxCollider.size, colliderTransform.lossyScale) / 2,
-                                    m_OverlapColliders, colliderTransform.rotation, m_CharacterLayerManager.IgnoreInvisibleCharacterWaterLayers, QueryTriggerInteraction.Ignore);
-            } else { // SphereCollider.
+                hitCount = Physics.OverlapBoxNonAlloc(colliderTransform.TransformPoint(boxCollider.center),
+                    Vector3.Scale(boxCollider.size, colliderTransform.lossyScale) / 2,
+                    m_OverlapColliders, colliderTransform.rotation,
+                    m_CharacterLayerManager.IgnoreInvisibleCharacterWaterLayers, QueryTriggerInteraction.Ignore);
+            }
+            else
+            {
+                // SphereCollider.
                 var sphereCollider = collider as SphereCollider;
-                hitCount = Physics.OverlapSphereNonAlloc(colliderTransform.TransformPoint(sphereCollider.center), sphereCollider.radius * MathUtility.ColliderRadiusMultiplier(sphereCollider),
-                                        m_OverlapColliders, m_CharacterLayerManager.IgnoreInvisibleCharacterWaterLayers, QueryTriggerInteraction.Ignore);
+                hitCount = Physics.OverlapSphereNonAlloc(colliderTransform.TransformPoint(sphereCollider.center),
+                    sphereCollider.radius * MathUtility.ColliderRadiusMultiplier(sphereCollider),
+                    m_OverlapColliders, m_CharacterLayerManager.IgnoreInvisibleCharacterWaterLayers,
+                    QueryTriggerInteraction.Ignore);
             }
 
             // Any overlap occurs anytime there is more one collider intersecting the colliders.
@@ -178,19 +211,17 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// Returns the possible MoveTowardsLocations that the character can move towards.
+        ///     Returns the possible MoveTowardsLocations that the character can move towards.
         /// </summary>
         /// <returns>The possible MoveTowardsLocations that the character can move towards.</returns>
         public override MoveTowardsLocation[] GetMoveTowardsLocations()
         {
-            if (m_TeleportEnterExit) {
-                return null;
-            }
+            if (m_TeleportEnterExit) return null;
             return m_DriveSource.GameObject.GetComponentsInChildren<MoveTowardsLocation>();
         }
 
         /// <summary>
-        /// The ability has started.
+        ///     The ability has started.
         /// </summary>
         protected override void AbilityStarted()
         {
@@ -214,17 +245,21 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
             m_DriveSource.EnterVehicle(m_GameObject);
 
             // Teleport the character if there are no enter/exit animations.
-            if (m_TeleportEnterExit) {
+            if (m_TeleportEnterExit)
+            {
                 OnEnteredVehicle();
                 m_CharacterLocomotion.InputVector = Vector2.zero;
-                var location = m_DriveSource.DriverLocation != null ? m_DriveSource.DriverLocation : m_DriveSource.Transform;
+                var location = m_DriveSource.DriverLocation != null
+                    ? m_DriveSource.DriverLocation
+                    : m_DriveSource.Transform;
                 m_CharacterLocomotion.SetPositionAndRotation(location.position, location.rotation, true, false);
             }
+
             m_CharacterLocomotion.AlignToGravity = true;
         }
 
         /// <summary>
-        /// Callback when the character has entered the vehicle.
+        ///     Callback when the character has entered the vehicle.
         /// </summary>
         private void OnEnteredVehicle()
         {
@@ -245,49 +280,48 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
             m_CharacterLocomotion.UpdateAbilityAnimatorParameters();
 
             // The character may not be visible within the vehicle.
-            if (m_DisableMeshRenderers) {
+            if (m_DisableMeshRenderers)
+            {
                 m_SkinnedMeshRenderers = m_GameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
-                for (int i = 0; i < m_SkinnedMeshRenderers.Length; ++i) {
-                    m_SkinnedMeshRenderers[i].enabled = false;
-                }
+                for (var i = 0; i < m_SkinnedMeshRenderers.Length; ++i) m_SkinnedMeshRenderers[i].enabled = false;
             }
         }
 
         /// <summary>
-        /// Called when another ability is attempting to start and the current ability is active.
-        /// Returns true or false depending on if the new ability should be blocked from starting.
+        ///     Called when another ability is attempting to start and the current ability is active.
+        ///     Returns true or false depending on if the new ability should be blocked from starting.
         /// </summary>
         /// <param name="startingAbility">The ability that is starting.</param>
         /// <returns>True if the ability should be blocked.</returns>
         public override bool ShouldBlockAbilityStart(Ability startingAbility)
         {
-            return m_AllowEquippedSlotsMask == 0 && startingAbility is Items.ItemAbility || (!m_CanAim && startingAbility is Items.Aim) || startingAbility is HeightChange;
+            return (m_AllowEquippedSlotsMask == 0 && startingAbility is ItemAbility) ||
+                   (!m_CanAim && startingAbility is Aim) || startingAbility is HeightChange;
         }
 
         /// <summary>
-        /// Called when the current ability is attempting to start and another ability is active.
-        /// Returns true or false depending on if the active ability should be stopped.
+        ///     Called when the current ability is attempting to start and another ability is active.
+        ///     Returns true or false depending on if the active ability should be stopped.
         /// </summary>
         /// <param name="activeAbility">The ability that is currently active.</param>
         /// <returns>True if the ability should be stopped.</returns>
         public override bool ShouldStopActiveAbility(Ability activeAbility)
         {
-            return m_AllowEquippedSlotsMask == 0 && activeAbility is Items.ItemAbility || (!m_CanAim && activeAbility is Items.Aim);
+            return (m_AllowEquippedSlotsMask == 0 && activeAbility is ItemAbility) ||
+                   (!m_CanAim && activeAbility is Aim);
         }
 
         /// <summary>
-        /// Updates the ability.
+        ///     Updates the ability.
         /// </summary>
         public override void Update()
         {
             // Try to stop the ability after the character has exited. The ability won't be able to be stopped if the character isn't level with the gravity direction.
-            if (m_DriveState == DriveState.ExitComplete && !m_TeleportEnterExit) {
-                StopAbility();
-            }
+            if (m_DriveState == DriveState.ExitComplete && !m_TeleportEnterExit) StopAbility();
         }
 
         /// <summary>
-        /// Update the ability's Animator parameters.
+        ///     Update the ability's Animator parameters.
         /// </summary>
         public override void UpdateAnimator()
         {
@@ -296,49 +330,57 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// Update the controller's rotation values.
+        ///     Update the controller's rotation values.
         /// </summary>
         public override void UpdateRotation()
         {
             var deltaRotation = Quaternion.identity;
             var rotation = m_Transform.rotation;
-            if (m_DriveState != DriveState.Drive) {
-                if (m_TeleportEnterExit) {
-                    return;
-                }
-                var upNormal = m_DriveState == DriveState.Enter ? m_DriveSource.Transform.up : -m_CharacterLocomotion.GravityDirection;
+            if (m_DriveState != DriveState.Drive)
+            {
+                if (m_TeleportEnterExit) return;
+                var upNormal = m_DriveState == DriveState.Enter
+                    ? m_DriveSource.Transform.up
+                    : -m_CharacterLocomotion.GravityDirection;
                 // When the character is entering the vehicle they should rotate to face the same up direction as the car. This allows the character to enter while on slopes.
                 // Similarly, when the character exits they should rotate to the gravity direction.
-                var proj = (rotation * Vector3.forward) - Vector3.Dot(rotation * Vector3.forward, upNormal) * upNormal;
-                if (proj.sqrMagnitude > 0.0001f) {
-                    var speed = m_RotationSpeed * m_CharacterLocomotion.TimeScale * Time.timeScale * Time.deltaTime * (m_DriveState == DriveState.ExitComplete ? 100 : 1);
+                var proj = rotation * Vector3.forward - Vector3.Dot(rotation * Vector3.forward, upNormal) * upNormal;
+                if (proj.sqrMagnitude > 0.0001f)
+                {
+                    var speed = m_RotationSpeed * m_CharacterLocomotion.TimeScale * Time.timeScale * Time.deltaTime *
+                                (m_DriveState == DriveState.ExitComplete ? 100 : 1);
                     var targetRotation = Quaternion.Slerp(rotation, Quaternion.LookRotation(proj, upNormal), speed);
                     deltaRotation = deltaRotation * (Quaternion.Inverse(rotation) * targetRotation);
                 }
-            } else if (m_DriveSource.DriverLocation != null) {
-                // The character should fully rotate towards the target rotation after they have entered.
-                deltaRotation = MathUtility.InverseTransformQuaternion(m_Transform.rotation, m_DriveSource.DriverLocation.rotation);
             }
+            else if (m_DriveSource.DriverLocation != null)
+            {
+                // The character should fully rotate towards the target rotation after they have entered.
+                deltaRotation =
+                    MathUtility.InverseTransformQuaternion(m_Transform.rotation, m_DriveSource.DriverLocation.rotation);
+            }
+
             m_CharacterLocomotion.DeltaRotation = deltaRotation.eulerAngles;
         }
 
         /// <summary>
-        /// Update the controller's position values.
+        ///     Update the controller's position values.
         /// </summary>
         public override void UpdatePosition()
         {
-            if (m_DriveState != DriveState.Drive || m_TeleportEnterExit || m_DriveSource.DriverLocation == null) {
-                return;
-            }
+            if (m_DriveState != DriveState.Drive || m_TeleportEnterExit || m_DriveSource.DriverLocation == null) return;
 
             m_CharacterLocomotion.MotorThrottle = Vector3.zero;
             var position = m_Transform.position;
-            var deltaPosition = Vector3.MoveTowards(position, m_DriveSource.DriverLocation.position, m_MoveSpeed) - position;
-            m_CharacterLocomotion.AbilityMotor = deltaPosition / (m_CharacterLocomotion.TimeScaleSquared * Time.timeScale * TimeUtility.FramerateDeltaTime);
+            var deltaPosition = Vector3.MoveTowards(position, m_DriveSource.DriverLocation.position, m_MoveSpeed) -
+                                position;
+            m_CharacterLocomotion.AbilityMotor = deltaPosition /
+                                                 (m_CharacterLocomotion.TimeScaleSquared * Time.timeScale *
+                                                  TimeUtility.FramerateDeltaTime);
         }
 
         /// <summary>
-        /// Callback when the ability tries to be stopped. Start the dismount.
+        ///     Callback when the ability tries to be stopped. Start the dismount.
         /// </summary>
         public override void WillTryStopAbility()
         {
@@ -349,15 +391,11 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
             }
 #endif
 
-            if (m_DriveState != DriveState.Drive) {
-                return;
-            }
+            if (m_DriveState != DriveState.Drive) return;
 
             // The ability can't stop if there are no valid exit locations.
             MoveTowardsLocation startLocation;
-            if ((startLocation = GetValidStartLocation()) == null) {
-                return;
-            }
+            if ((startLocation = GetValidStartLocation()) == null) return;
 
             m_DriveSource.ExitVehicle(m_GameObject);
             m_DriveState = DriveState.Exit;
@@ -368,22 +406,23 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
             m_CharacterLocomotion.AllowRootMotionPosition = true;
             m_CharacterLocomotion.UpdateAbilityAnimatorParameters();
 
-            if (m_DisableMeshRenderers && m_SkinnedMeshRenderers != null) {
-                for (int i = 0; i < m_SkinnedMeshRenderers.Length; ++i) {
+            if (m_DisableMeshRenderers && m_SkinnedMeshRenderers != null)
+                for (var i = 0; i < m_SkinnedMeshRenderers.Length; ++i)
                     m_SkinnedMeshRenderers[i].enabled = true;
-                }
-            }
 
             // Teleport the character if there are no enter/exit animations.
-            if (m_TeleportEnterExit) {
+            if (m_TeleportEnterExit)
+            {
                 OnExitedVehicle();
-                var forward = Vector3.ProjectOnPlane(startLocation.transform.forward, -m_CharacterLocomotion.GravityDirection);
-                m_CharacterLocomotion.SetPositionAndRotation(startLocation.transform.position, Quaternion.LookRotation(forward, -m_CharacterLocomotion.GravityDirection), true, false);
+                var forward = Vector3.ProjectOnPlane(startLocation.transform.forward,
+                    -m_CharacterLocomotion.GravityDirection);
+                m_CharacterLocomotion.SetPositionAndRotation(startLocation.transform.position,
+                    Quaternion.LookRotation(forward, -m_CharacterLocomotion.GravityDirection), true, false);
             }
         }
 
         /// <summary>
-        /// Callback when the character has exited the vehicle.
+        ///     Callback when the character has exited the vehicle.
         /// </summary>
         private void OnExitedVehicle()
         {
@@ -404,18 +443,20 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// Can the ability be stopped?
+        ///     Can the ability be stopped?
         /// </summary>
         /// <returns>True if the ability can be stopped.</returns>
         public override bool CanStopAbility()
         {
             // The character has to be exited in order to stop.
             return m_DriveState == DriveState.ExitComplete &&
-                                (m_TeleportEnterExit || Vector3.Dot(m_Transform.rotation * Vector3.up, -m_CharacterLocomotion.GravityDirection) >= m_Epsilon);
+                   (m_TeleportEnterExit ||
+                    Vector3.Dot(m_Transform.rotation * Vector3.up, -m_CharacterLocomotion.GravityDirection) >=
+                    m_Epsilon);
         }
 
         /// <summary>
-        /// The ability has stopped running.
+        ///     The ability has stopped running.
         /// </summary>
         /// <param name="force">Was the ability force stopped?</param>
         protected override void AbilityStopped(bool force)
@@ -429,7 +470,8 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
 #endif
 
             // If the drive state isn't exit complete then the ability was force stopped.
-            if (m_DriveState != DriveState.ExitComplete) {
+            if (m_DriveState != DriveState.ExitComplete)
+            {
                 m_DriveSource.ExitVehicle(m_GameObject);
                 m_CharacterLocomotion.AbilityMotor = Vector3.zero;
                 m_CharacterLocomotion.UpdateLocation = m_StartUpdateLocation;
@@ -438,7 +480,7 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// The character has been destroyed.
+        ///     The character has been destroyed.
         /// </summary>
         public override void OnDestroy()
         {

@@ -4,12 +4,12 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.Shared.Camera
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Interface representing the camera GameObject.
+    ///     Interface representing the camera GameObject.
     /// </summary>
     public interface ICamera
     {

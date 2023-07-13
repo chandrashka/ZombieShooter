@@ -4,17 +4,17 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Networking.Traits
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Allows the object to be interacted with on the network.
+    ///     Allows the object to be interacted with on the network.
     /// </summary>
     public interface INetworkInteractableMonitor
     {
         /// <summary>
-        /// Performs the interaction.
+        ///     Performs the interaction.
         /// </summary>
         /// <param name="character">The character that wants to interactact with the target.</param>
         void Interact(GameObject character);

@@ -21,8 +21,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-using UnityEngine;
+
 using UnityEditor;
+using UnityEngine;
 
 namespace Kino
 {
@@ -30,18 +31,17 @@ namespace Kino
     [CustomEditor(typeof(Bloom))]
     public class BloomEditor : Editor
     {
-        BloomGraphDrawer _graph;
+        private static readonly GUIContent _textThreshold = new("Threshold (gamma)");
+        private SerializedProperty _antiFlicker;
+        private BloomGraphDrawer _graph;
+        private SerializedProperty _highQuality;
+        private SerializedProperty _intensity;
+        private SerializedProperty _radius;
+        private SerializedProperty _softKnee;
 
-        SerializedProperty _threshold;
-        SerializedProperty _softKnee;
-        SerializedProperty _radius;
-        SerializedProperty _intensity;
-        SerializedProperty _highQuality;
-        SerializedProperty _antiFlicker;
+        private SerializedProperty _threshold;
 
-        static GUIContent _textThreshold = new GUIContent("Threshold (gamma)");
-
-        void OnEnable()
+        private void OnEnable()
         {
             _graph = new BloomGraphDrawer();
             _threshold = serializedObject.FindProperty("_threshold");
@@ -56,7 +56,8 @@ namespace Kino
         {
             serializedObject.Update();
 
-            if (!serializedObject.isEditingMultipleObjects) {
+            if (!serializedObject.isEditingMultipleObjects)
+            {
                 EditorGUILayout.Space();
                 _graph.Prepare((Bloom)target);
                 _graph.DrawGraph();

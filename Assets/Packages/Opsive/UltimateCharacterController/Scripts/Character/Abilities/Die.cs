@@ -4,45 +4,48 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Events;
+using Opsive.Shared.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Character.Abilities
 {
-    using Opsive.Shared.Events;
-    using Opsive.Shared.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// Plays a death animation when the character dies.
+    ///     Plays a death animation when the character dies.
     /// </summary>
     [DefaultStartType(AbilityStartType.Manual)]
     [DefaultState("Death")]
     [DefaultAbilityIndex(4)]
     public class Die : Ability
     {
-        [Tooltip("The amount of force to add to the camera. This value will be multiplied by the death force magnitude.")]
-        [SerializeField] protected Vector3 m_CameraRotationalForce = new Vector3(0, 0, 0.75f);
-
-        public Vector3 CameraRotationalForce { get { return m_CameraRotationalForce; } set { m_CameraRotationalForce = value; } }
-
-        /// <summary>
-        /// The type of animation that the ability should play.
-        /// </summary>
-        private enum DeathType {
-            Forward, // Play a forward death animation.
-            Backward // Play a backward death animation.
-        }
+        [Tooltip(
+            "The amount of force to add to the camera. This value will be multiplied by the death force magnitude.")]
+        [SerializeField]
+        protected Vector3 m_CameraRotationalForce = new(0, 0, 0.75f);
 
         private int m_DeathTypeIndex;
         private Vector3 m_Force;
-        private Vector3 m_Position;
 
-        [NonSerialized] public Vector3 Force { get { return m_Force; } set { m_Force = value; } }
-        [NonSerialized] public Vector3 Position { get { return m_Position; } set { m_Position = value; } }
+        public Vector3 CameraRotationalForce
+        {
+            get => m_CameraRotationalForce;
+            set => m_CameraRotationalForce = value;
+        }
 
-        public override int AbilityIntData { get { return m_DeathTypeIndex; } }
-        public override bool CanStayActivatedOnDeath { get { return true; } }
+        [NonSerialized]
+        public Vector3 Force
+        {
+            get => m_Force;
+            set => m_Force = value;
+        }
+
+        [NonSerialized] public Vector3 Position { get; set; }
+
+        public override int AbilityIntData => m_DeathTypeIndex;
+        public override bool CanStayActivatedOnDeath => true;
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         public override void Awake()
         {
@@ -53,25 +56,23 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// The character has died. Start the ability.
+        ///     The character has died. Start the ability.
         /// </summary>
         /// <param name="position">The position of the force.</param>
         /// <param name="force">The amount of force which killed the character.</param>
         /// <param name="attacker">The GameObject that killed the character.</param>
         private void OnDeath(Vector3 position, Vector3 force, GameObject attacker)
         {
-            if (!Enabled) {
-                return;
-            }
+            if (!Enabled) return;
 
             m_Force = force;
-            m_Position = position;
+            Position = position;
             m_DeathTypeIndex = GetDeathTypeIndex(position, force, attacker);
             StartAbility();
         }
 
         /// <summary>
-        /// Returns the value that the AbilityIntData parameter should be set to.
+        ///     Returns the value that the AbilityIntData parameter should be set to.
         /// </summary>
         /// <param name="position">The position of the force.</param>
         /// <param name="force">The amount of force which killed the character.</param>
@@ -83,29 +84,28 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// The ability has started.
+        ///     The ability has started.
         /// </summary>
         protected override void AbilityStarted()
         {
             base.AbilityStarted();
 
             m_CharacterLocomotion.ResetRotationPosition();
-            EventHandler.ExecuteEvent(m_GameObject, "OnCameraRotationalForce", m_CameraRotationalForce * m_Force.magnitude);
+            EventHandler.ExecuteEvent(m_GameObject, "OnCameraRotationalForce",
+                m_CameraRotationalForce * m_Force.magnitude);
         }
 
         /// <summary>
-        /// The character has respawned. Stop the die ability.
+        ///     The character has respawned. Stop the die ability.
         /// </summary>
         private void OnRespawn()
         {
-            if (!Enabled) {
-                return;
-            }
+            if (!Enabled) return;
             StopAbility();
         }
 
         /// <summary>
-        /// Called when the character is destroyed.
+        ///     Called when the character is destroyed.
         /// </summary>
         public override void OnDestroy()
         {
@@ -113,6 +113,15 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
 
             EventHandler.UnregisterEvent<Vector3, Vector3, GameObject>(m_GameObject, "OnDeath", OnDeath);
             EventHandler.UnregisterEvent(m_GameObject, "OnRespawn", OnRespawn);
+        }
+
+        /// <summary>
+        ///     The type of animation that the ability should play.
+        /// </summary>
+        private enum DeathType
+        {
+            Forward, // Play a forward death animation.
+            Backward // Play a backward death animation.
         }
     }
 }

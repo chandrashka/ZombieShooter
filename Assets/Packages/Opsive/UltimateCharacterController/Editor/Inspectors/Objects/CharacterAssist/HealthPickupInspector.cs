@@ -4,19 +4,19 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Objects.CharacterAssist;
+using UnityEditor;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Objects.CharacterAssist
 {
-    using Opsive.UltimateCharacterController.Objects.CharacterAssist;
-    using UnityEditor;
-
     /// <summary>
-    /// Custom inspector for the HealthPickup component.
+    ///     Custom inspector for the HealthPickup component.
     /// </summary>
     [CustomEditor(typeof(HealthPickup))]
     public class HealthPickupInspector : ObjectPickupInspector
     {
         /// <summary>
-        /// Draws the object pickup fields.
+        ///     Draws the object pickup fields.
         /// </summary>
         protected override void DrawObjectPickupFields()
         {

@@ -3,15 +3,14 @@ using UnityEngine;
 
 public class EnemyManager : MonoBehaviour
 {
-    private KilledEnemyCounter m_KilledEnemyCounter;
-    private EnemySpawner m_EnemySpawner;
-    
     [SerializeField] private UIManager uiManager;
     [SerializeField] private float timeToSpawnNewEnemy;
-    
-    private float m_CurrentTimeToSpawnNewEnemy;
 
-    private readonly List<GameObject> m_Enemies = new ();
+    private readonly List<GameObject> m_Enemies = new();
+    
+    private KilledEnemyCounter m_KilledEnemyCounter;
+    private EnemySpawner m_EnemySpawner;
+    private float m_CurrentTimeToSpawnNewEnemy;
 
     private bool m_GameOn;
 
@@ -22,16 +21,9 @@ public class EnemyManager : MonoBehaviour
         m_CurrentTimeToSpawnNewEnemy = timeToSpawnNewEnemy;
     }
 
-    public void StartGame(GameObject player)
-    {
-        m_EnemySpawner.SpawnEnemy();
-        m_EnemySpawner.player = player;
-        m_GameOn = true;
-    }
-    
     private void Update()
     {
-        if(!m_GameOn) return;
+        if (!m_GameOn) return;
         if (m_CurrentTimeToSpawnNewEnemy <= 0)
         {
             m_Enemies.Add(m_EnemySpawner.SpawnEnemy());
@@ -43,16 +35,23 @@ public class EnemyManager : MonoBehaviour
         }
     }
 
+    public void StartGame(GameObject player)
+    {
+        m_EnemySpawner.SpawnEnemy();
+        m_EnemySpawner.player = player;
+        m_GameOn = true;
+    }
+
     public void UpdateEnemyState(bool isAlive, GameObject enemy, bool killed)
     {
         if (isAlive) return;
-        if(killed) return;
+        if (killed) return;
 
         enemy.GetComponent<EnemyHealthManager>().killed = true;
-        
+
         KillEnemy(enemy);
         m_KilledEnemyCounter.EnemyKilled();
-        
+
         uiManager.UpdateEnemyCounter(m_KilledEnemyCounter.GetCounter());
     }
 
@@ -60,12 +59,15 @@ public class EnemyManager : MonoBehaviour
     {
         var enemyRagdoll = enemy.GetComponent<RagdollController>();
         enemyRagdoll.MakePhysical();
+        
+        enemy.GetComponent<EnemyAI>().isKilled = true;
+        
         Destroy(enemy, 10f);
     }
 
     public void ResetGame()
     {
         m_KilledEnemyCounter.ResetCounter();
-        m_Enemies.Clear();
+        foreach (var enemy in m_Enemies) Destroy(enemy);
     }
 }

@@ -4,42 +4,38 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Character;
+using Opsive.UltimateCharacterController.Character.Abilities;
+using Opsive.UltimateCharacterController.Character.Abilities.AI;
+using Opsive.UltimateCharacterController.Character.Identifiers;
+using Opsive.UltimateCharacterController.Character.MovementTypes;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Character.Abilities;
+using Opsive.UltimateCharacterController.Editor.Utility;
+using Opsive.UltimateCharacterController.Inventory;
+using Opsive.UltimateCharacterController.Items;
+using Opsive.UltimateCharacterController.StateSystem;
+using Opsive.UltimateCharacterController.ThirdPersonController.Character;
+using Opsive.UltimateCharacterController.Traits;
+using Opsive.UltimateCharacterController.Utility.Builders;
+using UnityEditor;
+using UnityEditor.Animations;
+using UnityEngine;
+using UnityEngine.AI;
+using InspectorUtility = Opsive.UltimateCharacterController.Editor.Inspectors.Utility.InspectorUtility;
+using Object = UnityEngine.Object;
+
 namespace Opsive.UltimateCharacterController.Editor.Managers
 {
-    using Opsive.UltimateCharacterController.Character;
-    using Opsive.UltimateCharacterController.Editor.Utility;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using Opsive.UltimateCharacterController.StateSystem;
-    using Opsive.UltimateCharacterController.Utility;
-    using Opsive.UltimateCharacterController.Utility.Builders;
-    using System;
-    using System.Collections.Generic;
-    using UnityEditor;
-    using UnityEngine;
-
     /// <summary>
-    /// Draws the Character Builder settings within the window.
+    ///     Draws the Character Builder settings within the window.
     /// </summary>
     [Serializable]
     [OrderedEditorItem("Character", 2)]
     public class CharacterManager : Manager
     {
-        /// <summary>
-        /// Specifies the perspective that the character can change into.
-        /// </summary>
-        private enum Perspective
-        {
-            First,  // The character can only be in first person perspective.
-            Third,  // The character can only be in third person perspective.
-            Both,   // The character can be in first or third person perspective.
-            None    // Default value.
-        }
-        /// <summary>
-        /// Specifies if the rig is a humanoid or generic. Humanoids allow for animation retargetting whereas generic characters do not.
-        /// </summary>
-        private enum ModelType { Humanoid, Generic }
-
-        private string[] m_ToolbarStrings = { "New Character", "Existing Character" };
         [SerializeField] private bool m_DrawNewCharacter = true;
 
         [SerializeField] private Vector2 m_AddScrollPosition;
@@ -55,10 +51,10 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         [SerializeField] private RuntimeAnimatorController[] m_AddFirstPersonArmsAnimatorController;
         [SerializeField] private GameObject[] m_AddFirstPersonHiddenObjects;
         [SerializeField] private bool m_AddStandardAbilities = true;
-        [SerializeField] private bool m_AddAIAgent = false;
-        [SerializeField] private bool m_AddNavMeshAgent = false;
+        [SerializeField] private bool m_AddAIAgent;
+        [SerializeField] private bool m_AddNavMeshAgent;
         [SerializeField] private bool m_AddItems = true;
-        [SerializeField] private Inventory.ItemCollection m_AddItemCollection;
+        [SerializeField] private ItemCollection m_AddItemCollection;
         [SerializeField] private bool m_AddHealth = true;
         [SerializeField] private bool m_AddUnityIK = true;
         [SerializeField] private bool m_AddFootEffects = true;
@@ -78,10 +74,10 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         [SerializeField] private RuntimeAnimatorController[] m_ExistingFirstPersonArmsAnimatorController;
         [SerializeField] private GameObject[] m_OriginalExistingFirstPersonHiddenObjects;
         [SerializeField] private GameObject[] m_ExistingFirstPersonHiddenObjects;
-        [SerializeField] private bool m_ExistingAIAgent = false;
+        [SerializeField] private bool m_ExistingAIAgent;
         [SerializeField] private bool m_ExistingNavMeshAgent = true;
         [SerializeField] private bool m_ExistingItems = true;
-        [SerializeField] private Inventory.ItemCollection m_ExistingItemCollection;
+        [SerializeField] private ItemCollection m_ExistingItemCollection;
         [SerializeField] private bool m_ExistingHealth = true;
         [SerializeField] private bool m_ExistingUnityIK = true;
         [SerializeField] private bool m_ExistingFootEffects = true;
@@ -89,23 +85,26 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         [SerializeField] private int m_ExistingProfileIndex;
         [SerializeField] private string m_ExistingProfileName;
 
-        private List<Type> m_FirstPersonMovementTypes = new List<Type>();
+        private List<Type> m_FirstPersonMovementTypes = new();
         private string[] m_FirstPersonMovementTypeStrings;
-        private List<Type> m_ThirdPersonMovementTypes = new List<Type>();
-        private string[] m_ThirdPersonMovementTypeStrings;
-        private string[] m_PerspectiveNames = { "First", "Third", "Both" };
 
         private Material m_InvisibleShadowCaster;
+        private string[] m_PerspectiveNames = { "First", "Third", "Both" };
+        private List<Type> m_ThirdPersonMovementTypes = new();
+        private string[] m_ThirdPersonMovementTypeStrings;
+
+        private string[] m_ToolbarStrings = { "New Character", "Existing Character" };
 
         /// <summary>
-        /// Initialize the manager after deserialization.
+        ///     Initialize the manager after deserialization.
         /// </summary>
         public override void Initialize(MainManagerWindow mainManagerWindow)
         {
             base.Initialize(mainManagerWindow);
 
             // Set the default perspective based on what asset is installed.
-            if (m_AddPerspective == Perspective.None) {
+            if (m_AddPerspective == Perspective.None)
+            {
 #if FIRST_PERSON_CONTROLLER
                 m_AddPerspective = Perspective.First;
 #elif THIRD_PERSON_CONTROLLER
@@ -115,206 +114,205 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
 
             // Get a list of the available movement types.
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            for (int i = 0; i < assemblies.Length; ++i) {
+            for (var i = 0; i < assemblies.Length; ++i)
+            {
                 var assemblyTypes = assemblies[i].GetTypes();
-                for (int j = 0; j < assemblyTypes.Length; ++j) {
+                for (var j = 0; j < assemblyTypes.Length; ++j)
+                {
                     // Must derive from MovementType.
-                    if (!typeof(Character.MovementTypes.MovementType).IsAssignableFrom(assemblyTypes[j])) {
-                        continue;
-                    }
+                    if (!typeof(MovementType).IsAssignableFrom(assemblyTypes[j])) continue;
 
                     // Ignore abstract classes.
-                    if (assemblyTypes[j].IsAbstract) {
-                        continue;
-                    }
+                    if (assemblyTypes[j].IsAbstract) continue;
 
                     var fullName = assemblyTypes[j].FullName;
-                    if (fullName != null && fullName.Contains("FirstPersonController")) {
+                    if (fullName != null && fullName.Contains("FirstPersonController"))
                         m_FirstPersonMovementTypes.Add(assemblyTypes[j]);
-                    } else if (assemblyTypes[j].FullName.Contains("ThirdPersonController")) {
+                    else if (assemblyTypes[j].FullName.Contains("ThirdPersonController"))
                         m_ThirdPersonMovementTypes.Add(assemblyTypes[j]);
-                    }
                 }
             }
 
             // Create an array of display names for the popup.
-            if (m_FirstPersonMovementTypes.Count > 0) {
+            if (m_FirstPersonMovementTypes.Count > 0)
+            {
                 m_FirstPersonMovementTypeStrings = new string[m_FirstPersonMovementTypes.Count];
-                for (int i = 0; i < m_FirstPersonMovementTypes.Count; ++i) {
-                    m_FirstPersonMovementTypeStrings[i] = InspectorUtility.DisplayTypeName(m_FirstPersonMovementTypes[i], true);
-                }
+                for (var i = 0; i < m_FirstPersonMovementTypes.Count; ++i)
+                    m_FirstPersonMovementTypeStrings[i] =
+                        InspectorUtility.DisplayTypeName(m_FirstPersonMovementTypes[i], true);
             }
-            if (m_ThirdPersonMovementTypes.Count > 0) {
+
+            if (m_ThirdPersonMovementTypes.Count > 0)
+            {
                 m_ThirdPersonMovementTypeStrings = new string[m_ThirdPersonMovementTypes.Count];
-                for (int i = 0; i < m_ThirdPersonMovementTypes.Count; ++i) {
-                    m_ThirdPersonMovementTypeStrings[i] = InspectorUtility.DisplayTypeName(m_ThirdPersonMovementTypes[i], true);
-                }
+                for (var i = 0; i < m_ThirdPersonMovementTypes.Count; ++i)
+                    m_ThirdPersonMovementTypeStrings[i] =
+                        InspectorUtility.DisplayTypeName(m_ThirdPersonMovementTypes[i], true);
             }
 
             // Look for the ItemCollection within the scene if it isn't already populated.
-            if (m_AddItemCollection == null || m_ExistingItemCollection == null) {
+            if (m_AddItemCollection == null || m_ExistingItemCollection == null)
                 m_AddItemCollection = m_ExistingItemCollection = ManagerUtility.FindItemCollection(m_MainManagerWindow);
-            }
 
             // Find the state configuration.
             var stateConfiguration = ManagerUtility.FindStateConfiguration(m_MainManagerWindow);
-            if (stateConfiguration != null) {
-                if (m_AddStateConfiguration == null) {
-                    m_AddStateConfiguration = stateConfiguration;
-                }
-                if (m_ExistingStateConfiguration == null) {
-                    m_ExistingStateConfiguration = stateConfiguration;
-                }
+            if (stateConfiguration != null)
+            {
+                if (m_AddStateConfiguration == null) m_AddStateConfiguration = stateConfiguration;
+                if (m_ExistingStateConfiguration == null) m_ExistingStateConfiguration = stateConfiguration;
             }
 
             m_InvisibleShadowCaster = ManagerUtility.FindInvisibleShadowCaster(m_MainManagerWindow);
         }
 
         /// <summary>
-        /// Draws the Manager.
+        ///     Draws the Manager.
         /// </summary>
         public override void OnGUI()
         {
-            var toolbarSelection = GUILayout.Toolbar(m_DrawNewCharacter ? 0 : 1, m_ToolbarStrings, EditorStyles.toolbarButton);
+            var toolbarSelection =
+                GUILayout.Toolbar(m_DrawNewCharacter ? 0 : 1, m_ToolbarStrings, EditorStyles.toolbarButton);
             m_DrawNewCharacter = toolbarSelection == 0;
             GUILayout.Space(10);
 
-            if (m_DrawNewCharacter) {
+            if (m_DrawNewCharacter)
                 DrawNewCharacter();
-            } else {
+            else
                 DrawExistingCharacter();
-            }
         }
 
         /// <summary>
-        /// Draws the controls for a new character.
+        ///     Draws the controls for a new character.
         /// </summary>
         private void DrawNewCharacter()
         {
             m_AddScrollPosition = EditorGUILayout.BeginScrollView(m_AddScrollPosition);
 
             DrawPerspective(ref m_AddPerspective);
-            if (m_AddPerspective == Perspective.Both) {
-                m_StartFirstPersonPerspective = EditorGUILayout.Popup("Start Perspective", m_StartFirstPersonPerspective ? 0 : 1, new string[] { "First Person", "Third Person" }) == 0;
-            } else {
-                m_StartFirstPersonPerspective = (m_AddPerspective == Perspective.First);
-            }
+            if (m_AddPerspective == Perspective.Both)
+                m_StartFirstPersonPerspective = EditorGUILayout.Popup("Start Perspective",
+                    m_StartFirstPersonPerspective ? 0 : 1, new[] { "First Person", "Third Person" }) == 0;
+            else
+                m_StartFirstPersonPerspective = m_AddPerspective == Perspective.First;
 
             // Show the available first person MovementTypes.
-            if (m_AddPerspective == Perspective.First || m_AddPerspective == Perspective.Both) {
+            if (m_AddPerspective == Perspective.First || m_AddPerspective == Perspective.Both)
+            {
                 var selectedMovementType = -1;
-                for (int i = 0; i < m_FirstPersonMovementTypes.Count; ++i) {
-                    if (m_FirstPersonMovementTypes[i].FullName == m_FirstPersonMovementType) {
+                for (var i = 0; i < m_FirstPersonMovementTypes.Count; ++i)
+                    if (m_FirstPersonMovementTypes[i].FullName == m_FirstPersonMovementType)
+                    {
                         selectedMovementType = i;
                         break;
                     }
-                }
+
                 var movementType = selectedMovementType == -1 ? 0 : selectedMovementType;
-                selectedMovementType = EditorGUILayout.Popup("First Person Movement", movementType, m_FirstPersonMovementTypeStrings);
-                if (movementType != selectedMovementType || string.IsNullOrEmpty(m_FirstPersonMovementType)) {
+                selectedMovementType = EditorGUILayout.Popup("First Person Movement", movementType,
+                    m_FirstPersonMovementTypeStrings);
+                if (movementType != selectedMovementType || string.IsNullOrEmpty(m_FirstPersonMovementType))
                     m_FirstPersonMovementType = m_FirstPersonMovementTypes[selectedMovementType].FullName;
-                }
-                if (m_AddPerspective != Perspective.Both) {
-                    m_ThirdPersonMovementType = string.Empty;
-                }
-            }
-            // Show the available third person MovementTypes.
-            if (m_AddPerspective == Perspective.Third || m_AddPerspective == Perspective.Both) {
-                var selectedMovementType = -1;
-                for (int i = 0; i < m_ThirdPersonMovementTypes.Count; ++i) {
-                    if (m_ThirdPersonMovementTypes[i].FullName == m_ThirdPersonMovementType) {
-                        selectedMovementType = i;
-                        break;
-                    }
-                }
-                var movementType = selectedMovementType == -1 ? 0 : selectedMovementType;
-                selectedMovementType = EditorGUILayout.Popup("Third Person Movement", movementType, m_ThirdPersonMovementTypeStrings);
-                if (movementType != selectedMovementType || string.IsNullOrEmpty(m_ThirdPersonMovementType)) {
-                    m_ThirdPersonMovementType = m_ThirdPersonMovementTypes[selectedMovementType].FullName;
-                }
-                if (m_AddPerspective != Perspective.Both) {
-                    m_FirstPersonMovementType = string.Empty;
-                }
+                if (m_AddPerspective != Perspective.Both) m_ThirdPersonMovementType = string.Empty;
             }
 
-            var character = EditorGUILayout.ObjectField("Character", m_AddCharacter, typeof(GameObject), true) as GameObject;
-            if (character != m_AddCharacter) {
+            // Show the available third person MovementTypes.
+            if (m_AddPerspective == Perspective.Third || m_AddPerspective == Perspective.Both)
+            {
+                var selectedMovementType = -1;
+                for (var i = 0; i < m_ThirdPersonMovementTypes.Count; ++i)
+                    if (m_ThirdPersonMovementTypes[i].FullName == m_ThirdPersonMovementType)
+                    {
+                        selectedMovementType = i;
+                        break;
+                    }
+
+                var movementType = selectedMovementType == -1 ? 0 : selectedMovementType;
+                selectedMovementType = EditorGUILayout.Popup("Third Person Movement", movementType,
+                    m_ThirdPersonMovementTypeStrings);
+                if (movementType != selectedMovementType || string.IsNullOrEmpty(m_ThirdPersonMovementType))
+                    m_ThirdPersonMovementType = m_ThirdPersonMovementTypes[selectedMovementType].FullName;
+                if (m_AddPerspective != Perspective.Both) m_FirstPersonMovementType = string.Empty;
+            }
+
+            var character =
+                EditorGUILayout.ObjectField("Character", m_AddCharacter, typeof(GameObject), true) as GameObject;
+            if (character != m_AddCharacter)
+            {
                 m_AddCharacter = character;
 
-                if (IsValidHumanoid(m_AddCharacter)) {
+                if (IsValidHumanoid(m_AddCharacter))
                     m_AddModelType = ModelType.Humanoid;
-                } else {
+                else
                     m_AddModelType = ModelType.Generic;
-                }
 
-                if (m_AddModelType == ModelType.Humanoid) {
+                if (m_AddModelType == ModelType.Humanoid)
                     m_AddAnimatorController = ManagerUtility.FindAnimatorController(m_MainManagerWindow);
-                }
             }
 
             // An animator is required for third person and AI agents.
             var validCharacter = CheckValidCharacter(m_AddCharacter, true);
             GUI.enabled = validCharacter && m_AddPerspective == Perspective.First;
             var prevAddAnimator = m_AddAnimator;
-            var canBuild = DrawAnimator(m_AddCharacter, m_AddPerspective != Perspective.First, validCharacter, ref m_AddAnimator, ref m_AddModelType, ref m_AddAnimatorController);
-            if (prevAddAnimator && !m_AddAnimator) {
-                m_AddUnityIK = m_AddRagdoll = false;
-            }
+            var canBuild = DrawAnimator(m_AddCharacter, m_AddPerspective != Perspective.First, validCharacter,
+                ref m_AddAnimator, ref m_AddModelType, ref m_AddAnimatorController);
+            if (prevAddAnimator && !m_AddAnimator) m_AddUnityIK = m_AddRagdoll = false;
             GUI.enabled = validCharacter && canBuild;
 
-            if (m_AddPerspective == Perspective.First || m_AddPerspective == Perspective.Both) {
+            if (m_AddPerspective == Perspective.First || m_AddPerspective == Perspective.Both)
+            {
                 GUILayout.Space(7);
                 DrawFirstPersonArms(ref m_AddFirstPersonArms, ref m_AddFirstPersonArmsAnimatorController);
-                if (m_AddCharacter != null) {
+                if (m_AddCharacter != null)
+                {
                     GUILayout.Space(5);
                     DrawFirstPersonHiddenObjects(ref m_AddFirstPersonHiddenObjects);
                 }
+
                 GUILayout.Space(7);
             }
 
             GUILayout.Space(5);
             // Reduce clutter by having an advanced foldout.
-            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(this, "Advanced")) {
+            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(this, "Advanced"))
+            {
                 EditorGUI.indentLevel += 2;
                 // Abilities are added and removed through the inspector after the character has been built.
                 m_AddStandardAbilities = EditorGUILayout.Toggle("Standard Abilities", m_AddStandardAbilities);
-                DrawAdvancedComponents(ref m_AddAIAgent, ref m_AddNavMeshAgent, ref m_AddItems, ref m_AddItemCollection, ref m_AddHealth, ref m_AddUnityIK, 
-                                        ref m_AddFootEffects, true, canBuild, m_AddCharacter);
+                DrawAdvancedComponents(ref m_AddAIAgent, ref m_AddNavMeshAgent, ref m_AddItems, ref m_AddItemCollection,
+                    ref m_AddHealth, ref m_AddUnityIK,
+                    ref m_AddFootEffects, true, canBuild, m_AddCharacter);
                 DrawProfileFields(ref m_AddStateConfiguration, ref m_AddProfileIndex, ref m_AddProfileName, null);
-                if (m_AddItems && m_AddItemCollection == null) {
-                    canBuild = false;
-                }
-                if (m_AddUnityIK && !IsValidHumanoid(character)) {
-                    canBuild = false;
-                }
-                if (m_AddRagdoll && !IsValidHumanoid(character)) {
-                    canBuild = false;
-                }
+                if (m_AddItems && m_AddItemCollection == null) canBuild = false;
+                if (m_AddUnityIK && !IsValidHumanoid(character)) canBuild = false;
+                if (m_AddRagdoll && !IsValidHumanoid(character)) canBuild = false;
                 EditorGUI.indentLevel -= 2;
             }
 
             // If the character hasn't been built yet then it should be created.
             GUI.enabled = validCharacter && canBuild;
             GUILayout.Space(5);
-            if (GUILayout.Button("Build Character")) {
+            if (GUILayout.Button("Build Character"))
+            {
                 // The first person perspective allows for null characters.
-                if (m_AddCharacter == null) {
-                    m_AddCharacter = new GameObject("First Person Character");
-                }
+                if (m_AddCharacter == null) m_AddCharacter = new GameObject("First Person Character");
                 var origCharacter = m_AddCharacter;
-                if (EditorUtility.IsPersistent(m_AddCharacter)) {
+                if (EditorUtility.IsPersistent(m_AddCharacter))
+                {
                     var name = m_AddCharacter.name;
-                    m_AddCharacter = UnityEngine.Object.Instantiate(m_AddCharacter);
+                    m_AddCharacter = Object.Instantiate(m_AddCharacter);
                     m_AddCharacter.name = name;
                 }
 
-                CharacterBuilder.BuildCharacter(m_AddCharacter, m_AddAnimator, m_AddAnimatorController, m_FirstPersonMovementType, m_ThirdPersonMovementType, m_StartFirstPersonPerspective, 
-                                                    m_AddFirstPersonHiddenObjects, m_InvisibleShadowCaster, m_AddAIAgent);
-                CharacterBuilder.BuildCharacterComponents(m_AddCharacter, m_AddAIAgent, m_AddItems, m_AddItemCollection, !string.IsNullOrEmpty(m_FirstPersonMovementType) || (m_AddFirstPersonArms != null && m_AddFirstPersonArms.Length > 1),
+                CharacterBuilder.BuildCharacter(m_AddCharacter, m_AddAnimator, m_AddAnimatorController,
+                    m_FirstPersonMovementType, m_ThirdPersonMovementType, m_StartFirstPersonPerspective,
+                    m_AddFirstPersonHiddenObjects, m_InvisibleShadowCaster, m_AddAIAgent);
+                CharacterBuilder.BuildCharacterComponents(m_AddCharacter, m_AddAIAgent, m_AddItems, m_AddItemCollection,
+                    !string.IsNullOrEmpty(m_FirstPersonMovementType) ||
+                    (m_AddFirstPersonArms != null && m_AddFirstPersonArms.Length > 1),
                     m_AddHealth, m_AddUnityIK, m_AddFootEffects, m_AddStandardAbilities, m_AddNavMeshAgent);
 #if FIRST_PERSON_CONTROLLER
                 if (m_AddFirstPersonArms != null) {
-                    var firstPersonObjects = m_AddCharacter.GetComponentInChildren<FirstPersonController.Character.FirstPersonObjects>();
+                    var firstPersonObjects =
+ m_AddCharacter.GetComponentInChildren<FirstPersonController.Character.FirstPersonObjects>();
                     if (firstPersonObjects != null) {
                         for (int i = 0; i < m_AddFirstPersonArms.Length; ++i) {
                             if (m_AddFirstPersonArms[i] == null) {
@@ -333,41 +331,47 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                     }
                 }
 #endif
-                if (m_AddRagdoll) {
+                if (m_AddRagdoll)
+                {
                     // Add the ragdoll ability and open Unity's ragdoll builder.
                     var characterLocomotion = m_AddCharacter.GetComponent<UltimateCharacterLocomotion>();
-                    AbilityBuilder.AddAbility(characterLocomotion, typeof(Character.Abilities.Ragdoll));
-                    Inspectors.Character.Abilities.RagdollInspectorDrawer.AddRagdollColliders(characterLocomotion.gameObject);
+                    AbilityBuilder.AddAbility(characterLocomotion, typeof(Ragdoll));
+                    RagdollInspectorDrawer.AddRagdollColliders(characterLocomotion.gameObject);
                 }
-                if (m_AddAnimator) {
+
+                if (m_AddAnimator)
                     // Ensure the Animator Controller has the required parameters.
-                    AnimatorBuilder.AddParameters((UnityEditor.Animations.AnimatorController)m_AddAnimatorController);
-                }
-                if (m_AddStateConfiguration != null) {
-                    if (m_AddProfileIndex > 0) {
+                    AnimatorBuilder.AddParameters((AnimatorController)m_AddAnimatorController);
+                if (m_AddStateConfiguration != null)
+                    if (m_AddProfileIndex > 0)
+                    {
                         m_AddStateConfiguration.AddStatesToGameObject(m_AddProfileName, m_AddCharacter);
                         Shared.Editor.Utility.EditorUtility.SetDirty(m_AddCharacter);
                     }
-                }
+
                 m_AddFirstPersonHiddenObjects = null;
                 Selection.activeObject = m_AddCharacter;
                 m_AddCharacter = origCharacter;
             }
+
             GUI.enabled = true;
             EditorGUILayout.EndScrollView();
         }
 
         /// <summary>
-        /// Draws the perspective controls.
+        ///     Draws the perspective controls.
         /// </summary>
         private void DrawPerspective(ref Perspective perspective)
         {
-            var selectedPerspective = (Perspective)EditorGUILayout.Popup("Perspective", (int)perspective, m_PerspectiveNames);
+            var selectedPerspective =
+                (Perspective)EditorGUILayout.Popup("Perspective", (int)perspective, m_PerspectiveNames);
             var canSwitchPerspective = true;
             // Determine if the selected perspective is supported.
 #if !FIRST_PERSON_CONTROLLER
-            if (GUI.enabled && (selectedPerspective == Perspective.First || selectedPerspective == Perspective.Both)) {
-                Debug.LogError("Unable to select the first person perspective. If you'd like to create a first person character ensure the First Person Controller is imported.");
+            if (GUI.enabled && (selectedPerspective == Perspective.First || selectedPerspective == Perspective.Both))
+            {
+                Debug.LogError(
+                    "Unable to select the first person perspective. If you'd like to create a first person character ensure the First Person Controller is imported.");
                 canSwitchPerspective = false;
             }
 #endif
@@ -377,13 +381,11 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                 canSwitchPerspective = false;
             }
 #endif
-            if (canSwitchPerspective && selectedPerspective != perspective) {
-                perspective = selectedPerspective;
-            }
+            if (canSwitchPerspective && selectedPerspective != perspective) perspective = selectedPerspective;
         }
 
         /// <summary>
-        /// Is the character a valid character?
+        ///     Is the character a valid character?
         /// </summary>
         /// <param name="character">The character to check against.</param>
         /// <param name="buildCharacter">Is the character a new character?</param>
@@ -391,29 +393,38 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         private bool CheckValidCharacter(GameObject character, bool buildCharacter)
         {
             // A character is required in order to add or remove components from it.
-            if (character == null) {
+            if (character == null)
+            {
                 // The first person perspective doesn't need a predefined Character GameObject.
-                if (buildCharacter && m_AddPerspective == Perspective.First) {
-                    return true;
-                }
-                EditorGUILayout.HelpBox("Select the GameObject which will be used as the character. This object will have the majority of the components added to it.",
-                                    MessageType.Error);
+                if (buildCharacter && m_AddPerspective == Perspective.First) return true;
+                EditorGUILayout.HelpBox(
+                    "Select the GameObject which will be used as the character. This object will have the majority of the components added to it.",
+                    MessageType.Error);
                 return false;
             }
 
             var characterLocomotion = character.GetComponent<UltimateCharacterLocomotion>();
-            if (buildCharacter && characterLocomotion != null) {
-                EditorGUILayout.HelpBox("The character has already been created. Use the \"Existing Character\" tab to modify the character components.", MessageType.Error);
+            if (buildCharacter && characterLocomotion != null)
+            {
+                EditorGUILayout.HelpBox(
+                    "The character has already been created. Use the \"Existing Character\" tab to modify the character components.",
+                    MessageType.Error);
                 return false;
             }
 
-            if (!buildCharacter && characterLocomotion == null) {
-                EditorGUILayout.HelpBox("The character hasn't been created. Use the \"New Character\" tab to build the character.", MessageType.Error);
+            if (!buildCharacter && characterLocomotion == null)
+            {
+                EditorGUILayout.HelpBox(
+                    "The character hasn't been created. Use the \"New Character\" tab to build the character.",
+                    MessageType.Error);
                 return false;
             }
-            
-            if (EditorUtility.IsPersistent(character)) {
-                EditorGUILayout.HelpBox("Please drag your character into the scene. The Character Manager cannot add components to prefabs.", MessageType.Error);
+
+            if (EditorUtility.IsPersistent(character))
+            {
+                EditorGUILayout.HelpBox(
+                    "Please drag your character into the scene. The Character Manager cannot add components to prefabs.",
+                    MessageType.Error);
                 return false;
             }
 
@@ -421,105 +432,118 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// Draws the animator controls.
+        ///     Draws the animator controls.
         /// </summary>
-        private bool DrawAnimator(GameObject character, bool forceAdd, bool enableGUI, ref bool animator, ref ModelType modelType, ref RuntimeAnimatorController animatorController)
+        private bool DrawAnimator(GameObject character, bool forceAdd, bool enableGUI, ref bool animator,
+            ref ModelType modelType, ref RuntimeAnimatorController animatorController)
         {
             animator = EditorGUILayout.Toggle("Animator", animator || forceAdd);
             GUI.enabled = enableGUI;
-            if (animator) {
-                if (character == null) {
-                    if (enableGUI) {
-                        EditorGUILayout.HelpBox("A rigged character must be selected in order for an Animator to be added.", MessageType.Error);
-                    }
+            if (animator)
+            {
+                if (character == null)
+                {
+                    if (enableGUI)
+                        EditorGUILayout.HelpBox(
+                            "A rigged character must be selected in order for an Animator to be added.",
+                            MessageType.Error);
                     return false;
                 }
+
                 EditorGUI.indentLevel++;
                 var selectedModelType = (ModelType)EditorGUILayout.EnumPopup("Model Type", modelType);
-                if (selectedModelType != modelType) {
+                if (selectedModelType != modelType)
+                {
                     modelType = selectedModelType;
-                    if (modelType == ModelType.Humanoid) {
+                    if (modelType == ModelType.Humanoid)
                         // Humanoids support retargetting so can use the demo controller.
                         animatorController = ManagerUtility.FindAnimatorController(m_MainManagerWindow);
-                    } else {
+                    else
                         // Generic characters require a custom animator controller.
                         animatorController = null;
-                    }
                 }
-                if (modelType == ModelType.Humanoid && !IsValidHumanoid(character)) {
+
+                if (modelType == ModelType.Humanoid && !IsValidHumanoid(character))
+                {
                     animatorController = null;
-                    if (character != null) {
-                        EditorGUILayout.HelpBox("The specified character is not a humanoid.\nHumanoid characters should have the avatar is set to humanoid and have a head bone assigned.", MessageType.Error);
-                    }
+                    if (character != null)
+                        EditorGUILayout.HelpBox(
+                            "The specified character is not a humanoid.\nHumanoid characters should have the avatar is set to humanoid and have a head bone assigned.",
+                            MessageType.Error);
                 }
+
                 // The non-default animator controller can be selected.
-                animatorController = EditorGUILayout.ObjectField("Animator Controller", animatorController, typeof(RuntimeAnimatorController), false) as RuntimeAnimatorController;
+                animatorController =
+                    EditorGUILayout.ObjectField("Animator Controller", animatorController,
+                        typeof(RuntimeAnimatorController), false) as RuntimeAnimatorController;
 
                 EditorGUI.indentLevel--;
             }
+
             return !animator || animatorController != null;
         }
 
         /// <summary>
-        /// Is the character a valid humanoid?
+        ///     Is the character a valid humanoid?
         /// </summary>
         /// <param name="character">The character GameObject to check against.</param>
         /// <returns>True if the character is a valid humanoid.</returns>
         private bool IsValidHumanoid(GameObject character)
         {
-            if (character == null) {
-                return false;
-            }
+            if (character == null) return false;
             var spawnedCharacter = false;
             // The character has to be spawned in order to be able to detect if it is a Humanoid.
-            if (AssetDatabase.GetAssetPath(character).Length > 0) {
-                character = UnityEngine.Object.Instantiate(character);
+            if (AssetDatabase.GetAssetPath(character).Length > 0)
+            {
+                character = Object.Instantiate(character);
                 spawnedCharacter = true;
             }
+
             var animator = character.GetComponent<Animator>();
             var hasAnimator = animator != null;
-            if (!hasAnimator) {
-                animator = character.AddComponent<Animator>();
-            }
+            if (!hasAnimator) animator = character.AddComponent<Animator>();
             // A human will have a head.
             var isHumanoid = animator.GetBoneTransform(HumanBodyBones.Head) != null;
             // GetBoneTransform sometimes returns a false negative.
-            if (!isHumanoid) {
-                isHumanoid = animator.isHuman;
-            }
+            if (!isHumanoid) isHumanoid = animator.isHuman;
             // Clean up.
-            if (!hasAnimator) {
-                UnityEngine.Object.DestroyImmediate(animator, true);
-            }
-            if (spawnedCharacter) {
-                UnityEngine.Object.DestroyImmediate(character, true);
-            }
+            if (!hasAnimator) Object.DestroyImmediate(animator, true);
+            if (spawnedCharacter) Object.DestroyImmediate(character, true);
             return isHumanoid;
         }
 
         /// <summary>
-        /// Draws the controls for the objects that will act as the first person arms.
+        ///     Draws the controls for the objects that will act as the first person arms.
         /// </summary>
-        private void DrawFirstPersonArms(ref GameObject[] firstPersonArms, ref RuntimeAnimatorController[] firstPersonArmsAnimator)
+        private void DrawFirstPersonArms(ref GameObject[] firstPersonArms,
+            ref RuntimeAnimatorController[] firstPersonArmsAnimator)
         {
-            if (firstPersonArms == null || firstPersonArms.Length == 0) {
+            if (firstPersonArms == null || firstPersonArms.Length == 0)
+            {
                 firstPersonArms = new GameObject[1];
                 firstPersonArmsAnimator = new RuntimeAnimatorController[1];
             }
 
-            for (int i = 0; i < firstPersonArms.Length; ++i) {
+            for (var i = 0; i < firstPersonArms.Length; ++i)
+            {
                 GUILayout.BeginHorizontal();
-                var guiContent = new GUIContent(i == 0 ? "First Person Arms" : " ", "First person objects that are the base for the items. The second field contains a reference to the Animator Controller that the arms should use.");
-                firstPersonArms[i] = EditorGUILayout.ObjectField(guiContent, firstPersonArms[i], typeof(GameObject), true) as GameObject;
-                if (firstPersonArms[i] != null) {
-                    firstPersonArmsAnimator[i] = EditorGUILayout.ObjectField(firstPersonArmsAnimator[i], typeof(RuntimeAnimatorController), true, GUILayout.MaxWidth(180)) as RuntimeAnimatorController;
-                }
-                if (i == firstPersonArms.Length - 1 && firstPersonArms[i] != null) {
+                var guiContent = new GUIContent(i == 0 ? "First Person Arms" : " ",
+                    "First person objects that are the base for the items. The second field contains a reference to the Animator Controller that the arms should use.");
+                firstPersonArms[i] =
+                    EditorGUILayout.ObjectField(guiContent, firstPersonArms[i], typeof(GameObject), true) as GameObject;
+                if (firstPersonArms[i] != null)
+                    firstPersonArmsAnimator[i] = EditorGUILayout.ObjectField(firstPersonArmsAnimator[i],
+                        typeof(RuntimeAnimatorController), true, GUILayout.MaxWidth(180)) as RuntimeAnimatorController;
+                if (i == firstPersonArms.Length - 1 && firstPersonArms[i] != null)
+                {
                     Array.Resize(ref firstPersonArms, firstPersonArms.Length + 1);
                     Array.Resize(ref firstPersonArmsAnimator, firstPersonArmsAnimator.Length + 1);
                     break;
                 }
-                if (i != firstPersonArms.Length - 1 && GUILayout.Button(Shared.Editor.Inspectors.Utility.InspectorStyles.RemoveIcon, Shared.Editor.Inspectors.Utility.InspectorStyles.NoPaddingButtonStyle, GUILayout.Width(18))) {
+
+                if (i != firstPersonArms.Length - 1 && GUILayout.Button(InspectorStyles.RemoveIcon,
+                        InspectorStyles.NoPaddingButtonStyle, GUILayout.Width(18)))
+                {
                     var arms = new List<GameObject>(firstPersonArms);
                     arms.RemoveAt(i);
                     firstPersonArms = arms.ToArray();
@@ -528,135 +552,171 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                     firstPersonArmsAnimator = animators.ToArray();
                     break;
                 }
+
                 GUILayout.EndHorizontal();
             }
         }
 
         /// <summary>
-        /// Draws the controls for the objects that will be hidden while in first person view.
+        ///     Draws the controls for the objects that will be hidden while in first person view.
         /// </summary>
         private void DrawFirstPersonHiddenObjects(ref GameObject[] firstPersonObjects)
         {
-            if (firstPersonObjects == null || firstPersonObjects.Length == 0) {
-                firstPersonObjects = new GameObject[1];
-            }
+            if (firstPersonObjects == null || firstPersonObjects.Length == 0) firstPersonObjects = new GameObject[1];
 
-            for (int i = 0; i < firstPersonObjects.Length; ++i) {
+            for (var i = 0; i < firstPersonObjects.Length; ++i)
+            {
                 GUILayout.BeginHorizontal();
-                var guiContent = new GUIContent(i == 0 ? "Third Person Objects" : " ", "Third person objects that should be hidden when the first person view is active (character arms and head).");
-                firstPersonObjects[i] = EditorGUILayout.ObjectField(guiContent, firstPersonObjects[i], typeof(GameObject), true) as GameObject;
-                if (i == firstPersonObjects.Length - 1 && firstPersonObjects[i] != null) {
+                var guiContent = new GUIContent(i == 0 ? "Third Person Objects" : " ",
+                    "Third person objects that should be hidden when the first person view is active (character arms and head).");
+                firstPersonObjects[i] =
+                    EditorGUILayout.ObjectField(guiContent, firstPersonObjects[i], typeof(GameObject), true) as
+                        GameObject;
+                if (i == firstPersonObjects.Length - 1 && firstPersonObjects[i] != null)
+                {
                     Array.Resize(ref firstPersonObjects, firstPersonObjects.Length + 1);
                     break;
                 }
-                if (i != firstPersonObjects.Length - 1 && GUILayout.Button(Shared.Editor.Inspectors.Utility.InspectorStyles.RemoveIcon, Shared.Editor.Inspectors.Utility.InspectorStyles.NoPaddingButtonStyle, GUILayout.Width(18))) {
+
+                if (i != firstPersonObjects.Length - 1 && GUILayout.Button(InspectorStyles.RemoveIcon,
+                        InspectorStyles.NoPaddingButtonStyle, GUILayout.Width(18)))
+                {
                     var list = new List<GameObject>(firstPersonObjects);
                     list.RemoveAt(i);
                     firstPersonObjects = list.ToArray();
                     break;
                 }
+
                 GUILayout.EndHorizontal();
             }
         }
 
         /// <summary>
-        /// Draws the controls for the advanced character components.
+        ///     Draws the controls for the advanced character components.
         /// </summary>
-        private void DrawAdvancedComponents(ref bool aiAgent, ref bool navMeshAgent, ref bool items, ref Inventory.ItemCollection itemCollection, ref bool health,ref bool unityIK,
-                                                ref bool footEffects, bool drawRagdoll, bool showError, GameObject character)
+        private void DrawAdvancedComponents(ref bool aiAgent, ref bool navMeshAgent, ref bool items,
+            ref ItemCollection itemCollection, ref bool health, ref bool unityIK,
+            ref bool footEffects, bool drawRagdoll, bool showError, GameObject character)
         {
             aiAgent = EditorGUILayout.Toggle("AI Agent", aiAgent);
-            if (aiAgent) {
+            if (aiAgent)
+            {
                 EditorGUI.indentLevel++;
                 navMeshAgent = EditorGUILayout.Toggle("NavMeshAgent", navMeshAgent);
                 EditorGUI.indentLevel--;
             }
+
             items = EditorGUILayout.Toggle("Items", items);
-            if (items) {
+            if (items)
+            {
                 EditorGUI.indentLevel++;
-                itemCollection = EditorGUILayout.ObjectField("Item Collection", itemCollection, typeof(Inventory.ItemCollection), false) as Inventory.ItemCollection;
-                if (itemCollection == null) {
-                    EditorGUILayout.HelpBox("An ItemCollection needs to be specified for the character to be created.", MessageType.Error);
-                }
+                itemCollection =
+                    EditorGUILayout.ObjectField("Item Collection", itemCollection, typeof(ItemCollection), false) as
+                        ItemCollection;
+                if (itemCollection == null)
+                    EditorGUILayout.HelpBox("An ItemCollection needs to be specified for the character to be created.",
+                        MessageType.Error);
                 EditorGUI.indentLevel--;
             }
+
             health = EditorGUILayout.Toggle("Health", health);
             unityIK = EditorGUILayout.Toggle("Unity IK", unityIK);
-            if (unityIK && !IsValidHumanoid(character) && showError) {
-                EditorGUILayout.HelpBox("The Unity IK component requires a humanoid character with an Animator.", MessageType.Error);
-            }
+            if (unityIK && !IsValidHumanoid(character) && showError)
+                EditorGUILayout.HelpBox("The Unity IK component requires a humanoid character with an Animator.",
+                    MessageType.Error);
             footEffects = EditorGUILayout.Toggle("Foot Effects", footEffects);
-            if (drawRagdoll) {
+            if (drawRagdoll)
+            {
                 m_AddRagdoll = EditorGUILayout.Toggle("Ragdoll", m_AddRagdoll);
-                if (m_AddRagdoll && !IsValidHumanoid(character) && showError) {
-                    EditorGUILayout.HelpBox("Unity's ragdoll system requires a humanoid character with an Animator.", MessageType.Error);
-                }
+                if (m_AddRagdoll && !IsValidHumanoid(character) && showError)
+                    EditorGUILayout.HelpBox("Unity's ragdoll system requires a humanoid character with an Animator.",
+                        MessageType.Error);
             }
         }
 
         /// <summary>
-        /// Draws the fields related to the profile.
+        ///     Draws the fields related to the profile.
         /// </summary>
-        private void DrawProfileFields(ref StateConfiguration stateConfiguration, ref int profileIndex, ref string profileName, GameObject character)
+        private void DrawProfileFields(ref StateConfiguration stateConfiguration, ref int profileIndex,
+            ref string profileName, GameObject character)
         {
-            var updatedStateConfiguration = EditorGUILayout.ObjectField("State Configuration", stateConfiguration, typeof(StateConfiguration), false) as StateConfiguration;
-            if (updatedStateConfiguration != stateConfiguration) {
-                if (updatedStateConfiguration != null) {
-                    EditorPrefs.SetString(ManagerUtility.LastStateConfigurationGUIDString, AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(updatedStateConfiguration)));
-                } else {
+            var updatedStateConfiguration =
+                EditorGUILayout.ObjectField("State Configuration", stateConfiguration, typeof(StateConfiguration),
+                    false) as StateConfiguration;
+            if (updatedStateConfiguration != stateConfiguration)
+            {
+                if (updatedStateConfiguration != null)
+                    EditorPrefs.SetString(ManagerUtility.LastStateConfigurationGUIDString,
+                        AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(updatedStateConfiguration)));
+                else
                     EditorPrefs.SetString(ManagerUtility.LastStateConfigurationGUIDString, string.Empty);
-                }
                 stateConfiguration = updatedStateConfiguration;
             }
 
             EditorGUI.indentLevel++;
-            if (stateConfiguration != null) {
-                var profiles = stateConfiguration.GetProfilesForGameObject(character, StateConfiguration.Profile.ProfileType.Character);
+            if (stateConfiguration != null)
+            {
+                var profiles =
+                    stateConfiguration.GetProfilesForGameObject(character,
+                        StateConfiguration.Profile.ProfileType.Character);
                 // The character can be added without any profiles.
                 profiles.Insert(0, "(None)");
                 profileIndex = EditorGUILayout.Popup("Profile", profileIndex, profiles.ToArray());
                 profileName = profiles[profileIndex];
             }
+
             EditorGUI.indentLevel--;
         }
 
         /// <summary>
-        /// Draws the controls for an existing character.
+        ///     Draws the controls for an existing character.
         /// </summary>
         private void DrawExistingCharacter()
         {
             m_ExistingScrollPosition = EditorGUILayout.BeginScrollView(m_ExistingScrollPosition);
 
-            var character = EditorGUILayout.ObjectField("Character", m_ExistingCharacter, typeof(GameObject), true) as GameObject;
+            var character =
+                EditorGUILayout.ObjectField("Character", m_ExistingCharacter, typeof(GameObject), true) as GameObject;
 
-            if (character != m_ExistingCharacter) {
+            if (character != m_ExistingCharacter)
+            {
                 m_ExistingCharacter = character;
 
-                if (m_ExistingCharacter != null) {
+                if (m_ExistingCharacter != null)
+                {
                     m_ExistingAIAgent = IsAIAgent(m_ExistingCharacter);
-                    if (m_ExistingAIAgent) {
+                    if (m_ExistingAIAgent)
                         m_ExistingNavMeshAgent = HasNavMeshAgent(m_ExistingCharacter);
-                    } else {
+                    else
                         m_ExistingNavMeshAgent = false;
+                    if (!HasEssentials(m_ExistingCharacter, m_ExistingPerspective == Perspective.Both))
+                    {
+                        EditorGUILayout.HelpBox(
+                            "Error: The character doesn't contain all of the essential components. Press \"Add\" to add the missing components.",
+                            MessageType.Error);
+                        if (GUILayout.Button("Add"))
+                            CharacterBuilder.AddEssentials(m_ExistingCharacter, m_ExistingAnimator,
+                                m_ExistingAnimatorController, m_ExistingPerspective == Perspective.Both,
+                                m_InvisibleShadowCaster, m_ExistingAIAgent);
                     }
-                    if (!HasEssentials(m_ExistingCharacter, m_ExistingPerspective == Perspective.Both)) {
-                        EditorGUILayout.HelpBox("Error: The character doesn't contain all of the essential components. Press \"Add\" to add the missing components.", MessageType.Error);
-                        if (GUILayout.Button("Add")) {
-                            CharacterBuilder.AddEssentials(m_ExistingCharacter, m_ExistingAnimator, m_ExistingAnimatorController, m_ExistingPerspective == Perspective.Both, m_InvisibleShadowCaster, m_ExistingAIAgent);
-                        }
-                    }
+
                     m_ExistingPerspective = CurrentPerspective();
                     m_ExistingAnimator = HasAnimator(m_ExistingCharacter);
-                    if (m_ExistingAnimator) {
+                    if (m_ExistingAnimator)
+                    {
                         var animator = m_ExistingCharacter.GetComponent<Animator>();
                         m_ExistingAnimatorController = animator.runtimeAnimatorController;
-                        m_ExistingModelType = IsValidHumanoid(m_ExistingCharacter) ? ModelType.Humanoid : ModelType.Generic;
+                        m_ExistingModelType = IsValidHumanoid(m_ExistingCharacter)
+                            ? ModelType.Humanoid
+                            : ModelType.Generic;
                     }
 #if FIRST_PERSON_CONTROLLER
                     // Find any existing first person arms.
-                    var firstPersonBaseObjects = m_ExistingCharacter.GetComponentsInChildren<FirstPersonController.Character.Identifiers.FirstPersonBaseObject>();
+                    var firstPersonBaseObjects =
+ m_ExistingCharacter.GetComponentsInChildren<FirstPersonController.Character.Identifiers.FirstPersonBaseObject>();
                     var existingFirstPersonArms = new List<GameObject>();
-                    m_ExistingFirstPersonArmsAnimatorController = new RuntimeAnimatorController[firstPersonBaseObjects.Length];
+                    m_ExistingFirstPersonArmsAnimatorController =
+ new RuntimeAnimatorController[firstPersonBaseObjects.Length];
                     for (int i = 0; i < firstPersonBaseObjects.Length; ++i) {
                         existingFirstPersonArms.Add(firstPersonBaseObjects[i].gameObject);
                         var animator = firstPersonBaseObjects[i].GetComponent<Animator>();
@@ -670,38 +730,45 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                     // Search for any existing first person hidden objects.
                     var renderers = m_ExistingCharacter.GetComponentsInChildren<Renderer>();
                     var existingFirstPersonObjects = new List<GameObject>();
-                    for (int i = 0; i < renderers.Length; ++i) {
-                        if (renderers[i].GetComponent<Character.Identifiers.ThirdPersonObject>() != null) {
+                    for (var i = 0; i < renderers.Length; ++i)
+                    {
+                        if (renderers[i].GetComponent<ThirdPersonObject>() != null)
+                        {
                             existingFirstPersonObjects.Add(renderers[i].gameObject);
                             continue;
                         }
 
                         var addGameObject = false;
                         var materials = renderers[i].sharedMaterials;
-                        for (int j = 0; j < materials.Length; ++j) {
-                            if (materials[j] == m_InvisibleShadowCaster) {
+                        for (var j = 0; j < materials.Length; ++j)
+                            if (materials[j] == m_InvisibleShadowCaster)
+                            {
                                 addGameObject = true;
                                 break;
                             }
-                        }
-                        if (addGameObject) {
-                            existingFirstPersonObjects.Add(renderers[i].gameObject);
-                        }
-                    }
-                    m_OriginalExistingFirstPersonHiddenObjects = m_ExistingFirstPersonHiddenObjects = existingFirstPersonObjects.ToArray();
 
-                    m_ExistingItems = HasItems(m_ExistingCharacter, m_ExistingAIAgent, m_ExistingPerspective != Perspective.Third);
-                    if (m_ExistingItems) {
-                        var itemSetManager = m_ExistingCharacter.GetComponent<Inventory.ItemSetManager>();
-                        if (itemSetManager != null) {
-                            m_ExistingItemCollection = itemSetManager.ItemCollection;
-                        }
+                        if (addGameObject) existingFirstPersonObjects.Add(renderers[i].gameObject);
                     }
+
+                    m_OriginalExistingFirstPersonHiddenObjects =
+                        m_ExistingFirstPersonHiddenObjects = existingFirstPersonObjects.ToArray();
+
+                    m_ExistingItems = HasItems(m_ExistingCharacter, m_ExistingAIAgent,
+                        m_ExistingPerspective != Perspective.Third);
+                    if (m_ExistingItems)
+                    {
+                        var itemSetManager = m_ExistingCharacter.GetComponent<ItemSetManager>();
+                        if (itemSetManager != null) m_ExistingItemCollection = itemSetManager.ItemCollection;
+                    }
+
                     m_ExistingHealth = HasHealth(m_ExistingCharacter);
                     m_ExistingUnityIK = HasUnityIK(m_ExistingCharacter);
                     m_ExistingFootEffects = HasFootEffects(m_ExistingCharacter);
-                } else {
-                    m_OriginalExistingFirstPersonArms = m_ExistingFirstPersonArms = m_OriginalExistingFirstPersonHiddenObjects = m_ExistingFirstPersonHiddenObjects = null;
+                }
+                else
+                {
+                    m_OriginalExistingFirstPersonArms = m_ExistingFirstPersonArms =
+                        m_OriginalExistingFirstPersonHiddenObjects = m_ExistingFirstPersonHiddenObjects = null;
                 }
             }
 
@@ -711,41 +778,52 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             DrawPerspective(ref m_ExistingPerspective);
 
             GUI.enabled = validCharacter && m_ExistingPerspective == Perspective.First;
-            DrawAnimator(m_ExistingCharacter, m_ExistingPerspective != Perspective.First, validCharacter, ref m_ExistingAnimator, ref m_ExistingModelType, ref m_ExistingAnimatorController);
+            DrawAnimator(m_ExistingCharacter, m_ExistingPerspective != Perspective.First, validCharacter,
+                ref m_ExistingAnimator, ref m_ExistingModelType, ref m_ExistingAnimatorController);
             GUI.enabled = validCharacter;
 
-            if (m_ExistingPerspective == Perspective.First || m_ExistingPerspective == Perspective.Both) {
+            if (m_ExistingPerspective == Perspective.First || m_ExistingPerspective == Perspective.Both)
+            {
                 GUILayout.Space(7);
                 DrawFirstPersonArms(ref m_ExistingFirstPersonArms, ref m_ExistingFirstPersonArmsAnimatorController);
-                if (m_ExistingCharacter != null) {
+                if (m_ExistingCharacter != null)
+                {
                     GUILayout.Space(5);
                     DrawFirstPersonHiddenObjects(ref m_ExistingFirstPersonHiddenObjects);
                 }
+
                 GUILayout.Space(7);
             }
 
-            DrawAdvancedComponents(ref m_ExistingAIAgent, ref m_ExistingNavMeshAgent, ref m_ExistingItems, ref m_ExistingItemCollection, 
-                                    ref m_ExistingHealth, ref m_ExistingUnityIK, ref m_ExistingFootEffects, false, validCharacter, m_ExistingCharacter);
-            DrawProfileFields(ref m_ExistingStateConfiguration, ref m_ExistingProfileIndex, ref m_ExistingProfileName, m_ExistingCharacter);
+            DrawAdvancedComponents(ref m_ExistingAIAgent, ref m_ExistingNavMeshAgent, ref m_ExistingItems,
+                ref m_ExistingItemCollection,
+                ref m_ExistingHealth, ref m_ExistingUnityIK, ref m_ExistingFootEffects, false, validCharacter,
+                m_ExistingCharacter);
+            DrawProfileFields(ref m_ExistingStateConfiguration, ref m_ExistingProfileIndex, ref m_ExistingProfileName,
+                m_ExistingCharacter);
 
             GUILayout.Space(5);
-            if (GUILayout.Button("Update Character")) {
-                if (m_ExistingPerspective != CurrentPerspective()) {
+            if (GUILayout.Button("Update Character"))
+            {
+                if (m_ExistingPerspective != CurrentPerspective())
+                {
 #if THIRD_PERSON_CONTROLLER
                     // If the perspective was switched from/to the both perspective then the perspective monitor needs to be added or removed.
-                    var perspectiveMonitor = m_ExistingCharacter.GetComponent<UltimateCharacterController.ThirdPersonController.Character.PerspectiveMonitor>();
-                    if (m_ExistingPerspective == Perspective.Both) {
-                        if (perspectiveMonitor == null) {
-                            m_ExistingCharacter.AddComponent<UltimateCharacterController.ThirdPersonController.Character.PerspectiveMonitor>();
-                        }
-                    } else if (perspectiveMonitor != null) {
-                        UnityEngine.Object.DestroyImmediate(perspectiveMonitor, true);
+                    var perspectiveMonitor = m_ExistingCharacter.GetComponent<PerspectiveMonitor>();
+                    if (m_ExistingPerspective == Perspective.Both)
+                    {
+                        if (perspectiveMonitor == null) m_ExistingCharacter.AddComponent<PerspectiveMonitor>();
+                    }
+                    else if (perspectiveMonitor != null)
+                    {
+                        Object.DestroyImmediate(perspectiveMonitor, true);
                     }
 #endif
 #if FIRST_PERSON_CONTROLLER
                     // The First Person Objects component should also be added/removed if the character supports items.
                     if (HasItems(m_ExistingCharacter, m_ExistingAIAgent, false)) {
-                        var firstPersonObjects = m_ExistingCharacter.GetComponentInChildren<UltimateCharacterController.FirstPersonController.Character.FirstPersonObjects>();
+                        var firstPersonObjects =
+ m_ExistingCharacter.GetComponentInChildren<UltimateCharacterController.FirstPersonController.Character.FirstPersonObjects>();
                         if (m_ExistingPerspective != Perspective.Third && firstPersonObjects == null) {
                             var firstPersonObjectsGameObject = new GameObject("First Person Objects");
                             firstPersonObjectsGameObject.transform.parent = character.transform;
@@ -756,23 +834,27 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                     }
 #endif
                 }
-                if (m_ExistingAnimator != HasAnimator(m_ExistingCharacter)) {
-                    if (m_ExistingAnimator) {
-                        CharacterBuilder.AddAnimator(m_ExistingCharacter, m_ExistingAnimatorController, m_ExistingAIAgent);
-                    } else {
+
+                if (m_ExistingAnimator != HasAnimator(m_ExistingCharacter))
+                {
+                    if (m_ExistingAnimator)
+                        CharacterBuilder.AddAnimator(m_ExistingCharacter, m_ExistingAnimatorController,
+                            m_ExistingAIAgent);
+                    else
                         CharacterBuilder.RemoveAnimator(m_ExistingCharacter);
-                    }
-                } else if (m_ExistingAnimator) {
+                }
+                else if (m_ExistingAnimator)
+                {
                     // The animator controller may have changed.
                     var animator = m_ExistingCharacter.GetComponent<Animator>();
-                    if (animator != null && animator.runtimeAnimatorController != m_ExistingAnimatorController) {
+                    if (animator != null && animator.runtimeAnimatorController != m_ExistingAnimatorController)
                         animator.runtimeAnimatorController = m_ExistingAnimatorController;
-                    }
                 }
 
 #if FIRST_PERSON_CONTROLLER
                 // The arms may have changed.
-                var firstPersonArmsChange = (m_OriginalExistingFirstPersonArms != null && m_OriginalExistingFirstPersonArms.Length != (m_ExistingFirstPersonArms.Length - 1)) ||
+                var firstPersonArmsChange =
+ (m_OriginalExistingFirstPersonArms != null && m_OriginalExistingFirstPersonArms.Length != (m_ExistingFirstPersonArms.Length - 1)) ||
                                                 (m_OriginalExistingFirstPersonArms == null && m_ExistingFirstPersonArms.Length > 1);
                 if (m_OriginalExistingFirstPersonArms != null && !firstPersonArmsChange) {
                     for (int i = 0; i < m_OriginalExistingFirstPersonArms.Length; ++i) {
@@ -812,7 +894,8 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                     }
 
                     // Add the new objects.
-                    var firstPersonObjects = m_ExistingCharacter.GetComponentInChildren<FirstPersonController.Character.FirstPersonObjects>();
+                    var firstPersonObjects =
+ m_ExistingCharacter.GetComponentInChildren<FirstPersonController.Character.FirstPersonObjects>();
                     for (int i = 0; i < m_ExistingFirstPersonArms.Length; ++i) {
                         if (m_ExistingFirstPersonArms[i] == null) {
                             continue;
@@ -828,7 +911,8 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                         if (add) {
                             if (EditorUtility.IsPersistent(m_ExistingFirstPersonArms[i])) {
                                 var name = m_ExistingFirstPersonArms[i].name;
-                                m_ExistingFirstPersonArms[i] = UnityEngine.Object.Instantiate(m_ExistingFirstPersonArms[i]);
+                                m_ExistingFirstPersonArms[i] =
+ UnityEngine.Object.Instantiate(m_ExistingFirstPersonArms[i]);
                                 m_ExistingFirstPersonArms[i].name = name;
                             }
 
@@ -847,50 +931,55 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
 #endif
 
                 // Determine if the hidden objects have changed.
-                var firstPersonHiddenObjectChange = (m_OriginalExistingFirstPersonHiddenObjects != null && m_ExistingFirstPersonHiddenObjects.Length != (m_ExistingFirstPersonHiddenObjects.Length - 1)) ||
-                                                (m_OriginalExistingFirstPersonHiddenObjects == null && m_ExistingFirstPersonHiddenObjects.Length > 1);
-                if (m_OriginalExistingFirstPersonHiddenObjects != null && !firstPersonHiddenObjectChange) {
-                    for (int i = 0; i < m_OriginalExistingFirstPersonHiddenObjects.Length; ++i) {
+                var firstPersonHiddenObjectChange =
+                    (m_OriginalExistingFirstPersonHiddenObjects != null && m_ExistingFirstPersonHiddenObjects.Length !=
+                        m_ExistingFirstPersonHiddenObjects.Length - 1) ||
+                    (m_OriginalExistingFirstPersonHiddenObjects == null &&
+                     m_ExistingFirstPersonHiddenObjects.Length > 1);
+                if (m_OriginalExistingFirstPersonHiddenObjects != null && !firstPersonHiddenObjectChange)
+                    for (var i = 0; i < m_OriginalExistingFirstPersonHiddenObjects.Length; ++i)
+                    {
                         var containsObject = false;
-                        for (int j = 0; j < m_ExistingFirstPersonHiddenObjects.Length; ++j) {
-                            if (m_OriginalExistingFirstPersonHiddenObjects[i] == m_ExistingFirstPersonHiddenObjects[j]) {
+                        for (var j = 0; j < m_ExistingFirstPersonHiddenObjects.Length; ++j)
+                            if (m_OriginalExistingFirstPersonHiddenObjects[i] == m_ExistingFirstPersonHiddenObjects[j])
+                            {
                                 containsObject = true;
                                 break;
                             }
-                        }
-                        if (!containsObject) {
+
+                        if (!containsObject)
+                        {
                             firstPersonHiddenObjectChange = true;
                             break;
                         }
                     }
-                }
 
-                if (firstPersonHiddenObjectChange) {
+                if (firstPersonHiddenObjectChange)
+                {
                     // Remove all of the original hidden objects before adding them back again.
-                    if (m_OriginalExistingFirstPersonHiddenObjects != null) {
-                        for (int i = 0; i < m_OriginalExistingFirstPersonHiddenObjects.Length; ++i) {
-                            if (m_OriginalExistingFirstPersonHiddenObjects[i] == null) {
-                                continue;
-                            }
+                    if (m_OriginalExistingFirstPersonHiddenObjects != null)
+                        for (var i = 0; i < m_OriginalExistingFirstPersonHiddenObjects.Length; ++i)
+                        {
+                            if (m_OriginalExistingFirstPersonHiddenObjects[i] == null) continue;
 
-                            Character.Identifiers.ThirdPersonObject thirdPersonObject;
-                            if ((thirdPersonObject = m_OriginalExistingFirstPersonHiddenObjects[i].GetComponent<Character.Identifiers.ThirdPersonObject>()) != null) {
-                                UnityEngine.Object.DestroyImmediate(thirdPersonObject, true);
+                            ThirdPersonObject thirdPersonObject;
+                            if ((thirdPersonObject = m_OriginalExistingFirstPersonHiddenObjects[i]
+                                    .GetComponent<ThirdPersonObject>()) != null)
+                            {
+                                Object.DestroyImmediate(thirdPersonObject, true);
                                 continue;
                             }
 
                             var renderers = m_OriginalExistingFirstPersonHiddenObjects[i].GetComponents<Renderer>();
-                            for (int j = 0; j < renderers.Length; ++j) {
+                            for (var j = 0; j < renderers.Length; ++j)
+                            {
                                 var materials = renderers[j].sharedMaterials;
-                                for (int k = 0; k < materials.Length; ++k) {
-                                    if (materials[k] == m_InvisibleShadowCaster) {
+                                for (var k = 0; k < materials.Length; ++k)
+                                    if (materials[k] == m_InvisibleShadowCaster)
                                         materials[k] = null;
-                                    }
-                                }
                                 renderers[j].sharedMaterials = materials;
                             }
                         }
-                    }
 
                     var addThirdPersonObject = false;
 #if ULTIMATE_CHARACTER_CONTROLLER_MULTIPLAYER
@@ -899,126 +988,147 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                         addThirdPersonObject = true;
                     }
 #endif
-                    if (!addThirdPersonObject) {
+                    if (!addThirdPersonObject)
+                    {
                         var characterLocomotion = m_ExistingCharacter.GetComponent<UltimateCharacterLocomotion>();
                         characterLocomotion.DeserializeMovementTypes();
                         var movementTypes = characterLocomotion.MovementTypes;
-                        for (int i = 0; i < movementTypes.Length; ++i) {
-                            if (movementTypes[i].GetType().FullName.Contains("ThirdPerson")) {
+                        for (var i = 0; i < movementTypes.Length; ++i)
+                            if (movementTypes[i].GetType().FullName.Contains("ThirdPerson"))
+                            {
                                 addThirdPersonObject = true;
                                 break;
                             }
-                        }
                     }
 
                     // All of the original hidden objects have been removed. Add the new objects.
-                    for (int i = 0; i < m_ExistingFirstPersonHiddenObjects.Length; ++i) {
-                        if (m_ExistingFirstPersonHiddenObjects[i] == null) {
-                            continue;
-                        }
+                    for (var i = 0; i < m_ExistingFirstPersonHiddenObjects.Length; ++i)
+                    {
+                        if (m_ExistingFirstPersonHiddenObjects[i] == null) continue;
 
-                        if (!addThirdPersonObject) {
+                        if (!addThirdPersonObject)
+                        {
                             var renderers = m_ExistingFirstPersonHiddenObjects[i].GetComponents<Renderer>();
-                            for (int j = 0; j < renderers.Length; ++j) {
+                            for (var j = 0; j < renderers.Length; ++j)
+                            {
                                 var materials = renderers[j].sharedMaterials;
-                                for (int k = 0; k < materials.Length; ++k) {
-                                    materials[k] = m_InvisibleShadowCaster;
-                                }
+                                for (var k = 0; k < materials.Length; ++k) materials[k] = m_InvisibleShadowCaster;
                                 renderers[j].sharedMaterials = materials;
                             }
-                        } else {
+                        }
+                        else
+                        {
                             // The PerspectiveMonitor component is responsible for switching out the material.
-                            m_ExistingFirstPersonHiddenObjects[i].AddComponent<Character.Identifiers.ThirdPersonObject>();
+                            m_ExistingFirstPersonHiddenObjects[i].AddComponent<ThirdPersonObject>();
                         }
                     }
+
                     Shared.Editor.Utility.EditorUtility.SetDirty(m_ExistingCharacter);
                     m_OriginalExistingFirstPersonHiddenObjects = m_ExistingFirstPersonHiddenObjects;
                     // An empty element will occupy the last existing slot.
-                    if (m_OriginalExistingFirstPersonHiddenObjects != null && m_OriginalExistingFirstPersonHiddenObjects.Length > 0) {
-                        Array.Resize(ref m_OriginalExistingFirstPersonHiddenObjects, m_OriginalExistingFirstPersonHiddenObjects.Length - 1);
-                    }
+                    if (m_OriginalExistingFirstPersonHiddenObjects != null &&
+                        m_OriginalExistingFirstPersonHiddenObjects.Length > 0)
+                        Array.Resize(ref m_OriginalExistingFirstPersonHiddenObjects,
+                            m_OriginalExistingFirstPersonHiddenObjects.Length - 1);
                 }
-                if (m_ExistingAIAgent != IsAIAgent(m_ExistingCharacter)) {
-                    if (m_ExistingAIAgent) {
+
+                if (m_ExistingAIAgent != IsAIAgent(m_ExistingCharacter))
+                {
+                    if (m_ExistingAIAgent)
                         CharacterBuilder.AddAIAgent(m_ExistingCharacter);
-                    } else {
+                    else
                         CharacterBuilder.RemoveAIAgent(m_ExistingCharacter);
-                    }
                 }
-                if (m_ExistingNavMeshAgent != HasNavMeshAgent(m_ExistingCharacter)) {
-                    if (m_ExistingNavMeshAgent) {
+
+                if (m_ExistingNavMeshAgent != HasNavMeshAgent(m_ExistingCharacter))
+                {
+                    if (m_ExistingNavMeshAgent)
+                    {
                         var characterLocomotion = m_ExistingCharacter.GetComponent<UltimateCharacterLocomotion>();
                         var abilities = characterLocomotion.Abilities;
                         var index = abilities != null ? abilities.Length : 0;
-                        if (abilities != null) {
-                            for (int i = 0; i < abilities.Length; ++i) {
-                                if (abilities[i] is Character.Abilities.SpeedChange) {
+                        if (abilities != null)
+                            for (var i = 0; i < abilities.Length; ++i)
+                                if (abilities[i] is SpeedChange)
+                                {
                                     index = i;
                                     break;
                                 }
-                            }
-                        }
+
                         // The ability should be positioned before the SpeedChange ability.
-                        AbilityBuilder.AddAbility(characterLocomotion, typeof(Character.Abilities.AI.NavMeshAgentMovement), index);
-                        var navMeshAgent = m_ExistingCharacter.GetComponent<UnityEngine.AI.NavMeshAgent>();
-                        if (navMeshAgent != null) {
-                            navMeshAgent.stoppingDistance = 0.1f;
-                        }
-                    } else {
-                        AbilityBuilder.RemoveAbility<Character.Abilities.AI.NavMeshAgentMovement>(m_ExistingCharacter.GetComponent<UltimateCharacterLocomotion>());
-                        var navMeshAgent = m_ExistingCharacter.GetComponent<UnityEngine.AI.NavMeshAgent>();
-                        if (navMeshAgent != null) {
-                            UnityEngine.Object.DestroyImmediate(navMeshAgent, true);
-                        }
+                        AbilityBuilder.AddAbility(characterLocomotion, typeof(NavMeshAgentMovement), index);
+                        var navMeshAgent = m_ExistingCharacter.GetComponent<NavMeshAgent>();
+                        if (navMeshAgent != null) navMeshAgent.stoppingDistance = 0.1f;
+                    }
+                    else
+                    {
+                        AbilityBuilder.RemoveAbility<NavMeshAgentMovement>(m_ExistingCharacter
+                            .GetComponent<UltimateCharacterLocomotion>());
+                        var navMeshAgent = m_ExistingCharacter.GetComponent<NavMeshAgent>();
+                        if (navMeshAgent != null) Object.DestroyImmediate(navMeshAgent, true);
                     }
                 }
-                if (m_ExistingItems != HasItems(m_ExistingCharacter, m_ExistingAIAgent, m_ExistingPerspective != Perspective.Third)) {
-                    if (m_ExistingItems) {
-                        CharacterBuilder.AddItemSupport(m_ExistingCharacter, m_ExistingItemCollection, m_ExistingAIAgent, m_ExistingPerspective != Perspective.Third);
-                    } else {
+
+                if (m_ExistingItems != HasItems(m_ExistingCharacter, m_ExistingAIAgent,
+                        m_ExistingPerspective != Perspective.Third))
+                {
+                    if (m_ExistingItems)
+                        CharacterBuilder.AddItemSupport(m_ExistingCharacter, m_ExistingItemCollection,
+                            m_ExistingAIAgent, m_ExistingPerspective != Perspective.Third);
+                    else
                         CharacterBuilder.RemoveItemSupport(m_ExistingCharacter);
-                    }
-                } else {
-                    var itemSetManager = m_ExistingCharacter.GetComponent<Inventory.ItemSetManager>();
-                    if (itemSetManager != null && m_ExistingItemCollection != itemSetManager.ItemCollection) {
+                }
+                else
+                {
+                    var itemSetManager = m_ExistingCharacter.GetComponent<ItemSetManager>();
+                    if (itemSetManager != null && m_ExistingItemCollection != itemSetManager.ItemCollection)
+                    {
                         itemSetManager.CategoryItemSets = null;
                         itemSetManager.ItemCollection = m_ExistingItemCollection;
                     }
                 }
-                if (m_ExistingHealth != HasHealth(m_ExistingCharacter)) {
-                    if (m_ExistingHealth) {
+
+                if (m_ExistingHealth != HasHealth(m_ExistingCharacter))
+                {
+                    if (m_ExistingHealth)
                         CharacterBuilder.AddHealth(m_ExistingCharacter);
-                    } else {
+                    else
                         CharacterBuilder.RemoveHealth(m_ExistingCharacter);
-                    }
                 }
-                if (m_ExistingUnityIK != HasUnityIK(m_ExistingCharacter)) {
-                    if (m_ExistingUnityIK) {
-                        if (IsValidHumanoid(m_ExistingCharacter)) {
-                            CharacterBuilder.AddUnityIK(m_ExistingCharacter);
-                        }
-                    } else {
+
+                if (m_ExistingUnityIK != HasUnityIK(m_ExistingCharacter))
+                {
+                    if (m_ExistingUnityIK)
+                    {
+                        if (IsValidHumanoid(m_ExistingCharacter)) CharacterBuilder.AddUnityIK(m_ExistingCharacter);
+                    }
+                    else
+                    {
                         CharacterBuilder.RemoveUnityIK(m_ExistingCharacter);
                     }
                 }
-                if (m_ExistingFootEffects != HasFootEffects(m_ExistingCharacter)) {
-                    if (m_ExistingFootEffects) {
+
+                if (m_ExistingFootEffects != HasFootEffects(m_ExistingCharacter))
+                {
+                    if (m_ExistingFootEffects)
                         CharacterBuilder.AddFootEffects(m_ExistingCharacter);
-                    } else {
+                    else
                         CharacterBuilder.RemoveFootEffects(m_ExistingCharacter);
-                    }
                 }
-                if (m_ExistingStateConfiguration != null && m_ExistingProfileIndex > 0) {
+
+                if (m_ExistingStateConfiguration != null && m_ExistingProfileIndex > 0)
+                {
                     m_ExistingStateConfiguration.AddStatesToGameObject(m_ExistingProfileName, m_ExistingCharacter);
                     Shared.Editor.Utility.EditorUtility.SetDirty(m_ExistingCharacter);
                 }
             }
+
             GUI.enabled = true;
             EditorGUILayout.EndScrollView();
         }
 
         /// <summary>
-        /// Does the character have the essential components?
+        ///     Does the character have the essential components?
         /// </summary>
         /// <param name="character">The GameObject of the character to determine if it has the required components.</param>
         /// <param name="usePerspectiveMonitor">Should the perspective monitor be used?</param>
@@ -1026,53 +1136,57 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         private bool HasEssentials(GameObject character, bool usePerspectiveMonitor)
         {
 #if THIRD_PERSON_CONTROLLER
-            if (usePerspectiveMonitor && character.GetComponent<UltimateCharacterController.ThirdPersonController.Character.PerspectiveMonitor>() == null) {
-                return false;
-            }
+            if (usePerspectiveMonitor && character.GetComponent<PerspectiveMonitor>() == null) return false;
 #endif
-            return character.GetComponent<Rigidbody>() != null && character.GetComponent<UltimateCharacterLocomotion>() != null &&
-                    character.GetComponent<UltimateCharacterLocomotionHandler>() && character.GetComponent<CharacterLayerManager>() != null;
+            return character.GetComponent<Rigidbody>() != null &&
+                   character.GetComponent<UltimateCharacterLocomotion>() != null &&
+                   character.GetComponent<UltimateCharacterLocomotionHandler>() &&
+                   character.GetComponent<CharacterLayerManager>() != null;
         }
 
         /// <summary>
-        /// Retrieves the current perspective of the character.
+        ///     Retrieves the current perspective of the character.
         /// </summary>
         /// <returns>The character's perspective.</returns>
         private Perspective CurrentPerspective()
         {
             var hasBothComponents = false;
 #if THIRD_PERSON_CONTROLLER
-            hasBothComponents = m_ExistingCharacter.GetComponentInChildren<UltimateCharacterController.ThirdPersonController.Character.PerspectiveMonitor>() != null;
+            hasBothComponents = m_ExistingCharacter.GetComponentInChildren<PerspectiveMonitor>() != null;
 #endif
-            if (hasBothComponents) {
+            if (hasBothComponents)
                 // If the character has the perspective monitor then it can switch perspectives.
                 return Perspective.Both;
-            } else {
-                if (!m_ExistingAnimator) {
-                    // If the character doesn't have an animator then it has to be in first person.
-                    return Perspective.First;
-                } else {
-                    // Use the movement types to determine the perspective.
-                    var perspective = Perspective.Third;
-                    var characterLocomotion = m_ExistingCharacter.GetComponent<UltimateCharacterLocomotion>();
-                    if (characterLocomotion != null) {
-                        characterLocomotion.DeserializeMovementTypes();
-                        var movementTypes = characterLocomotion.MovementTypes;
-                        for (int i = 0; i < movementTypes.Length; ++i){
-                            var movementNamespace = movementTypes[i].GetType().Namespace;
-                            if (movementNamespace != null && movementNamespace.Contains("FirstPersonController")) {
-                                perspective = Perspective.First;
-                                break;
-                            }
-                        }
+
+            if (!m_ExistingAnimator)
+            {
+                // If the character doesn't have an animator then it has to be in first person.
+                return Perspective.First;
+            }
+
+            // Use the movement types to determine the perspective.
+            var perspective = Perspective.Third;
+            var characterLocomotion = m_ExistingCharacter.GetComponent<UltimateCharacterLocomotion>();
+            if (characterLocomotion != null)
+            {
+                characterLocomotion.DeserializeMovementTypes();
+                var movementTypes = characterLocomotion.MovementTypes;
+                for (var i = 0; i < movementTypes.Length; ++i)
+                {
+                    var movementNamespace = movementTypes[i].GetType().Namespace;
+                    if (movementNamespace != null && movementNamespace.Contains("FirstPersonController"))
+                    {
+                        perspective = Perspective.First;
+                        break;
                     }
-                    return perspective;
                 }
             }
+
+            return perspective;
         }
 
         /// <summary>
-        /// Does the character have an animator?
+        ///     Does the character have an animator?
         /// </summary>
         /// <param name="character">The GameObject of the character to determine if it has the required components.</param>
         /// <returns>True if the character has an animator.</returns>
@@ -1082,27 +1196,30 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// Is the character an AI agent?
+        ///     Is the character an AI agent?
         /// </summary>
         /// <param name="character">The GameObject of the character to determine if it has the required components.</param>
         /// <returns>True if the character is an AI agent.</returns>
         private bool IsAIAgent(GameObject character)
         {
-            return character.GetComponent<LocalLookSource>() && !character.GetComponent<UltimateCharacterLocomotionHandler>() && !character.GetComponent<ItemHandler>();
+            return character.GetComponent<LocalLookSource>() &&
+                   !character.GetComponent<UltimateCharacterLocomotionHandler>() &&
+                   !character.GetComponent<ItemHandler>();
         }
 
         /// <summary>
-        /// Does the character have the NavMeshAgent components?
+        ///     Does the character have the NavMeshAgent components?
         /// </summary>
         /// <param name="character">The GameObject of the character to determine if it has the required components.</param>
         /// <returns>True if the character has the NavMeshAgent components.</returns>
         private bool HasNavMeshAgent(GameObject character)
         {
-            return character.GetComponent<UnityEngine.AI.NavMeshAgent>() != null && character.GetComponent<UltimateCharacterLocomotion>().GetAbility<Character.Abilities.AI.NavMeshAgentMovement>() != null;
+            return character.GetComponent<NavMeshAgent>() != null &&
+                   character.GetComponent<UltimateCharacterLocomotion>().GetAbility<NavMeshAgentMovement>() != null;
         }
 
         /// <summary>
-        /// Does the character have the components required for items?
+        ///     Does the character have the components required for items?
         /// </summary>
         /// <param name="character">The GameObject of the character to determine if it has the required components.</param>
         /// <param name="aiAgent">Is the character an AI agent?</param>
@@ -1110,9 +1227,9 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         /// <returns>True if the character has the components required for items.</returns>
         private bool HasItems(GameObject character, bool aiAgent, bool checkFirstPersonObjects)
         {
-            if ((!aiAgent && character.GetComponent<ItemHandler>() == null) || character.GetComponentInChildren<Items.ItemPlacement>() == null || character.GetComponent<AnimatorMonitor>() == null) {
-                return false;
-            }
+            if ((!aiAgent && character.GetComponent<ItemHandler>() == null) ||
+                character.GetComponentInChildren<ItemPlacement>() == null ||
+                character.GetComponent<AnimatorMonitor>() == null) return false;
 
 #if FIRST_PERSON_CONTROLLER
             if (checkFirstPersonObjects && character.GetComponentInChildren<UltimateCharacterController.FirstPersonController.Character.FirstPersonObjects>() == null) {
@@ -1121,34 +1238,36 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
 #endif
 
             var animator = character.GetComponent<Animator>();
-            if (animator != null) {
+            if (animator != null)
+            {
                 var head = animator.GetBoneTransform(HumanBodyBones.Head);
-                if (head != null) {
+                if (head != null)
+                {
                     var leftHand = animator.GetBoneTransform(HumanBodyBones.LeftHand);
                     var rightHand = animator.GetBoneTransform(HumanBodyBones.RightHand);
-                    if (leftHand != null && rightHand != null) {
-                        if (leftHand.GetComponentInChildren<Items.ItemSlot>() == null || rightHand.GetComponentInChildren<Items.ItemSlot>() == null) {
+                    if (leftHand != null && rightHand != null)
+                        if (leftHand.GetComponentInChildren<ItemSlot>() == null ||
+                            rightHand.GetComponentInChildren<ItemSlot>() == null)
                             return false;
-                        }
-                    }
                 }
             }
 
-            return character.GetComponent<Inventory.Inventory>() && character.GetComponent<Inventory.ItemSetManager>();
+            return character.GetComponent<Inventory.Inventory>() && character.GetComponent<ItemSetManager>();
         }
 
         /// <summary>
-        /// Does the character have the health components?
+        ///     Does the character have the health components?
         /// </summary>
         /// <param name="character">The GameObject of the character to determine if it has the required components.</param>
         /// <returns>True if the character has the health components.</returns>
         private bool HasHealth(GameObject character)
         {
-            return character.GetComponent<Traits.CharacterHealth>() && character.GetComponent<Traits.AttributeManager>() && character.GetComponent<Traits.CharacterRespawner>();
+            return character.GetComponent<CharacterHealth>() && character.GetComponent<AttributeManager>() &&
+                   character.GetComponent<CharacterRespawner>();
         }
 
         /// <summary>
-        /// Does the character have the CharacterIK component?
+        ///     Does the character have the CharacterIK component?
         /// </summary>
         /// <param name="character">The GameObject of the character to determine if it has the required components.</param>
         /// <returns>True if the character has the CharacterIK component.</returns>
@@ -1158,13 +1277,34 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// Does the character have the CharacterFootEffects component?
+        ///     Does the character have the CharacterFootEffects component?
         /// </summary>
         /// <param name="character">The GameObject of the character to determine if it has the required components.</param>
         /// <returns>True if the character has the CharacterFootEffects component.</returns>
         private bool HasFootEffects(GameObject character)
         {
             return character.GetComponent<CharacterFootEffects>();
+        }
+
+        /// <summary>
+        ///     Specifies the perspective that the character can change into.
+        /// </summary>
+        private enum Perspective
+        {
+            First, // The character can only be in first person perspective.
+            Third, // The character can only be in third person perspective.
+            Both, // The character can be in first or third person perspective.
+            None // Default value.
+        }
+
+        /// <summary>
+        ///     Specifies if the rig is a humanoid or generic. Humanoids allow for animation retargetting whereas generic
+        ///     characters do not.
+        /// </summary>
+        private enum ModelType
+        {
+            Humanoid,
+            Generic
         }
     }
 }

@@ -4,22 +4,21 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Demo.Objects
 {
-    using UnityEngine;
-
     /// <summary>
-    /// A particle stream crate will reset its position when the crate reactivates.
+    ///     A particle stream crate will reset its position when the crate reactivates.
     /// </summary>
     public class ParticleStreamCrate : MonoBehaviour
     {
-        private Rigidbody m_Rigibody;
-
         private Vector3 m_Position;
+        private Rigidbody m_Rigibody;
         private Quaternion m_Rotation;
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         private void Awake()
         {
@@ -31,7 +30,7 @@ namespace Opsive.UltimateCharacterController.Demo.Objects
         }
 
         /// <summary>
-        /// The crate has been enabled.
+        ///     The crate has been enabled.
         /// </summary>
         private void OnEnable()
         {

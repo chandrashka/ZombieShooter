@@ -4,37 +4,41 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Character;
+using Opsive.UltimateCharacterController.Character.Abilities.Items;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Demo.AI
 {
-    using Opsive.UltimateCharacterController.Character;
-    using Opsive.UltimateCharacterController.Character.Abilities.Items;
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// An extremely simple AI agent that will attack at a fixed interval.
+    ///     An extremely simple AI agent that will attack at a fixed interval.
     /// </summary>
     public class MeleeAgent : MonoBehaviour
     {
-        [Tooltip("The interval that the agent should attack.")]
-        [SerializeField] protected MinMaxFloat m_AttackInterval = new MinMaxFloat(2, 4);
-        [Tooltip("The target must be within the specified distance before the agent can attack.")]
-        [SerializeField] protected float m_TargetDistance = 3;
-        [Tooltip("Attack immediately if the character is within the close distance.")]
-        [SerializeField] protected float m_ImmediateAttackDistance = 1.5f;
-        [Tooltip("The delay between immediate attacks to prevent the agent from attacking too often.")]
-        [SerializeField] protected float m_ImmediateAttackDelay = 0.75f;
+        [Tooltip("The interval that the agent should attack.")] [SerializeField]
+        protected MinMaxFloat m_AttackInterval = new(2, 4);
 
-        private Transform m_Transform;
-        private UltimateCharacterLocomotion m_CharacterLocomotion;
+        [Tooltip("The target must be within the specified distance before the agent can attack.")] [SerializeField]
+        protected float m_TargetDistance = 3;
+
+        [Tooltip("Attack immediately if the character is within the close distance.")] [SerializeField]
+        protected float m_ImmediateAttackDistance = 1.5f;
+
+        [Tooltip("The delay between immediate attacks to prevent the agent from attacking too often.")] [SerializeField]
+        protected float m_ImmediateAttackDelay = 0.75f;
+
         private AgentMovement m_AgentMovement;
-        private Use m_UseAbility;
-        private LocalLookSource m_LocalLookSource;
         private float m_AttackTime;
+        private UltimateCharacterLocomotion m_CharacterLocomotion;
+        private LocalLookSource m_LocalLookSource;
         private float m_NextAttackTime;
 
+        private Transform m_Transform;
+        private Use m_UseAbility;
+
         /// <summary>
-        /// Initializes the default values.
+        ///     Initializes the default values.
         /// </summary>
         private void Start()
         {
@@ -49,19 +53,19 @@ namespace Opsive.UltimateCharacterController.Demo.AI
         }
 
         /// <summary>
-        /// Attacks the target when within distance.
+        ///     Attacks the target when within distance.
         /// </summary>
         public void Update()
         {
             var attack = false;
             var distance = (m_LocalLookSource.Target.position - m_Transform.position).sqrMagnitude;
-            if (m_AttackTime + m_ImmediateAttackDelay < Time.time && distance < m_ImmediateAttackDistance * m_ImmediateAttackDistance) {
+            if (m_AttackTime + m_ImmediateAttackDelay < Time.time &&
+                distance < m_ImmediateAttackDistance * m_ImmediateAttackDistance)
                 attack = true;
-            } else if (m_NextAttackTime < Time.time && distance < m_TargetDistance * m_TargetDistance) {
-                attack = true;
-            }
+            else if (m_NextAttackTime < Time.time && distance < m_TargetDistance * m_TargetDistance) attack = true;
 
-            if (attack) {
+            if (attack)
+            {
                 m_CharacterLocomotion.TryStartAbility(m_UseAbility);
                 m_AttackTime = Time.time;
                 m_NextAttackTime = Time.time + m_AttackInterval.RandomValue;
@@ -69,24 +73,20 @@ namespace Opsive.UltimateCharacterController.Demo.AI
         }
 
         /// <summary>
-        /// Starts the attack.
+        ///     Starts the attack.
         /// </summary>
         public void Attack()
         {
-            if (m_AgentMovement == null) {
-                return;
-            }
+            if (m_AgentMovement == null) return;
 
             // The agent should be able to move while attacking.
-            if (!m_AgentMovement.Enabled) {
-                m_AgentMovement.Enabled = true;
-            }
+            if (!m_AgentMovement.Enabled) m_AgentMovement.Enabled = true;
             enabled = true;
             m_NextAttackTime = Time.time + m_AttackInterval.RandomValue;
         }
 
         /// <summary>
-        /// Cancels the attack.
+        ///     Cancels the attack.
         /// </summary>
         public void CancelAttack()
         {

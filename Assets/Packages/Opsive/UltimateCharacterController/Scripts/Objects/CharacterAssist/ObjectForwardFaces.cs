@@ -4,18 +4,22 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Objects
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Specifies the number of forward faces the object has, used by the Detect Object Ability Base ability.
+    ///     Specifies the number of forward faces the object has, used by the Detect Object Ability Base ability.
     /// </summary>
     public class ObjectForwardFaces : MonoBehaviour
     {
-        [Tooltip("The number of forward facing sides the object has.")]
-        [SerializeField] protected int m_ForwardFaceCount = 1;
+        [Tooltip("The number of forward facing sides the object has.")] [SerializeField]
+        protected int m_ForwardFaceCount = 1;
 
-        public int ForwardFaceCount { get { return m_ForwardFaceCount; } set { m_ForwardFaceCount = value; } }
+        public int ForwardFaceCount
+        {
+            get => m_ForwardFaceCount;
+            set => m_ForwardFaceCount = value;
+        }
     }
 }

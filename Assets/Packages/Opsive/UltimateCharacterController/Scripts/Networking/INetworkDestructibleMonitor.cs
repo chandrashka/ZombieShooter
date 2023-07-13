@@ -4,17 +4,17 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Networking.Objects
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Defines an object that can take destruct over the network using the Destructible component.
+    ///     Defines an object that can take destruct over the network using the Destructible component.
     /// </summary>
     public interface IDestructibleMonitor
     {
         /// <summary>
-        /// Destroys the object.
+        ///     Destroys the object.
         /// </summary>
         /// <param name="hitPosition">The position of the destruction.</param>
         /// <param name="hitNormal">The normal direction of the destruction.</param>

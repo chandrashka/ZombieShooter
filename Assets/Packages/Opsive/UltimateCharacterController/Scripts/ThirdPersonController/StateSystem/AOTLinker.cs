@@ -4,12 +4,13 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.StateSystem;
+using Opsive.UltimateCharacterController.ThirdPersonController.Character;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.ThirdPersonController.StateSystem
 {
-    using Opsive.Shared.StateSystem;
-    using System;
-    using UnityEngine;
-
     // See Opsive.UltimateCharacterController.StateSystem.AOTLinker for an explanation of this class.
     public class AOTLinker : MonoBehaviour
     {
@@ -17,9 +18,11 @@ namespace Opsive.UltimateCharacterController.ThirdPersonController.StateSystem
         {
 #pragma warning disable 0219
 #if THIRD_PERSON_CONTROLLER
-            var objectDeathVisiblityGenericDelegate = new Preset.GenericDelegate<Character.PerspectiveMonitor.ObjectDeathVisiblity>();
-            var objectDeathVisiblityFuncDelegate = new Func<Character.PerspectiveMonitor.ObjectDeathVisiblity>(() => { return 0; });
-            var objectDeathVisiblityActionDelegate = new Action<Character.PerspectiveMonitor.ObjectDeathVisiblity>((Character.PerspectiveMonitor.ObjectDeathVisiblity value) => { });
+            var objectDeathVisiblityGenericDelegate =
+                new Preset.GenericDelegate<PerspectiveMonitor.ObjectDeathVisiblity>();
+            var objectDeathVisiblityFuncDelegate =
+                new Func<PerspectiveMonitor.ObjectDeathVisiblity>(() => { return 0; });
+            var objectDeathVisiblityActionDelegate = new Action<PerspectiveMonitor.ObjectDeathVisiblity>(value => { });
 #endif
 #pragma warning restore 0219
         }

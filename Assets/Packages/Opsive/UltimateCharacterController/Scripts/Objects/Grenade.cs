@@ -4,41 +4,54 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Game;
+using Opsive.UltimateCharacterController.Game;
+using Opsive.UltimateCharacterController.SurfaceSystem;
+using Opsive.UltimateCharacterController.Traits.Damage;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Objects
 {
-    using Opsive.Shared.Game;
-    using Opsive.UltimateCharacterController.Game;
-    using Opsive.UltimateCharacterController.SurfaceSystem;
-    using Opsive.UltimateCharacterController.Traits.Damage;
-    using UnityEngine;
-
     /// <summary>
-    /// The Projectile component moves a Destructible object along the specified path. Can apply damage at the collision point.
+    ///     The Projectile component moves a Destructible object along the specified path. Can apply damage at the collision
+    ///     point.
     /// </summary>
     public class Grenade : Destructible
     {
-        [Tooltip("The length of time before the grenade destructs.")]
-        [SerializeField] protected float m_Lifespan = 5;
-        [Tooltip("A reference to the pin that is removed.")]
-        [SerializeField] protected Transform m_Pin;
+        [Tooltip("The length of time before the grenade destructs.")] [SerializeField]
+        protected float m_Lifespan = 5;
 
-        public float Lifespan { get { return m_Lifespan; } set { m_Lifespan = value; } }
-        public Transform Pin { get { return m_Pin; } set { m_Pin = value; } }
+        [Tooltip("A reference to the pin that is removed.")] [SerializeField]
+        protected Transform m_Pin;
 
-        protected ScheduledEventBase m_ScheduledDeactivation;
-        private Transform m_PinParent;
         private Vector3 m_PinLocalPosition;
         private Quaternion m_PinLocalRotation;
+        private Transform m_PinParent;
+
+        protected ScheduledEventBase m_ScheduledDeactivation;
+
+        public float Lifespan
+        {
+            get => m_Lifespan;
+            set => m_Lifespan = value;
+        }
+
+        public Transform Pin
+        {
+            get => m_Pin;
+            set => m_Pin = value;
+        }
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         protected override void Awake()
         {
             base.Awake();
 
             // Remember the pin location so it can be reattached.
-            if (m_Pin != null) {
+            if (m_Pin != null)
+            {
                 m_PinParent = m_Pin.parent;
                 m_PinLocalPosition = m_Pin.localPosition;
                 m_PinLocalRotation = m_Pin.localRotation;
@@ -46,7 +59,7 @@ namespace Opsive.UltimateCharacterController.Objects
         }
 
         /// <summary>
-        /// The grenade has been enabled.
+        ///     The grenade has been enabled.
         /// </summary>
         protected override void OnEnable()
         {
@@ -56,7 +69,7 @@ namespace Opsive.UltimateCharacterController.Objects
         }
 
         /// <summary>
-        /// Initializes the object.
+        ///     Initializes the object.
         /// </summary>
         /// <param name="velocity">The velocity to apply.</param>
         /// <param name="torque">The torque to apply.</param>
@@ -70,16 +83,19 @@ namespace Opsive.UltimateCharacterController.Objects
         /// <param name="surfaceImpact">A reference to the Surface Impact triggered when the object hits an object.</param>
         /// <param name="originator">The object that instantiated the trajectory object.</param>
         /// <param name="originatorCollisionCheck">Should a collision check against the originator be performed?</param>
-        public virtual void Initialize(Vector3 velocity, Vector3 torque,  DamageProcessor damageProcessor, float damageAmount, float impactForce, int impactForceFrames, LayerMask impactLayers,
-                                     string impactStateName, float impactStateDisableTimer, SurfaceImpact surfaceImpact, GameObject originator, bool originatorCollisionCheck)
+        public virtual void Initialize(Vector3 velocity, Vector3 torque, DamageProcessor damageProcessor,
+            float damageAmount, float impactForce, int impactForceFrames, LayerMask impactLayers,
+            string impactStateName, float impactStateDisableTimer, SurfaceImpact surfaceImpact, GameObject originator,
+            bool originatorCollisionCheck)
         {
-            InitializeDestructibleProperties(damageProcessor, damageAmount, impactForce, impactForceFrames, impactLayers, impactStateName, impactStateDisableTimer, surfaceImpact);
+            InitializeDestructibleProperties(damageProcessor, damageAmount, impactForce, impactForceFrames,
+                impactLayers, impactStateName, impactStateDisableTimer, surfaceImpact);
 
             base.Initialize(velocity, torque, originator, originatorCollisionCheck);
         }
 
         /// <summary>
-        /// The grenade should start to cook.
+        ///     The grenade should start to cook.
         /// </summary>
         /// <param name="originator">The object that instantiated the trajectory object.</param>
         public void StartCooking(GameObject originator)
@@ -91,18 +107,23 @@ namespace Opsive.UltimateCharacterController.Objects
         }
 
         /// <summary>
-        /// Detaches or attach the pin.
+        ///     Detaches or attach the pin.
         /// </summary>
-        /// <param name="attachTransform">The transform that the pin should be attached to. If null the pin will move back to the starting location.</param>
+        /// <param name="attachTransform">
+        ///     The transform that the pin should be attached to. If null the pin will move back to the
+        ///     starting location.
+        /// </param>
         public void DetachAttachPin(Transform attachTransform)
         {
-            if (m_Pin == null || m_PinParent == null) {
-                return;
-            }
+            if (m_Pin == null || m_PinParent == null) return;
 
-            if (attachTransform != null) {
+            if (attachTransform != null)
+            {
                 m_Pin.parent = attachTransform;
-            } else { // Attach the pin back to the original transform.
+            }
+            else
+            {
+                // Attach the pin back to the original transform.
                 m_Pin.parent = m_PinParent;
                 m_Pin.localPosition = m_PinLocalPosition;
                 m_Pin.localRotation = m_PinLocalRotation;
@@ -110,7 +131,7 @@ namespace Opsive.UltimateCharacterController.Objects
         }
 
         /// <summary>
-        /// The grenade has reached its lifespan.
+        ///     The grenade has reached its lifespan.
         /// </summary>
         protected void Deactivate()
         {

@@ -1,33 +1,22 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Random = System.Random;
 
 public class EnemySpawner : MonoBehaviour
 {
     [SerializeField] private List<GameObject> enemyPrefabs;
     [SerializeField] private List<Transform> spawnPoints;
+    
     public GameObject player;
-    [SerializeField] private float timeToSpawnNewEnemy;
-    private float m_CurrentTimeToSpawnNewEnemy;
-    private System.Random m_Random;
+    
+    private EnemyManager m_EnemyManager;
+    
+    private Random m_Random;
 
     private void Start()
     {
-        m_Random = new System.Random();
-        m_CurrentTimeToSpawnNewEnemy = timeToSpawnNewEnemy;
-        SpawnEnemy();
-    }
-
-    private void Update()
-    {
-        if (m_CurrentTimeToSpawnNewEnemy <= 0)
-        {
-            SpawnEnemy();
-            m_CurrentTimeToSpawnNewEnemy = timeToSpawnNewEnemy;
-        }
-        else
-        {
-            m_CurrentTimeToSpawnNewEnemy -= Time.deltaTime;
-        }
+        m_Random = new Random();
+        m_EnemyManager = GetComponent<EnemyManager>();
     }
 
     public GameObject SpawnEnemy()
@@ -36,7 +25,9 @@ public class EnemySpawner : MonoBehaviour
         var spawnPoint = spawnPoints[m_Random.Next(0, spawnPoints.Count)];
 
         var enemy = Instantiate(enemyPrefab, spawnPoint);
+        
         enemy.GetComponent<EnemyAI>().player = player;
+        enemy.GetComponent<EnemyHealthManager>().enemyManager = m_EnemyManager;
 
         return enemy;
     }

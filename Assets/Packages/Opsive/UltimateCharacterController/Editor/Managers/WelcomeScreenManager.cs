@@ -4,15 +4,16 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEditor;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Editor.Managers
 {
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using System;
-    using UnityEditor;
-    using UnityEngine;
-
     /// <summary>
-    /// Shows a starting window with useful links.
+    ///     Shows a starting window with useful links.
     /// </summary>
     [OrderedEditorItem("Welcome", 0)]
     public class WelcomeScreenManager : Manager
@@ -24,17 +25,17 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         private const string c_DiscordTextureGUID = "b847fb48acf99c6478bfdc892f0276fc";
         private const string c_ReviewTextureGUID = "32f45dfc0d71947458758e055696a118";
         private const string c_ShowcaseTextureGUID = "997f4ee10d474ab44ab9d9a030110117";
+        private Texture2D m_DiscordTexture;
 
-        Texture2D m_DocumentationTexture;
-        Texture2D m_VideosTexture;
-        Texture2D m_IntegrationsTexture;
-        Texture2D m_ForumTexture;
-        Texture2D m_DiscordTexture;
-        Texture2D m_ReviewTexture;
-        Texture2D m_ShowcaseTexture;
+        private Texture2D m_DocumentationTexture;
+        private Texture2D m_ForumTexture;
+        private Texture2D m_IntegrationsTexture;
+        private Texture2D m_ReviewTexture;
+        private Texture2D m_ShowcaseTexture;
+        private Texture2D m_VideosTexture;
 
         /// <summary>
-        /// Initialize the manager after deserialization.
+        ///     Initialize the manager after deserialization.
         /// </summary>
         public override void Initialize(MainManagerWindow mainManagerWindow)
         {
@@ -50,21 +51,23 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
         }
 
         /// <summary>
-        /// Draws the Manager.
+        ///     Draws the Manager.
         /// </summary>
         public override void OnGUI()
         {
-            EditorGUILayout.LabelField(string.Format("Thank you for purchasing the {0}.\nThe resources below will help you get the most out of the controller.", 
-                                            UltimateCharacterController.Utility.AssetInfo.Name), Shared.Editor.Inspectors.Utility.InspectorStyles.WordWrapLabelCenter);
+            EditorGUILayout.LabelField(string.Format(
+                "Thank you for purchasing the {0}.\nThe resources below will help you get the most out of the controller.",
+                AssetInfo.Name), InspectorStyles.WordWrapLabelCenter);
             // Draw the header image.
             GUILayout.BeginHorizontal();
-            var width = m_MainManagerWindow.position.width - m_MainManagerWindow.MenuWidth - m_DocumentationTexture.width;
+            var width = m_MainManagerWindow.position.width - m_MainManagerWindow.MenuWidth -
+                        m_DocumentationTexture.width;
             GUILayout.Space(width / 2);
-            GUILayout.Label(m_DocumentationTexture, Shared.Editor.Inspectors.Utility.InspectorStyles.CenterLabel, GUILayout.Width(m_DocumentationTexture.width), GUILayout.Height(m_DocumentationTexture.height));
+            GUILayout.Label(m_DocumentationTexture, InspectorStyles.CenterLabel,
+                GUILayout.Width(m_DocumentationTexture.width), GUILayout.Height(m_DocumentationTexture.height));
             var lastRect = GUILayoutUtility.GetLastRect();
-            if (Event.current.type == EventType.MouseUp && lastRect.Contains(Event.current.mousePosition)) {
+            if (Event.current.type == EventType.MouseUp && lastRect.Contains(Event.current.mousePosition))
                 Application.OpenURL("https://opsive.com/support/documentation/ultimate-character-controller/");
-            }
             GUILayout.EndHorizontal();
 
             GUILayout.Space(3);
@@ -72,12 +75,17 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             // The remaining images should be drawn in a grid.
             GUILayout.BeginHorizontal();
             GUILayout.Space(width / 2 + 2);
-            var selected = GUILayout.SelectionGrid(-1, 
-                new Texture2D[] { m_VideosTexture, m_IntegrationsTexture, m_ForumTexture, m_DiscordTexture, m_ReviewTexture, m_ShowcaseTexture }, 
+            var selected = GUILayout.SelectionGrid(-1,
+                new[]
+                {
+                    m_VideosTexture, m_IntegrationsTexture, m_ForumTexture, m_DiscordTexture, m_ReviewTexture,
+                    m_ShowcaseTexture
+                },
                 2,
-                Shared.Editor.Inspectors.Utility.InspectorStyles.CenterLabel, GUILayout.Width(m_IntegrationsTexture.width * 2));
-            if (selected != -1) {
-                switch(selected) {
+                InspectorStyles.CenterLabel, GUILayout.Width(m_IntegrationsTexture.width * 2));
+            if (selected != -1)
+                switch (selected)
+                {
                     case 0:
                         Application.OpenURL(GetVideosURL());
                         break;
@@ -97,7 +105,7 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                         Application.OpenURL("https://opsive.com/showcase/");
                         break;
                 }
-            }
+
             GUILayout.EndHorizontal();
 
             // Draw the version at the bottom of the window.
@@ -105,37 +113,43 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
             var offset = 460;
             GUILayout.Space(m_MainManagerWindow.position.height - lastRect.yMax - offset);
             GUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(string.Format("{0} version {1}", UltimateCharacterController.Utility.AssetInfo.Name, UltimateCharacterController.Utility.AssetInfo.Version));
-            try {
-                var version = new Version(UltimateCharacterController.Utility.AssetInfo.Version);
-                if (!string.IsNullOrEmpty(m_MainManagerWindow.LatestVersion) && version.CompareTo(new Version(m_MainManagerWindow.LatestVersion)) < 0) {
-                    EditorGUILayout.LabelField(string.Format(" New version available: {0}", m_MainManagerWindow.LatestVersion));
-                }
-            } catch (Exception /*e*/) { }
+            EditorGUILayout.LabelField(string.Format("{0} version {1}", AssetInfo.Name, AssetInfo.Version));
+            try
+            {
+                var version = new Version(AssetInfo.Version);
+                if (!string.IsNullOrEmpty(m_MainManagerWindow.LatestVersion) &&
+                    version.CompareTo(new Version(m_MainManagerWindow.LatestVersion)) < 0)
+                    EditorGUILayout.LabelField(string.Format(" New version available: {0}",
+                        m_MainManagerWindow.LatestVersion));
+            }
+            catch (Exception /*e*/)
+            {
+            }
+
             GUILayout.EndHorizontal();
         }
 
         /// <summary>
-        /// Finds the texture based on the GUID.
+        ///     Finds the texture based on the GUID.
         /// </summary>
         /// <param name="guid">The GUID to find the texture with.</param>
         /// <returns>The texture with the specified GUID.</returns>
         private Texture2D FindTexture(string guid)
         {
             var assetPath = AssetDatabase.GUIDToAssetPath(guid);
-            if (!string.IsNullOrEmpty(assetPath)) {
+            if (!string.IsNullOrEmpty(assetPath))
                 return AssetDatabase.LoadAssetAtPath(assetPath, typeof(Texture2D)) as Texture2D;
-            }
             return null;
         }
 
         /// <summary>
-        /// Returns the URL for the videos page.
+        ///     Returns the URL for the videos page.
         /// </summary>
         /// <returns>The URL for the videos page.</returns>
         private string GetVideosURL()
         {
-            switch (UltimateCharacterController.Utility.AssetInfo.Name) {
+            switch (AssetInfo.Name)
+            {
                 case "Ultimate Character Controller":
                     return "https://opsive.com/videos/?pid=923";
                 case "First Person Controller":
@@ -151,16 +165,18 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                 case "Ultimate Third Person Melee":
                     return "https://opsive.com/videos/?pid=1108";
             }
+
             return string.Empty;
         }
 
         /// <summary>
-        /// Returns the URL for the asset page.
+        ///     Returns the URL for the asset page.
         /// </summary>
         /// <returns>The URL for the asset page.</returns>
         private string GetAssetURL()
         {
-            switch (UltimateCharacterController.Utility.AssetInfo.Name) {
+            switch (AssetInfo.Name)
+            {
                 case "Ultimate Character Controller":
                     return "https://assetstore.unity.com/packages/slug/99962";
                 case "First Person Controller":
@@ -176,6 +192,7 @@ namespace Opsive.UltimateCharacterController.Editor.Managers
                 case "Ultimate Third Person Melee":
                     return "https://assetstore.unity.com/packages/slug/99037";
             }
+
             return string.Empty;
         }
     }

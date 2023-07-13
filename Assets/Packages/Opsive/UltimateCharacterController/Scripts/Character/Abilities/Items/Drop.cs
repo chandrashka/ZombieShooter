@@ -4,18 +4,19 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Events;
+using Opsive.Shared.Game;
+using Opsive.Shared.Inventory;
+using Opsive.UltimateCharacterController.Inventory;
+using Opsive.UltimateCharacterController.Items;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+using UnityEngine.Serialization;
+
 namespace Opsive.UltimateCharacterController.Character.Abilities.Items
 {
-    using Opsive.Shared.Events;
-    using Opsive.Shared.Game;
-    using Opsive.Shared.Inventory;
-    using Opsive.UltimateCharacterController.Items;
-    using Opsive.UltimateCharacterController.Inventory;
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// The Drop ItemAbility will drop the currently equipped item.
+    ///     The Drop ItemAbility will drop the currently equipped item.
     /// </summary>
     [AllowDuplicateTypes]
     [DefaultStartType(AbilityStartType.ButtonDown)]
@@ -23,32 +24,65 @@ namespace Opsive.UltimateCharacterController.Character.Abilities.Items
     [DefaultItemStateIndex(6)]
     public class Drop : ItemAbility
     {
-        [Tooltip("The slot that should be dropped. -1 will drop all of the slots.")]
-        [SerializeField] protected int m_SlotID = -1;
-        [Tooltip("The ItemIdentifiers that cannot be dropped.")]
-        [UnityEngine.Serialization.FormerlySerializedAs("m_NoDropItemTypes")]
-        [UnityEngine.Serialization.FormerlySerializedAs("m_NoDropItemIdentifiers")]
-        [SerializeField] protected ItemDefinitionBase[] m_NoDropItemDefinitions;
-        [Tooltip("Should the item wait to be dropped until it is unequipped?")]
-        [SerializeField] protected bool m_WaitForUnequip;
-        [Tooltip("Specifies if the item should be dropped when the OnAnimatorDropItem event is received or wait for the specified duration before dropping the item.")]
-        [SerializeField] protected AnimationEventTrigger m_DropEvent;
+        [Tooltip(
+            "Specifies if the item should be dropped when the OnAnimatorDropItem event is received or wait for the specified duration before dropping the item.")]
+        [SerializeField]
+        protected AnimationEventTrigger m_DropEvent;
 
-        public int SlotID { get { return m_SlotID; } set { m_SlotID = value; } }
-        public ItemDefinitionBase[] NoDropItemDefinitions { get { return m_NoDropItemDefinitions; } set { m_NoDropItemDefinitions = value; } }
-        public bool WaitForUnequip { get { return m_WaitForUnequip; } set { m_WaitForUnequip = value; } }
-        public AnimationEventTrigger DropEvent { get { return m_DropEvent; } set { m_DropEvent = value; } }
+        private EquipUnequip[] m_EquipUnequipAbilities;
+        private Item[] m_Items;
 
         private ItemSetManager m_ItemSetManager;
-        private Item[] m_Items;
-        private EquipUnequip[] m_EquipUnequipAbilities;
+
+        [Tooltip("The ItemIdentifiers that cannot be dropped.")]
+        [FormerlySerializedAs("m_NoDropItemTypes")]
+        [FormerlySerializedAs("m_NoDropItemIdentifiers")]
+        [SerializeField]
+        protected ItemDefinitionBase[] m_NoDropItemDefinitions;
+
+        [Tooltip("The slot that should be dropped. -1 will drop all of the slots.")] [SerializeField]
+        protected int m_SlotID = -1;
+
+        [Tooltip("Should the item wait to be dropped until it is unequipped?")] [SerializeField]
+        protected bool m_WaitForUnequip;
+
+        public int SlotID
+        {
+            get => m_SlotID;
+            set => m_SlotID = value;
+        }
+
+        public ItemDefinitionBase[] NoDropItemDefinitions
+        {
+            get => m_NoDropItemDefinitions;
+            set => m_NoDropItemDefinitions = value;
+        }
+
+        public bool WaitForUnequip
+        {
+            get => m_WaitForUnequip;
+            set => m_WaitForUnequip = value;
+        }
+
+        public AnimationEventTrigger DropEvent
+        {
+            get => m_DropEvent;
+            set => m_DropEvent = value;
+        }
 
 #if UNITY_EDITOR
-        public override string AbilityDescription { get { if (m_SlotID != -1) { return "Slot " + m_SlotID; } return string.Empty; } }
+        public override string AbilityDescription
+        {
+            get
+            {
+                if (m_SlotID != -1) return "Slot " + m_SlotID;
+                return string.Empty;
+            }
+        }
 #endif
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         public override void Awake()
         {
@@ -58,13 +92,12 @@ namespace Opsive.UltimateCharacterController.Character.Abilities.Items
             m_Items = new Item[m_SlotID == -1 ? m_Inventory.SlotCount : 1];
 
             EventHandler.RegisterEvent(m_GameObject, "OnAnimatorDropItem", DropItem);
-            if (m_ItemSetManager != null) {
+            if (m_ItemSetManager != null)
                 EventHandler.RegisterEvent<Item, int>(m_GameObject, "OnAbilityUnequipItemComplete", OnUnequipItem);
-            }
         }
 
         /// <summary>
-        /// Initialize the equip unequip abilities.
+        ///     Initialize the equip unequip abilities.
         /// </summary>
         public override void Start()
         {
@@ -74,53 +107,54 @@ namespace Opsive.UltimateCharacterController.Character.Abilities.Items
         }
 
         /// <summary>
-        /// Can the item be dropped?
+        ///     Can the item be dropped?
         /// </summary>
         /// <returns>True if the item can be dropped.</returns>
         public override bool CanStartAbility()
         {
             // An attribute may prevent the ability from starting.
-            if (!base.CanStartAbility()) {
-                return false;
-            }
+            if (!base.CanStartAbility()) return false;
 
             // If the SlotID is -1 then the ability should drop every equipped item at the same time. If only one slot has a item then the 
             // ability can start. If the SlotID is not -1 then the ability should drop the item in the specified slot.
             var canDrop = false;
-            if (m_SlotID == -1) {
-                for (int i = 0; i < m_Items.Length; ++i) {
+            if (m_SlotID == -1)
+            {
+                for (var i = 0; i < m_Items.Length; ++i)
+                {
                     m_Items[i] = m_Inventory.GetActiveItem(i);
-                    if (m_Items[i] == null) {
-                        continue;
-                    }
+                    if (m_Items[i] == null) continue;
                     // Certain ItemIdentifiers cannot be dropped.
-                    if (m_NoDropItemDefinitions != null) {
+                    if (m_NoDropItemDefinitions != null)
+                    {
                         var skipItemIdentifier = false;
-                        for (int j = 0; j < m_NoDropItemDefinitions.Length; ++j) {
-                            if (m_Items[i].ItemIdentifier.GetItemDefinition() == m_NoDropItemDefinitions[j]) {
+                        for (var j = 0; j < m_NoDropItemDefinitions.Length; ++j)
+                            if (m_Items[i].ItemIdentifier.GetItemDefinition() == m_NoDropItemDefinitions[j])
+                            {
                                 skipItemIdentifier = true;
                                 break;
                             }
-                        }
-                        if (skipItemIdentifier) {
-                            continue;
-                        }
+
+                        if (skipItemIdentifier) continue;
                     }
+
                     // The item can be droppped.
                     canDrop = true;
                 }
-            } else {
+            }
+            else
+            {
                 m_Items[0] = m_Inventory.GetActiveItem(m_SlotID);
                 // Certain ItemIdentifiers cannot be dropped.
                 var skipItemIdentifier = false;
-                if (m_NoDropItemDefinitions != null) {
-                    for (int j = 0; j < m_NoDropItemDefinitions.Length; ++j) {
-                        if (ReferenceEquals(m_Items[0].ItemIdentifier.GetItemDefinition(), m_NoDropItemDefinitions[j])) {
+                if (m_NoDropItemDefinitions != null)
+                    for (var j = 0; j < m_NoDropItemDefinitions.Length; ++j)
+                        if (ReferenceEquals(m_Items[0].ItemIdentifier.GetItemDefinition(), m_NoDropItemDefinitions[j]))
+                        {
                             skipItemIdentifier = true;
                             break;
                         }
-                    }
-                }
+
                 canDrop = !skipItemIdentifier && m_Items[0] != null;
             }
 
@@ -128,29 +162,26 @@ namespace Opsive.UltimateCharacterController.Character.Abilities.Items
         }
 
         /// <summary>
-        /// Called when another ability is attempting to start and the current ability is active.
-        /// Returns true or false depending on if the new ability should be blocked from starting.
+        ///     Called when another ability is attempting to start and the current ability is active.
+        ///     Returns true or false depending on if the new ability should be blocked from starting.
         /// </summary>
         /// <param name="startingAbility">The ability that is starting.</param>
         /// <returns>True if the ability should be blocked.</returns>
         public override bool ShouldBlockAbilityStart(Ability startingAbility)
         {
-            if (base.ShouldBlockAbilityStart(startingAbility)) {
-                return true;
-            }
+            if (base.ShouldBlockAbilityStart(startingAbility)) return true;
             if (startingAbility is Use
 #if ULTIMATE_CHARACTER_CONTROLLER_SHOOTER
                 || startingAbility is Reload
 #endif
-                ) {
+               )
                 return true;
-            }
             return false;
         }
 
         /// <summary>
-        /// Called when the current ability is attempting to start and another ability is active.
-        /// Returns true or false depending on if the active ability should be stopped.
+        ///     Called when the current ability is attempting to start and another ability is active.
+        ///     Returns true or false depending on if the active ability should be stopped.
         /// </summary>
         /// <param name="activeAbility">The ability that is currently active.</param>
         /// <returns>True if the ability should be stopped.</returns>
@@ -160,14 +191,13 @@ namespace Opsive.UltimateCharacterController.Character.Abilities.Items
 #if ULTIMATE_CHARACTER_CONTROLLER_SHOOTER
                 || activeAbility is Reload
 #endif
-                ) {
+               )
                 return true;
-            }
             return false;
         }
 
         /// <summary>
-        /// The ability has started.
+        ///     The ability has started.
         /// </summary>
         protected override void AbilityStarted()
         {
@@ -175,55 +205,50 @@ namespace Opsive.UltimateCharacterController.Character.Abilities.Items
 
             var waitForUnequip = false;
             // The ItemSetManager will be null when the items are managed by Slot ID rather than ItemSet (such as for first person VR).
-            if (m_ItemSetManager != null && m_WaitForUnequip) {
-                for (int i = 0; i < m_Items.Length; ++i) {
-                    if (m_Items[i] != null) {
-                        for (int j = 0; j < m_EquipUnequipAbilities.Length; ++j) {
-                            if (m_ItemSetManager.IsCategoryMember(m_Items[i].ItemIdentifier.GetItemDefinition(), m_EquipUnequipAbilities[j].ItemSetCategoryIndex)) {
-                                m_EquipUnequipAbilities[j].StartEquipUnequip(m_ItemSetManager.GetDefaultItemSetIndex(m_EquipUnequipAbilities[j].ItemSetCategoryIndex));
+            if (m_ItemSetManager != null && m_WaitForUnequip)
+                for (var i = 0; i < m_Items.Length; ++i)
+                    if (m_Items[i] != null)
+                        for (var j = 0; j < m_EquipUnequipAbilities.Length; ++j)
+                            if (m_ItemSetManager.IsCategoryMember(m_Items[i].ItemIdentifier.GetItemDefinition(),
+                                    m_EquipUnequipAbilities[j].ItemSetCategoryIndex))
+                            {
+                                m_EquipUnequipAbilities[j].StartEquipUnequip(
+                                    m_ItemSetManager.GetDefaultItemSetIndex(m_EquipUnequipAbilities[j]
+                                        .ItemSetCategoryIndex));
                                 waitForUnequip = true;
                             }
-                        }
-                    }
-                }
-            }
 
-            if (!waitForUnequip && !m_DropEvent.WaitForAnimationEvent) {
+            if (!waitForUnequip && !m_DropEvent.WaitForAnimationEvent)
                 SchedulerBase.ScheduleFixed(m_DropEvent.Duration, DropItem);
-            }
         }
 
         /// <summary>
-        /// Drops the actual item and stops the ability.
+        ///     Drops the actual item and stops the ability.
         /// </summary>
         private void DropItem()
         {
             // DropItem may be triggered by the animation event even when the ability isn't active.
-            if (!IsActive) {
-                return;
-            }
+            if (!IsActive) return;
 
             // Drop each item. If a drop prefab is specified then the item will be dropped.
-            for (int i = 0; i < m_Items.Length; ++i) {
-                if (m_Items[i] != null) {
+            for (var i = 0; i < m_Items.Length; ++i)
+                if (m_Items[i] != null)
+                {
                     m_Inventory.RemoveItem(m_Items[i].ItemIdentifier, m_Items[i].SlotID, 1, true);
                     m_Items[i] = null;
                 }
-            }
 
             StopAbility();
         }
 
         /// <summary>
-        /// An item has been unequipped.
+        ///     An item has been unequipped.
         /// </summary>
         /// <param name="item">The item that was unequipped.</param>
         /// <param name="slotID">The slot that the item was unequipped from.</param>
         private void OnUnequipItem(Item item, int slotID)
         {
-            if (!IsActive || item != m_Items[slotID]) {
-                return;
-            }
+            if (!IsActive || item != m_Items[slotID]) return;
 
             // Once the item has been unequipped it can be removed from the inventory. This will trigger the drop.
             m_Inventory.RemoveItem(m_Items[slotID].ItemIdentifier, m_Items[slotID].SlotID, 1, true);
@@ -231,28 +256,23 @@ namespace Opsive.UltimateCharacterController.Character.Abilities.Items
 
             // The ability can be stopped as soon as all items are removed.
             var stopAbility = true;
-            for (int i = 0; i < m_Items.Length; ++i) {
-                if (m_Items[i] != null) {
+            for (var i = 0; i < m_Items.Length; ++i)
+                if (m_Items[i] != null)
                     stopAbility = false;
-                }
-            }
 
-            if (stopAbility) {
-                StopAbility();
-            }
+            if (stopAbility) StopAbility();
         }
 
         /// <summary>
-        /// Called when the character is destroyed.
+        ///     Called when the character is destroyed.
         /// </summary>
         public override void OnDestroy()
         {
             base.OnDestroy();
 
             EventHandler.UnregisterEvent(m_GameObject, "OnAnimatorDropItem", DropItem);
-            if (m_ItemSetManager != null) {
+            if (m_ItemSetManager != null)
                 EventHandler.UnregisterEvent<Item, int>(m_GameObject, "OnAbilityUnequipItemComplete", OnUnequipItem);
-            }
         }
     }
 }

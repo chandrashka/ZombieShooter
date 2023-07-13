@@ -4,36 +4,43 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Character.Abilities.Items
 {
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// The ToggleEquip ability will equip or unequip the current ItemSet. ToggleEquip just specifies which ItemSet should be equipped/unequipped and then will let
-    /// the EquipUnequip ability to do the actual equip/unequip.
+    ///     The ToggleEquip ability will equip or unequip the current ItemSet. ToggleEquip just specifies which ItemSet should
+    ///     be equipped/unequipped and then will let
+    ///     the EquipUnequip ability to do the actual equip/unequip.
     /// </summary>
     [DefaultStartType(AbilityStartType.ButtonDown)]
     [DefaultInputName("Toggle Item Equip")]
     [AllowDuplicateTypes]
     public class ToggleEquip : EquipSwitcher
     {
-        [Tooltip("Should the default ItemSet be toggled upon start?")]
-        [SerializeField] protected bool m_ToggleDefaultItemSetOnStart;
-
-        public bool ToggleDefaultItemSetOnStart { get { return m_ToggleDefaultItemSetOnStart; } set { m_ToggleDefaultItemSetOnStart = value; } }
-
         private int m_PrevItemSetIndex = -1;
         private bool m_ShouldEquipItem = true;
 
+        [Tooltip("Should the default ItemSet be toggled upon start?")] [SerializeField]
+        protected bool m_ToggleDefaultItemSetOnStart;
+
+        public bool ToggleDefaultItemSetOnStart
+        {
+            get => m_ToggleDefaultItemSetOnStart;
+            set => m_ToggleDefaultItemSetOnStart = value;
+        }
+
         /// <summary>
-        /// Start the ability if the default ItemSet should be equipped.
+        ///     Start the ability if the default ItemSet should be equipped.
         /// </summary>
         public override void Start()
         {
-            if (m_ToggleDefaultItemSetOnStart) {
+            if (m_ToggleDefaultItemSetOnStart)
+            {
                 var itemSetIndex = m_ItemSetManager.ActiveItemSetIndex[m_ItemSetCategoryIndex];
-                if (itemSetIndex == -1) {
+                if (itemSetIndex == -1)
+                {
                     m_ShouldEquipItem = false;
                     StartAbility();
                 }
@@ -41,48 +48,44 @@ namespace Opsive.UltimateCharacterController.Character.Abilities.Items
         }
 
         /// <summary>
-        /// The EquipUnequip ability has changed the active ItemSet. Store this value so ToggleEquip knows which ItemSet to equip after the unequip.
+        ///     The EquipUnequip ability has changed the active ItemSet. Store this value so ToggleEquip knows which ItemSet to
+        ///     equip after the unequip.
         /// </summary>
         /// <param name="itemSetIndex">The updated active ItemSet index value.</param>
         protected override void OnItemSetIndexChange(int itemSetIndex)
         {
-            if (!Enabled) {
-                return;
-            }
+            if (!Enabled) return;
 
             var defaultItemSetIndex = m_ItemSetManager.GetDefaultItemSetIndex(m_ItemSetCategoryIndex);
             m_ShouldEquipItem = itemSetIndex == defaultItemSetIndex;
-            if (itemSetIndex == defaultItemSetIndex) {
+            if (itemSetIndex == defaultItemSetIndex)
+            {
                 // The previous ItemSet may have been removed.
-                if (!m_ItemSetManager.IsItemSetValid(m_ItemSetCategoryIndex, m_PrevItemSetIndex, false)) {
+                if (!m_ItemSetManager.IsItemSetValid(m_ItemSetCategoryIndex, m_PrevItemSetIndex, false))
                     m_PrevItemSetIndex = -1;
-                }
                 return;
             }
+
             m_PrevItemSetIndex = itemSetIndex;
         }
 
         /// <summary>
-        /// Called when the ablity is tried to be started. If false is returned then the ability will not be started.
+        ///     Called when the ablity is tried to be started. If false is returned then the ability will not be started.
         /// </summary>
         /// <returns>True if the ability can be started.</returns>
         public override bool CanStartAbility()
         {
             // An attribute may prevent the ability from starting.
-            if (!base.CanStartAbility()) {
-                return false;
-            }
+            if (!base.CanStartAbility()) return false;
 
             // PrevItemSetIndex will equal -1 if no non-default items have been equipped.
-            if (m_PrevItemSetIndex == -1) {
-                return false;
-            }
+            if (m_PrevItemSetIndex == -1) return false;
 
             return m_PrevItemSetIndex != m_ItemSetManager.GetDefaultItemSetIndex(m_ItemSetCategoryIndex);
         }
 
         /// <summary>
-        /// The ability has started.
+        ///     The ability has started.
         /// </summary>
         protected override void AbilityStarted()
         {
@@ -97,16 +100,14 @@ namespace Opsive.UltimateCharacterController.Character.Abilities.Items
         }
 
         /// <summary>
-        /// The character has died.
+        ///     The character has died.
         /// </summary>
         /// <param name="position">The position of the force.</param>
         /// <param name="force">The amount of force which killed the character.</param>
         /// <param name="attacker">The GameObject that killed the character.</param>
         protected override void OnDeath(Vector3 position, Vector3 force, GameObject attacker)
         {
-            if (m_Inventory.RemoveAllOnDeath) {
-                m_PrevItemSetIndex = -1;
-            }
+            if (m_Inventory.RemoveAllOnDeath) m_PrevItemSetIndex = -1;
         }
     }
 }

@@ -4,69 +4,91 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.StateSystem;
+using Opsive.UltimateCharacterController.Camera;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+using UnityEngine.Scripting;
+using EventHandler = Opsive.Shared.Events.EventHandler;
+
 namespace Opsive.UltimateCharacterController.Character.Effects
 {
-    using Opsive.Shared.Events;
-    using Opsive.Shared.StateSystem;
-    using Opsive.Shared.Utility;
-    using Opsive.UltimateCharacterController.Camera;
-    using Opsive.UltimateCharacterController.StateSystem;
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// Effects allow for extra camera/item movements that are applied to the character. Examples of an effect include an earthquake shake or a boss stomp. Effects 
-    /// do not affect the Animator and are not synchronized over the network. For anything more involved an Ability should be used instead.
+    ///     Effects allow for extra camera/item movements that are applied to the character. Examples of an effect include an
+    ///     earthquake shake or a boss stomp. Effects
+    ///     do not affect the Animator and are not synchronized over the network. For anything more involved an Ability should
+    ///     be used instead.
     /// </summary>
-    [System.Serializable]
-    [UnityEngine.Scripting.Preserve]
+    [Serializable]
+    [Preserve]
     [AllowDuplicateTypes]
     public abstract class Effect : StateObject
     {
-        [Tooltip("Can the ability be activated?")]
-        [HideInInspector] [SerializeField] protected bool m_Enabled = true;
-        [Tooltip("Should the effect be started when it is enabled?")]
-        [SerializeField] protected bool m_StartWhenEnabled;
-        [Tooltip("Specifies the name of the state that the effect should activate.")]
-        [SerializeField] protected string m_State;
+        [Tooltip("Can the ability be activated?")] [HideInInspector] [SerializeField]
+        protected bool m_Enabled = true;
+
+        [Tooltip("Should the effect be started when it is enabled?")] [SerializeField]
+        protected bool m_StartWhenEnabled;
+
+        [Tooltip("Specifies the name of the state that the effect should activate.")] [SerializeField]
+        protected string m_State;
 #if UNITY_EDITOR
-        [Tooltip("An editor only description of the effect.")]
-        [HideInInspector] [SerializeField] protected string m_InspectorDescription;
+        [Tooltip("An editor only description of the effect.")] [HideInInspector] [SerializeField]
+        protected string m_InspectorDescription;
 #endif
 
-        public bool Enabled { get { return m_Enabled; }
+        private int m_ActiveIndex = -1;
+        protected CameraController m_CameraController;
+        protected UltimateCharacterLocomotion m_CharacterLocomotion;
+
+        protected GameObject m_GameObject;
+        private int m_Index = -1;
+        protected Transform m_Transform;
+
+        public bool Enabled
+        {
+            get => m_Enabled;
             set
             {
-                if (m_Enabled == value) {
-                    return;
-                }
+                if (m_Enabled == value) return;
                 m_Enabled = value;
-                if (!m_Enabled && IsActive) {
+                if (!m_Enabled && IsActive)
                     StopEffect(false);
-                } else if (Application.isPlaying && m_Enabled && !IsActive && m_StartWhenEnabled) {
-                    StartEffect();
-                }
+                else if (Application.isPlaying && m_Enabled && !IsActive && m_StartWhenEnabled) StartEffect();
             }
         }
 #if UNITY_EDITOR
-        public string InspectorDescription { get { return m_InspectorDescription; } set { m_InspectorDescription = value; } }
+        public string InspectorDescription
+        {
+            get => m_InspectorDescription;
+            set => m_InspectorDescription = value;
+        }
 #endif
-        public bool StartWhenEnabled { get { return m_StartWhenEnabled; } set { m_StartWhenEnabled = value; } }
+        public bool StartWhenEnabled
+        {
+            get => m_StartWhenEnabled;
+            set => m_StartWhenEnabled = value;
+        }
 
-        protected GameObject m_GameObject;
-        protected Transform m_Transform;
-        protected UltimateCharacterLocomotion m_CharacterLocomotion;
-        protected CameraController m_CameraController;
+        public bool IsActive => m_ActiveIndex != -1;
 
-        private int m_ActiveIndex = -1;
-        private int m_Index = -1;
+        [Shared.Utility.NonSerialized]
+        public int Index
+        {
+            get => m_Index;
+            set => m_Index = value;
+        }
 
-        public bool IsActive { get { return m_ActiveIndex != -1; } }
-        [NonSerialized] public int Index { get { return m_Index; } set { m_Index = value; } }
-        [NonSerialized] public int ActiveIndex { get { return m_ActiveIndex; } set { m_ActiveIndex = value; } }
+        [Shared.Utility.NonSerialized]
+        public int ActiveIndex
+        {
+            get => m_ActiveIndex;
+            set => m_ActiveIndex = value;
+        }
 
         /// <summary>
-        /// Initializes the effect to the specified controller.
+        ///     Initializes the effect to the specified controller.
         /// </summary>
         /// <param name="characterLocomotion">The character locomotion component to initialize the effect to.</param>
         /// <param name="index">The prioirty index of the ability within the controller.</param>
@@ -82,7 +104,7 @@ namespace Opsive.UltimateCharacterController.Character.Effects
         }
 
         /// <summary>
-        /// Method called by MonoBehaviour.Awake. Can be used for initialization.
+        ///     Method called by MonoBehaviour.Awake. Can be used for initialization.
         /// </summary>
         public virtual void Awake()
         {
@@ -90,18 +112,24 @@ namespace Opsive.UltimateCharacterController.Character.Effects
         }
 
         /// <summary>
-        /// Method called by MonoBehaviour.Start. This method is called on all effects when the MonoBehaviour.Start method is called.
+        ///     Method called by MonoBehaviour.Start. This method is called on all effects when the MonoBehaviour.Start method is
+        ///     called.
         /// </summary>
-        public virtual void Start() { }
+        public virtual void Start()
+        {
+        }
 
         /// <summary>
-        /// Can the effect be started?
+        ///     Can the effect be started?
         /// </summary>
         /// <returns>True if the effect can be started.</returns>
-        public virtual bool CanStartEffect() { return true; }
+        public virtual bool CanStartEffect()
+        {
+            return true;
+        }
 
         /// <summary>
-        /// Tries to start the effect.
+        ///     Tries to start the effect.
         /// </summary>
         /// <returns>True if the effect was successfully started.</returns>
         public bool StartEffect()
@@ -110,7 +138,7 @@ namespace Opsive.UltimateCharacterController.Character.Effects
         }
 
         /// <summary>
-        /// Starts executing the effect.
+        ///     Starts executing the effect.
         /// </summary>
         public void StartEffect(int index)
         {
@@ -120,22 +148,22 @@ namespace Opsive.UltimateCharacterController.Character.Effects
         }
 
         /// <summary>
-        /// The effect has been started.
+        ///     The effect has been started.
         /// </summary>
         protected virtual void EffectStarted()
         {
-            if (!string.IsNullOrEmpty(m_State)) {
-                StateManager.SetState(m_GameObject, m_State, true);
-            }
+            if (!string.IsNullOrEmpty(m_State)) StateManager.SetState(m_GameObject, m_State, true);
         }
 
         /// <summary>
-        /// Updates the effect. Called during the MonoBehaviour.Update loop.
+        ///     Updates the effect. Called during the MonoBehaviour.Update loop.
         /// </summary>
-        public virtual void Update() { }
+        public virtual void Update()
+        {
+        }
 
         /// <summary>
-        /// Stop the effect from running.
+        ///     Stop the effect from running.
         /// </summary>
         public void StopEffect()
         {
@@ -143,13 +171,14 @@ namespace Opsive.UltimateCharacterController.Character.Effects
         }
 
         /// <summary>
-        /// Stop the effect from running.
+        ///     Stop the effect from running.
         /// </summary>
         /// <param name="fromController">Is the effect being stopped from the UltimateCharacterController?</param>
         public void StopEffect(bool fromController)
         {
             // If the effect wasn't stopped from the character controller then call the controller's stop effect method. The controller must be aware of the stopping.
-            if (!fromController) {
+            if (!fromController)
+            {
                 m_CharacterLocomotion.TryStopEffect(this);
                 return;
             }
@@ -160,17 +189,15 @@ namespace Opsive.UltimateCharacterController.Character.Effects
         }
 
         /// <summary>
-        /// The effect has stopped running.
+        ///     The effect has stopped running.
         /// </summary>
         protected virtual void EffectStopped()
         {
-            if (!string.IsNullOrEmpty(m_State)) {
-                StateManager.SetState(m_GameObject, m_State, false);
-            }
+            if (!string.IsNullOrEmpty(m_State)) StateManager.SetState(m_GameObject, m_State, false);
         }
 
         /// <summary>
-        /// The character has been attached to the camera. Initialze the camera-related values.
+        ///     The character has been attached to the camera. Initialze the camera-related values.
         /// </summary>
         /// <param name="cameraController">The camera controller attached to the character. Can be null.</param>
         private void OnAttachCamera(CameraController cameraController)
@@ -179,7 +206,7 @@ namespace Opsive.UltimateCharacterController.Character.Effects
         }
 
         /// <summary>
-        /// Called when the character is destroyed.
+        ///     Called when the character is destroyed.
         /// </summary>
         public virtual void OnDestroy()
         {

@@ -4,56 +4,55 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Events;
+using Opsive.Shared.Game;
+using Opsive.UltimateCharacterController.Character;
+using Opsive.UltimateCharacterController.Demo.UnityStandardAssets.Vehicles.Car;
+using Opsive.UltimateCharacterController.Objects.CharacterAssist;
+using UnityEngine;
+using UnityEngine.Serialization;
+
 namespace Opsive.UltimateCharacterController.Demo.Car
 {
-    using Opsive.Shared.Events;
-    using Opsive.Shared.Game;
-    using Opsive.UltimateCharacterController.Character;
-    using Opsive.UltimateCharacterController.Demo.UnityStandardAssets.Vehicles.Car;
-    using Opsive.UltimateCharacterController.Objects.CharacterAssist;
-    using UnityEngine;
-
     /// <summary>
-    /// Provides a sample implementation of the IDriveSource.
+    ///     Provides a sample implementation of the IDriveSource.
     /// </summary>
     public class SkyCar : MonoBehaviour, IDriveSource
     {
+        private static readonly int s_OpenCloseDoorParameter = Animator.StringToHash("OpenCloseDoor");
+
         [Tooltip("A reference to the headlights that should turn on when the character enters the car.")]
-        [SerializeField] protected GameObject[] m_Headlights;
+        [SerializeField]
+        protected GameObject[] m_Headlights;
+
         [Tooltip("A reference to the colliders that should be disabled when the character enters the car.")]
-        [UnityEngine.Serialization.FormerlySerializedAs("m_Colliders")]
-        [SerializeField] protected GameObject[] m_DisableColliders;
-        [Tooltip("The location that the character drives from.")]
-        [SerializeField] protected Transform m_DriverLocation;
+        [FormerlySerializedAs("m_Colliders")]
+        [SerializeField]
+        protected GameObject[] m_DisableColliders;
 
-        private static int s_OpenCloseDoorParameter = Animator.StringToHash("OpenCloseDoor");
+        [Tooltip("The location that the character drives from.")] [SerializeField]
+        protected Transform m_DriverLocation;
 
-        private GameObject m_GameObject;
-        private Transform m_Transform;
         private Animator m_Animator;
-        private Rigidbody m_Rigidbody;
-        private Collider[] m_IgnoreColliders;
-        private CarUserControl m_UserControl;
         private CarAudio m_Audio;
         private AnimatorMonitor m_CharacterAnimatorMonitor;
-        private int m_HorizontalInputID;
-        private bool m_OpenedDoor;
 
-        public GameObject GameObject { get => m_GameObject; }
-        public Transform Transform { get => m_Transform; }
-        public Transform DriverLocation { get => m_DriverLocation; }
-        public int AnimatorID { get => 0; }
+        private int m_HorizontalInputID;
+        private Collider[] m_IgnoreColliders;
+        private bool m_OpenedDoor;
+        private Rigidbody m_Rigidbody;
+        private CarUserControl m_UserControl;
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         private void Awake()
         {
-            m_GameObject = gameObject;
-            m_Transform = transform;
+            GameObject = gameObject;
+            Transform = transform;
             m_Animator = GetComponent<Animator>();
             m_Rigidbody = GetComponent<Rigidbody>();
-            m_IgnoreColliders = m_GameObject.GetComponentsInChildren<Collider>();
+            m_IgnoreColliders = GameObject.GetComponentsInChildren<Collider>();
             m_UserControl = GetComponent<CarUserControl>();
             m_Audio = GetComponent<CarAudio>();
             m_HorizontalInputID = Animator.StringToHash("HorizontalInput");
@@ -61,23 +60,22 @@ namespace Opsive.UltimateCharacterController.Demo.Car
         }
 
         /// <summary>
-        /// Enables or disables the car components.
+        ///     Updates the animator.
         /// </summary>
-        /// <param name="enable">Should the car be enabled?</param>
-        private void EnableDisableCar(bool enable)
+        public void Update()
         {
-            enabled = m_UserControl.enabled = m_Audio.enabled = enable;
-            m_Rigidbody.isKinematic = !enable;
-            for (int i = 0; i < m_Headlights.Length; ++i) {
-                m_Headlights[i].SetActive(enable);
-            }
-            for (int i = 0; i < m_DisableColliders.Length; ++i) {
-                m_DisableColliders[i].SetActive(!enable);
-            }
+            m_Animator.SetFloat(m_HorizontalInputID, m_CharacterAnimatorMonitor.AbilityFloatData, 0, 0);
         }
 
+        public GameObject GameObject { get; private set; }
+
+        public Transform Transform { get; private set; }
+
+        public Transform DriverLocation => m_DriverLocation;
+        public int AnimatorID => 0;
+
         /// <summary>
-        /// The character has started to enter the vehicle.
+        ///     The character has started to enter the vehicle.
         /// </summary>
         /// <param name="character">The character that is entering the vehicle.</param>
         public void EnterVehicle(GameObject character)
@@ -85,25 +83,14 @@ namespace Opsive.UltimateCharacterController.Demo.Car
             EventHandler.RegisterEvent(character, "OnAnimatorOpenCloseDoor", OpenCloseDoor);
 
             var characterLocomotion = character.GetCachedComponent<UltimateCharacterLocomotion>();
-            for (int i = 0; i < m_IgnoreColliders.Length; ++i) {
-                for (int j = 0; j < characterLocomotion.ColliderCount; ++j) {
-                    Physics.IgnoreCollision(m_IgnoreColliders[i], characterLocomotion.Colliders[j], true);
-                }
-            }
+            for (var i = 0; i < m_IgnoreColliders.Length; ++i)
+            for (var j = 0; j < characterLocomotion.ColliderCount; ++j)
+                Physics.IgnoreCollision(m_IgnoreColliders[i], characterLocomotion.Colliders[j], true);
             characterLocomotion.AddIgnoredColliders(m_IgnoreColliders);
         }
 
         /// <summary>
-        /// Triggers the OpenCloseDoor parameter.
-        /// </summary>
-        private void OpenCloseDoor()
-        {
-            m_OpenedDoor = !m_OpenedDoor;
-            m_Animator.SetTrigger(s_OpenCloseDoorParameter);
-        }
-
-        /// <summary>
-        /// The character has entered the vehicle.
+        ///     The character has entered the vehicle.
         /// </summary>
         /// <param name="character">The character that entered the vehicle.</param>
         public void EnteredVehicle(GameObject character)
@@ -113,15 +100,7 @@ namespace Opsive.UltimateCharacterController.Demo.Car
         }
 
         /// <summary>
-        /// Updates the animator.
-        /// </summary>
-        public void Update()
-        {
-            m_Animator.SetFloat(m_HorizontalInputID, m_CharacterAnimatorMonitor.AbilityFloatData, 0, 0);
-        }
-
-        /// <summary>
-        /// The character has started to exit the vehicle.
+        ///     The character has started to exit the vehicle.
         /// </summary>
         /// <param name="character">The character that is exiting the vehicle.</param>
         public void ExitVehicle(GameObject character)
@@ -130,7 +109,7 @@ namespace Opsive.UltimateCharacterController.Demo.Car
         }
 
         /// <summary>
-        /// The character has exited the vehicle.
+        ///     The character has exited the vehicle.
         /// </summary>
         /// <param name="character">The character that exited the vehicle.</param>
         public void ExitedVehicle(GameObject character)
@@ -139,15 +118,32 @@ namespace Opsive.UltimateCharacterController.Demo.Car
 
             var characterLocomotion = character.GetCachedComponent<UltimateCharacterLocomotion>();
             characterLocomotion.RemoveIgnoredColliders(m_IgnoreColliders);
-            for (int i = 0; i < m_IgnoreColliders.Length; ++i) {
-                for (int j = 0; j < characterLocomotion.ColliderCount; ++j) {
-                    Physics.IgnoreCollision(m_IgnoreColliders[i], characterLocomotion.Colliders[j], false);
-                }
-            }
+            for (var i = 0; i < m_IgnoreColliders.Length; ++i)
+            for (var j = 0; j < characterLocomotion.ColliderCount; ++j)
+                Physics.IgnoreCollision(m_IgnoreColliders[i], characterLocomotion.Colliders[j], false);
 
-            if (m_OpenedDoor) {
-                OpenCloseDoor();
-            }
+            if (m_OpenedDoor) OpenCloseDoor();
+        }
+
+        /// <summary>
+        ///     Enables or disables the car components.
+        /// </summary>
+        /// <param name="enable">Should the car be enabled?</param>
+        private void EnableDisableCar(bool enable)
+        {
+            enabled = m_UserControl.enabled = m_Audio.enabled = enable;
+            m_Rigidbody.isKinematic = !enable;
+            for (var i = 0; i < m_Headlights.Length; ++i) m_Headlights[i].SetActive(enable);
+            for (var i = 0; i < m_DisableColliders.Length; ++i) m_DisableColliders[i].SetActive(!enable);
+        }
+
+        /// <summary>
+        ///     Triggers the OpenCloseDoor parameter.
+        /// </summary>
+        private void OpenCloseDoor()
+        {
+            m_OpenedDoor = !m_OpenedDoor;
+            m_Animator.SetTrigger(s_OpenCloseDoorParameter);
         }
     }
 }

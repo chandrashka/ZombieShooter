@@ -4,24 +4,24 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.UltimateCharacterController.Camera;
+using Opsive.UltimateCharacterController.Camera.ViewTypes;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Camera;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.ThirdPersonController.Camera.ViewTypes;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonController.Camera.ViewTypes
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Camera;
-    using Opsive.UltimateCharacterController.Camera.ViewTypes;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Camera;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using Opsive.UltimateCharacterController.ThirdPersonController.Camera.ViewTypes;
-    using UnityEngine;
-
     /// <summary>
-    /// Draws a custom inspector for the Look At View Type.
+    ///     Draws a custom inspector for the Look At View Type.
     /// </summary>
     [InspectorDrawer(typeof(LookAt))]
     public class LookAtInspectorDrawer : ViewTypeInspectorDrawer
     {
         /// <summary>
-        /// Called when the object should be drawn to the inspector.
+        ///     Called when the object should be drawn to the inspector.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
@@ -40,21 +40,17 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
         }
 
         /// <summary>
-        /// The ability has been added to the camera. Perform any initialization.
+        ///     The ability has been added to the camera. Perform any initialization.
         /// </summary>
         /// <param name="viewType">The view type that has been added.</param>
         /// <param name="parent">The parent of the added ability.</param>
         public override void ViewTypeAdded(ViewType viewType, Object parent)
         {
             var cameraController = parent as CameraController;
-            if (cameraController.Character == null) {
-                return;
-            }
+            if (cameraController.Character == null) return;
 
             var animator = cameraController.Character.GetComponent<Animator>();
-            if (animator == null || !animator.isHuman) {
-                return;
-            }
+            if (animator == null || !animator.isHuman) return;
 
             // Automatically set the Transform variables if the character is a humanoid.
             var lookAt = viewType as LookAt;

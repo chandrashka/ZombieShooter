@@ -4,22 +4,22 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.ThirdPersonController.Camera.ViewTypes;
+using UnityEditor;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonController.Camera.ViewTypes
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using Opsive.UltimateCharacterController.ThirdPersonController.Camera.ViewTypes;
-    using UnityEditor;
-    using UnityEngine;
-
     /// <summary>
-    /// Draws a custom inspector for the RPG View Type.
+    ///     Draws a custom inspector for the RPG View Type.
     /// </summary>
     [InspectorDrawer(typeof(RPG))]
     public class RPGInspectorDrawer : ThirdPersonInspectorDrawer
     {
         /// <summary>
-        /// Called when the object should be drawn to the inspector.
+        ///     Called when the object should be drawn to the inspector.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
@@ -27,11 +27,12 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
         {
             base.OnInspectorGUI(target, parent);
 
-            if (Opsive.Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "RPG")) {
+            if (InspectorUtility.Foldout(target, "RPG"))
+            {
                 EditorGUI.indentLevel++;
-                InspectorUtility.DrawField(target, "m_YawSnapDamping");
-                InspectorUtility.DrawField(target, "m_AllowFreeMovement");
-                InspectorUtility.DrawField(target, "m_CameraFreeMovementInputName");
+                Utility.InspectorUtility.DrawField(target, "m_YawSnapDamping");
+                Utility.InspectorUtility.DrawField(target, "m_AllowFreeMovement");
+                Utility.InspectorUtility.DrawField(target, "m_CameraFreeMovementInputName");
                 EditorGUI.indentLevel--;
             }
         }

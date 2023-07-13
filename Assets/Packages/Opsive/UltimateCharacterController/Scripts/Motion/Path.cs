@@ -4,41 +4,46 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Motion
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Allows for a user-defined path that objects can follow.
+    ///     Allows for a user-defined path that objects can follow.
     /// </summary>
     public class Path : MonoBehaviour
     {
-        [Tooltip("The points which represent the curve.")]
-        [SerializeField] protected Vector3[] m_ControlPoints;
-
-        public Vector3[] ControlPoints { get { return m_ControlPoints; } set { m_ControlPoints = value; } }
+        [Tooltip("The points which represent the curve.")] [SerializeField]
+        protected Vector3[] m_ControlPoints;
 
         private CubicBezierCurve[] m_Curve;
 
+        public Vector3[] ControlPoints
+        {
+            get => m_ControlPoints;
+            set => m_ControlPoints = value;
+        }
+
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         private void Awake()
         {
-            if (m_ControlPoints == null || m_ControlPoints.Length <= 1) {
-                return;
-            }
+            if (m_ControlPoints == null || m_ControlPoints.Length <= 1) return;
 
-            m_Curve = new CubicBezierCurve[(m_ControlPoints.Length / 3)];
-            for (int i = 0; i < m_Curve.Length; ++i) {
+            m_Curve = new CubicBezierCurve[m_ControlPoints.Length / 3];
+            for (var i = 0; i < m_Curve.Length; ++i)
+            {
                 var startIndex = i * 3;
-                m_Curve[i] = new CubicBezierCurve(transform.TransformPoint(m_ControlPoints[startIndex]), transform.TransformPoint(m_ControlPoints[startIndex + 1]), 
-                    transform.TransformPoint(m_ControlPoints[startIndex + 2]), transform.TransformPoint(m_ControlPoints[startIndex + 3]));
+                m_Curve[i] = new CubicBezierCurve(transform.TransformPoint(m_ControlPoints[startIndex]),
+                    transform.TransformPoint(m_ControlPoints[startIndex + 1]),
+                    transform.TransformPoint(m_ControlPoints[startIndex + 2]),
+                    transform.TransformPoint(m_ControlPoints[startIndex + 3]));
             }
         }
 
         /// <summary>
-        /// Returns the tangent of the curve near the specified position.
+        ///     Returns the tangent of the curve near the specified position.
         /// </summary>
         /// <param name="position">The position to retrieve the tangent of.</param>
         /// <param name="index">The index of the last curve segnement.</param>
@@ -46,20 +51,25 @@ namespace Opsive.UltimateCharacterController.Motion
         public Vector3 GetTangent(Vector3 position, ref int index)
         {
             var time = m_Curve[index].GetTime(position);
-            if (time == 1 && index < m_Curve.Length - 1) {
+            if (time == 1 && index < m_Curve.Length - 1)
+            {
                 // If the time is equal to 1 then the position is at an endpoint. Determine if the current curve is closer to the given position or if the next curve is closer.
                 var distance = (m_Curve[index].GetClosestPoint(position) - position).sqrMagnitude;
                 var nextDistance = (m_Curve[index + 1].GetClosestPoint(position) - position).sqrMagnitude;
-                if (nextDistance < distance) {
+                if (nextDistance < distance)
+                {
                     // The next curve is closer - increase the index and retrieve a new time.
                     index++;
                     time = m_Curve[index].GetTime(position);
                 }
-            } else if (time == 0 && index > 0) {
+            }
+            else if (time == 0 && index > 0)
+            {
                 // If the time is equal to 0 then the position is at an endpoint. Determine if the current curve is closer to the given position or if the previous curve is closer.
                 var distance = (m_Curve[index].GetClosestPoint(position) - position).sqrMagnitude;
                 var prevDistance = (m_Curve[index - 1].GetClosestPoint(position) - position).sqrMagnitude;
-                if (prevDistance < distance) {
+                if (prevDistance < distance)
+                {
                     // The previous curve is closer - decrease the index and retrieve a new time.
                     index--;
                     time = m_Curve[index].GetTime(position);
@@ -68,8 +78,9 @@ namespace Opsive.UltimateCharacterController.Motion
 
             return m_Curve[index].GetTangent(time);
         }
+
         /// <summary>
-        /// Returns the tangent of the curve near the specified position.
+        ///     Returns the tangent of the curve near the specified position.
         /// </summary>
         /// <param name="position">The position to retrieve the tangent of.</param>
         /// <param name="index">The index of the last curve segnement.</param>
@@ -77,41 +88,42 @@ namespace Opsive.UltimateCharacterController.Motion
         public Vector3 GetClosestPoint(Vector3 position, ref int index)
         {
             var time = m_Curve[index].GetTime(position);
-            if (time == 1 && index < m_Curve.Length - 1) {
+            if (time == 1 && index < m_Curve.Length - 1)
+            {
                 // If the time is equal to 1 then the position is at an endpoint. Determine if the current curve is closer to the given position or if the next curve is closer.
                 var distance = (m_Curve[index].GetClosestPoint(position) - position).sqrMagnitude;
                 var nextDistance = (m_Curve[index + 1].GetClosestPoint(position) - position).sqrMagnitude;
-                if (nextDistance < distance) {
+                if (nextDistance < distance)
                     // The next curve is closer - increase the index and retrieve a new time.
                     index++;
-                }
-            } else if (time == 0 && index > 0) {
+            }
+            else if (time == 0 && index > 0)
+            {
                 // If the time is equal to 0 then the position is at an endpoint. Determine if the current curve is closer to the given position or if the previous curve is closer.
                 var distance = (m_Curve[index].GetClosestPoint(position) - position).sqrMagnitude;
                 var prevDistance = (m_Curve[index - 1].GetClosestPoint(position) - position).sqrMagnitude;
-                if (prevDistance < distance) {
+                if (prevDistance < distance)
                     // The previous curve is closer - decrease the index and retrieve a new time.
                     index--;
-                }
             }
 
             return m_Curve[index].GetClosestPoint(position);
         }
 
         /// <summary>
-        /// Represents one segment of a cubic bezier curve.
+        ///     Represents one segment of a cubic bezier curve.
         /// </summary>
         public struct CubicBezierCurve
         {
             private const int c_StepCount = 300;
 
-            private Vector3 m_P0;
-            private Vector3 m_P1;
-            private Vector3 m_P2;
-            private Vector3 m_P3;
+            private readonly Vector3 m_P0;
+            private readonly Vector3 m_P1;
+            private readonly Vector3 m_P2;
+            private readonly Vector3 m_P3;
 
             /// <summary>
-            /// Four parameter constructor.
+            ///     Four parameter constructor.
             /// </summary>
             /// <param name="p0">The first point that makes up the curve.</param>
             /// <param name="p1">The second point that makes up the curve.</param>
@@ -126,27 +138,29 @@ namespace Opsive.UltimateCharacterController.Motion
             }
 
             /// <summary>
-            /// Returns the point of the bezier curve at the normalized position of the curve.
+            ///     Returns the point of the bezier curve at the normalized position of the curve.
             /// </summary>
             /// <param name="time">The normalized position within the curve.</param>
             /// <returns>The point of the bezier curve at the normalized position of the curve.</returns>
             public Vector3 GetPoint(float time)
             {
-                return (((-m_P0 + 3 * (m_P1 - m_P2) + m_P3) * time + (3 * (m_P0 + m_P2) - 6 * m_P1)) * time + 3 * (m_P1 - m_P0)) * time + m_P0;
+                return (((-m_P0 + 3 * (m_P1 - m_P2) + m_P3) * time + (3 * (m_P0 + m_P2) - 6 * m_P1)) * time +
+                        3 * (m_P1 - m_P0)) * time + m_P0;
             }
 
             /// <summary>
-            /// Returns the tangent. This tangent is the first derivative of the curve.
+            ///     Returns the tangent. This tangent is the first derivative of the curve.
             /// </summary>
             /// <param name="time">The normalized position within the curve.</param>
             /// <returns>The tangent of the curve.</returns>
             public Vector3 GetTangent(float time)
             {
-                return (3 * (1 - time) * (1 - time) * (m_P1 - m_P0) + 6 * (1 - time) * time * (m_P2 - m_P1) + 3 * time * time * (m_P3 - m_P2)).normalized;
+                return (3 * (1 - time) * (1 - time) * (m_P1 - m_P0) + 6 * (1 - time) * time * (m_P2 - m_P1) +
+                        3 * time * time * (m_P3 - m_P2)).normalized;
             }
 
             /// <summary>
-            /// Returns the closest time at the specified position.
+            ///     Returns the closest time at the specified position.
             /// </summary>
             /// <param name="position">The position to retrieve the time of.</param>
             /// <returns>The closest time at the specified position.</returns>
@@ -156,7 +170,7 @@ namespace Opsive.UltimateCharacterController.Motion
             }
 
             /// <summary>
-            /// Returns the closest time at the specified position.
+            ///     Returns the closest time at the specified position.
             /// </summary>
             /// <param name="position">The position to retrieve the time of.</param>
             /// <param name="minTime">The minimum time to search within the curve.</param>
@@ -164,24 +178,27 @@ namespace Opsive.UltimateCharacterController.Motion
             /// <returns>The closest time at the specified position.</returns>
             public float GetTime(Vector3 position, float minTime, float maxTime)
             {
-                float closestTime = 0f;
-                float closestDistance = float.MaxValue;
-                float step = (maxTime - minTime) / c_StepCount;
+                var closestTime = 0f;
+                var closestDistance = float.MaxValue;
+                var step = (maxTime - minTime) / c_StepCount;
                 var steps = c_StepCount + 1;
                 // Walk the curve looking for the closest point to the specified position. Store the closest point and return the corresponding time to that point.
-                for (int i = 0; i < steps; ++i) {
+                for (var i = 0; i < steps; ++i)
+                {
                     var t = minTime + step * i;
                     var distance = (GetPoint(t) - position).sqrMagnitude;
-                    if (distance < closestDistance) {
+                    if (distance < closestDistance)
+                    {
                         closestDistance = distance;
                         closestTime = t;
                     }
                 }
+
                 return closestTime;
             }
 
             /// <summary>
-            /// Returns the closest point on the curve to the specified position.
+            ///     Returns the closest point on the curve to the specified position.
             /// </summary>
             /// <param name="position">The position to retrieve the closest point on the curve of.</param>
             /// <returns>The closest point on the curve to the specified position.</returns>

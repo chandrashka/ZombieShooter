@@ -3,261 +3,238 @@
 // (c) 2012-2020 Jean Moreno
 //--------------------------------------------------------------------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace CartoonFX
 {
-	public class CFXR_Demo : MonoBehaviour
-	{
-		//----------------------------------------------------------------------------------------------------------------------------
-		// UI
+    public class CFXR_Demo : MonoBehaviour
+    {
+        //----------------------------------------------------------------------------------------------------------------------------
 
-		public void NextEffect()
-		{
-			index++;
-			WrapIndex();
-			PlayAtIndex();
-		}
+        public Image btnSlowMotion;
+        public Text lblSlowMotion;
+        public Image btnCameraRotation;
+        public Text lblCameraRotation;
+        public Image btnShowGround;
+        public Text lblShowGround;
+        public Image btnCamShake;
+        public Text lblCamShake;
+        public Image btnLights;
+        public Text lblLights;
+        public Image btnBloom;
+        public Text lblBloom;
 
-		public void PreviousEffect()
-		{
-			index--;
-			WrapIndex();
-			PlayAtIndex();
-		}
+        [Space] public Text labelEffect;
 
-		public void ToggleSlowMo()
-		{
-			slowMotion = !slowMotion;
+        public Text labelIndex;
 
-			Time.timeScale = slowMotion ? 0.33f : 1.0f;
+        [Space] public GameObject ground;
 
-			var color = Color.white;
-			color.a = slowMotion ? 1f : 0.33f;
-			btnSlowMotion.color = color;
-			lblSlowMotion.color = color;
-		}
+        public Collider groundCollider;
+        public Transform demoCamera;
+        public MonoBehaviour bloom;
+        public float rotationSpeed = 10f;
+        public float zoomFactor = 1f;
 
-		public void ToggleCamera()
-		{
-			rotateCamera = !rotateCamera;
+        private Vector3 camInitialPosition;
+        private Quaternion camInitialRotation;
 
-			var color = Color.white;
-			color.a = rotateCamera ? 1f : 0.33f;
-			btnCameraRotation.color = color;
-			lblCameraRotation.color = color;
-		}
+        //----------------------------------------------------------------------------------------------------------------------------
 
-		public void ToggleGround()
-		{
-			showGround = !showGround;
+        [NonSerialized] public GameObject currentEffect;
+        private GameObject[] effectsList;
+        private int index;
+        private bool rotateCamera;
+        private bool showGround = true;
 
-			ground.SetActive(showGround);
+        private bool slowMotion;
 
-			var color = Color.white;
-			color.a = showGround ? 1f : 0.33f;
-			btnShowGround.color = color;
-			lblShowGround.color = color;
-		}
+        private void Awake()
+        {
+            camInitialPosition = Camera.main.transform.position;
+            camInitialRotation = Camera.main.transform.rotation;
 
-		public void ToggleCameraShake()
-		{
-			CFXR_Effect.GlobalDisableCameraShake = !CFXR_Effect.GlobalDisableCameraShake;
+            var list = new List<GameObject>();
+            for (var i = 0; i < transform.childCount; i++)
+            {
+                var effect = transform.GetChild(i).gameObject;
+                list.Add(effect);
 
-			var color = Color.white;
-			color.a = CFXR_Effect.GlobalDisableCameraShake ? 0.33f : 1.0f;
-			btnCamShake.color = color;
-			lblCamShake.color = color;
-		}
+                var cfxrEffect = effect.GetComponent<CFXR_Effect>();
+                if (cfxrEffect != null) cfxrEffect.clearBehavior = CFXR_Effect.ClearBehavior.Disable;
+            }
 
-		public void ToggleEffectsLights()
-		{
-			CFXR_Effect.GlobalDisableLights = !CFXR_Effect.GlobalDisableLights;
+            effectsList = list.ToArray();
 
-			var color = Color.white;
-			color.a = CFXR_Effect.GlobalDisableLights ? 0.33f : 1.0f;
-			btnLights.color = color;
-			lblLights.color = color;
-		}
+            PlayAtIndex();
+            UpdateLabels();
+        }
 
-		public void ToggleBloom()
-		{
-			bloom.enabled = !bloom.enabled;
+        private void Update()
+        {
+            if (rotateCamera) demoCamera.RotateAround(Vector3.zero, Vector3.up, rotationSpeed * Time.deltaTime);
 
-			var color = Color.white;
-			color.a = !bloom.enabled ? 0.33f : 1.0f;
-			btnBloom.color = color;
-			lblBloom.color = color;
-		}
+            if (Input.GetKeyDown(KeyCode.Space))
+                if (currentEffect != null)
+                {
+                    var ps = currentEffect.GetComponent<ParticleSystem>();
+                    if (ps.isEmitting)
+                    {
+                        ps.Stop(true);
+                    }
+                    else
+                    {
+                        if (!currentEffect.gameObject.activeSelf)
+                        {
+                            currentEffect.SetActive(true);
+                        }
+                        else
+                        {
+                            ps.Play(true);
+                            var cfxrEffects = currentEffect.GetComponentsInChildren<CFXR_Effect>();
+                            foreach (var cfxr in cfxrEffects) cfxr.ResetState();
+                        }
+                    }
+                }
 
-		public void ResetCam()
-		{
-			Camera.main.transform.position = camInitialPosition;
-			Camera.main.transform.rotation = camInitialRotation;
-		}
+            if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
+                if (currentEffect != null)
+                {
+                    currentEffect.SetActive(false);
+                    currentEffect.SetActive(true);
+                }
 
-		//----------------------------------------------------------------------------------------------------------------------------
+            if (Input.GetKeyDown(KeyCode.LeftArrow)) PreviousEffect();
 
-		public Image btnSlowMotion;
-		public Text lblSlowMotion;
-		public Image btnCameraRotation;
-		public Text lblCameraRotation;
-		public Image btnShowGround;
-		public Text lblShowGround;
-		public Image btnCamShake;
-		public Text lblCamShake;
-		public Image btnLights;
-		public Text lblLights;
-		public Image btnBloom;
-		public Text lblBloom;
-		[Space]
-		public Text labelEffect;
-		public Text labelIndex;
-		[Space]
-		public GameObject ground;
-		public Collider groundCollider;
-		public Transform demoCamera;
-		public MonoBehaviour bloom;
-		public float rotationSpeed = 10f;
-		public float zoomFactor = 1f;
+            if (Input.GetKeyDown(KeyCode.RightArrow)) NextEffect();
 
-		bool slowMotion = false;
-		bool rotateCamera = false;
-		bool showGround = true;
+            if (Input.GetMouseButtonDown(0))
+            {
+                var ray = demoCamera.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
+                if (Physics.Raycast(ray))
+                    if (currentEffect != null)
+                    {
+                        currentEffect.SetActive(false);
+                        currentEffect.SetActive(true);
+                    }
+            }
 
-		//----------------------------------------------------------------------------------------------------------------------------
+            if (Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2)) ResetCam();
 
-		[System.NonSerialized] public GameObject currentEffect;
-		GameObject[] effectsList;
-		int index = 0;
+            var scroll = Input.GetAxis("Mouse ScrollWheel");
+            if (scroll != 0f)
+                Camera.main.transform.Translate(Vector3.forward * (scroll < 0f ? -1f : 1f) * zoomFactor, Space.Self);
+        }
+        //----------------------------------------------------------------------------------------------------------------------------
+        // UI
 
-		Vector3 camInitialPosition;
-		Quaternion camInitialRotation;
+        public void NextEffect()
+        {
+            index++;
+            WrapIndex();
+            PlayAtIndex();
+        }
 
-		void Awake()
-		{
-			camInitialPosition = Camera.main.transform.position;
-			camInitialRotation = Camera.main.transform.rotation;
+        public void PreviousEffect()
+        {
+            index--;
+            WrapIndex();
+            PlayAtIndex();
+        }
 
-			var list = new List<GameObject>();
-			for (int i = 0; i < this.transform.childCount; i++)
-			{
-				var effect = this.transform.GetChild(i).gameObject;
-				list.Add(effect);
+        public void ToggleSlowMo()
+        {
+            slowMotion = !slowMotion;
 
-				var cfxrEffect= effect.GetComponent<CFXR_Effect>();
-				if (cfxrEffect != null) cfxrEffect.clearBehavior = CFXR_Effect.ClearBehavior.Disable;
-			}
-			effectsList = list.ToArray();
+            Time.timeScale = slowMotion ? 0.33f : 1.0f;
 
-			PlayAtIndex();
-			UpdateLabels();
-		}
+            var color = Color.white;
+            color.a = slowMotion ? 1f : 0.33f;
+            btnSlowMotion.color = color;
+            lblSlowMotion.color = color;
+        }
 
-		void Update()
-		{
-			if (rotateCamera)
-			{
-				demoCamera.RotateAround(Vector3.zero, Vector3.up, rotationSpeed * Time.deltaTime);
-			}
+        public void ToggleCamera()
+        {
+            rotateCamera = !rotateCamera;
 
-			if (Input.GetKeyDown(KeyCode.Space))
-			{
-				if (currentEffect != null)
-				{
-					var ps = currentEffect.GetComponent<ParticleSystem>();
-					if (ps.isEmitting)
-					{
-						ps.Stop(true);
-					}
-					else
-					{
-						if (!currentEffect.gameObject.activeSelf)
-						{
-							currentEffect.SetActive(true);
-						}
-						else
-						{
-							ps.Play(true);
-							var cfxrEffects = currentEffect.GetComponentsInChildren<CFXR_Effect>();
-							foreach (var cfxr in cfxrEffects)
-							{
-								cfxr.ResetState();
-							}
-						}
-					}
-				}
-			}
+            var color = Color.white;
+            color.a = rotateCamera ? 1f : 0.33f;
+            btnCameraRotation.color = color;
+            lblCameraRotation.color = color;
+        }
 
-			if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace))
-			{
-				if (currentEffect != null)
-				{
-					currentEffect.SetActive(false);
-					currentEffect.SetActive(true);
-				}
-			}
+        public void ToggleGround()
+        {
+            showGround = !showGround;
 
-			if (Input.GetKeyDown(KeyCode.LeftArrow))
-			{
-				PreviousEffect();
-			}
+            ground.SetActive(showGround);
 
-			if (Input.GetKeyDown(KeyCode.RightArrow))
-			{
-				NextEffect();
-			}
+            var color = Color.white;
+            color.a = showGround ? 1f : 0.33f;
+            btnShowGround.color = color;
+            lblShowGround.color = color;
+        }
 
-			if (Input.GetMouseButtonDown(0))
-			{
-				var ray = demoCamera.GetComponent<Camera>().ScreenPointToRay(Input.mousePosition);
-				if (Physics.Raycast(ray))
-				{
-					if (currentEffect != null)
-					{
-						currentEffect.SetActive(false);
-						currentEffect.SetActive(true);
-					}
-				}
-			}
+        public void ToggleCameraShake()
+        {
+            CFXR_Effect.GlobalDisableCameraShake = !CFXR_Effect.GlobalDisableCameraShake;
 
-			if (Input.GetMouseButtonDown(1) || Input.GetMouseButtonDown(2))
-			{
-				ResetCam();
-			}
+            var color = Color.white;
+            color.a = CFXR_Effect.GlobalDisableCameraShake ? 0.33f : 1.0f;
+            btnCamShake.color = color;
+            lblCamShake.color = color;
+        }
 
-			float scroll = Input.GetAxis("Mouse ScrollWheel");
-			if (scroll != 0f)
-			{
-				Camera.main.transform.Translate(Vector3.forward * (scroll < 0f ? -1f : 1f) * zoomFactor, Space.Self);
-			}
-		}
+        public void ToggleEffectsLights()
+        {
+            CFXR_Effect.GlobalDisableLights = !CFXR_Effect.GlobalDisableLights;
 
-		public void PlayAtIndex()
-		{
-			if (currentEffect != null)
-			{
-				currentEffect.SetActive(false);
-			}
+            var color = Color.white;
+            color.a = CFXR_Effect.GlobalDisableLights ? 0.33f : 1.0f;
+            btnLights.color = color;
+            lblLights.color = color;
+        }
 
-			currentEffect = effectsList[index];
-			currentEffect.SetActive(true);
+        public void ToggleBloom()
+        {
+            bloom.enabled = !bloom.enabled;
 
-			UpdateLabels();
-		}
+            var color = Color.white;
+            color.a = !bloom.enabled ? 0.33f : 1.0f;
+            btnBloom.color = color;
+            lblBloom.color = color;
+        }
 
-		void WrapIndex()
-		{
-			if (index < 0) index = effectsList.Length - 1;
-			if (index >= effectsList.Length) index = 0;
-		}
+        public void ResetCam()
+        {
+            Camera.main.transform.position = camInitialPosition;
+            Camera.main.transform.rotation = camInitialRotation;
+        }
 
-		void UpdateLabels()
-		{
-			labelEffect.text = currentEffect.name;
-			labelIndex.text = string.Format("{0}/{1}", (index+1), effectsList.Length);
-		}
-	}
+        public void PlayAtIndex()
+        {
+            if (currentEffect != null) currentEffect.SetActive(false);
+
+            currentEffect = effectsList[index];
+            currentEffect.SetActive(true);
+
+            UpdateLabels();
+        }
+
+        private void WrapIndex()
+        {
+            if (index < 0) index = effectsList.Length - 1;
+            if (index >= effectsList.Length) index = 0;
+        }
+
+        private void UpdateLabels()
+        {
+            labelEffect.text = currentEffect.name;
+            labelIndex.text = string.Format("{0}/{1}", index + 1, effectsList.Length);
+        }
+    }
 }

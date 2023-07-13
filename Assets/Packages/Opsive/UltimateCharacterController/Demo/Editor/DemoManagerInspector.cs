@@ -4,28 +4,34 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Character;
+using Opsive.UltimateCharacterController.Demo;
+using UnityEditor;
+using UnityEditorInternal;
+using UnityEngine;
+using EditorUtility = Opsive.Shared.Editor.Utility.EditorUtility;
+using InspectorUtility = Opsive.UltimateCharacterController.Editor.Inspectors.Utility.InspectorUtility;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Demo
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Demo;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using UnityEditor;
-    using UnityEditorInternal;
-    using UnityEngine;
-
     /// <summary>
-    /// Shows a custom inspector for the DemoManager component.
+    ///     Shows a custom inspector for the DemoManager component.
     /// </summary>
     [CustomEditor(typeof(DemoManager), true)]
     public class DemoManagerInspector : InspectorBase
     {
-        private const string c_EditorPrefsSelectedDemoZoneIndexKey = "Opsive.UltimateCharacterController.Editor.Inspectors.Demo.SelectedDemoZoneIndex";
-        private string SelectedViewTypeIndexKey { get { return c_EditorPrefsSelectedDemoZoneIndexKey + "." + target.GetType() + "." + target.name; } }
+        private const string c_EditorPrefsSelectedDemoZoneIndexKey =
+            "Opsive.UltimateCharacterController.Editor.Inspectors.Demo.SelectedDemoZoneIndex";
 
         private ReorderableList m_DemoZonesList;
 
+        private string SelectedViewTypeIndexKey =>
+            c_EditorPrefsSelectedDemoZoneIndexKey + "." + target.GetType() + "." + target.name;
+
         /// <summary>
-        /// Draws the custom inspector.
+        ///     Draws the custom inspector.
         /// </summary>
         public override void OnInspectorGUI()
         {
@@ -38,65 +44,74 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Demo
                 EditorGUILayout.PropertyField(PropertyFromName("m_DefaultFirstPersonStart"));
             }
 #endif
-            if (Foldout("Free Roam")) {
+            if (Foldout("Free Roam"))
+            {
                 EditorGUI.indentLevel++;
                 DrawFreeRoamFields();
                 EditorGUI.indentLevel--;
             }
-            if (Foldout("UI")) {
+
+            if (Foldout("UI"))
+            {
                 EditorGUI.indentLevel++;
                 DrawUIFields();
                 EditorGUI.indentLevel--;
             }
 
-            if (m_DemoZonesList == null) {
-                m_DemoZonesList = new ReorderableList(serializedObject, PropertyFromName("m_DemoZones"), true, true, true, true);
-                m_DemoZonesList.drawHeaderCallback = (Rect rect) =>
+            if (m_DemoZonesList == null)
+            {
+                m_DemoZonesList = new ReorderableList(serializedObject, PropertyFromName("m_DemoZones"), true, true,
+                    true, true);
+                m_DemoZonesList.drawHeaderCallback = rect =>
                 {
-                    EditorGUI.LabelField(new Rect(rect.x, rect.y, rect.width - 12, EditorGUIUtility.singleLineHeight), "Demo Zones");
+                    EditorGUI.LabelField(
+                        new Rect(rect.x, rect.y, rect.width - 12, EditorGUIUtility.singleLineHeight), "Demo Zones");
                 };
-                m_DemoZonesList.onSelectCallback += (ReorderableList list) =>
+                m_DemoZonesList.onSelectCallback += list =>
                 {
                     EditorPrefs.SetInt(SelectedViewTypeIndexKey, list.index);
                 };
-                if (EditorPrefs.GetInt(SelectedViewTypeIndexKey, -1) != -1) {
+                if (EditorPrefs.GetInt(SelectedViewTypeIndexKey, -1) != -1)
                     m_DemoZonesList.index = EditorPrefs.GetInt(SelectedViewTypeIndexKey, -1);
-                }
             }
 
             m_DemoZonesList.DoLayoutList();
             DrawSelectedDemoZone();
 
-            if (EditorGUI.EndChangeCheck()) {
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 serializedObject.ApplyModifiedProperties();
             }
         }
 
         /// <summary>
-        /// Draws the inspected character field.
+        ///     Draws the inspected character field.
         /// </summary>
         protected virtual void DrawCharacterField()
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(PropertyFromName("m_Character"));
-            if (PropertyFromName("m_Character").objectReferenceValue == null) {
-                if (GUILayout.Button("Find", GUILayout.Width(50))) {
-                    var characterLocomotion = FindObjectOfType<UltimateCharacterController.Character.UltimateCharacterLocomotion>();
-                    if (characterLocomotion != null) {
+            if (PropertyFromName("m_Character").objectReferenceValue == null)
+            {
+                if (GUILayout.Button("Find", GUILayout.Width(50)))
+                {
+                    var characterLocomotion = FindObjectOfType<UltimateCharacterLocomotion>();
+                    if (characterLocomotion != null)
                         PropertyFromName("m_Character").objectReferenceValue = characterLocomotion.gameObject;
-                    }
-                }
-            } else {
-                if (GUILayout.Button("Clear", GUILayout.Width(50))) {
-                    PropertyFromName("m_Character").objectReferenceValue = null;
                 }
             }
+            else
+            {
+                if (GUILayout.Button("Clear", GUILayout.Width(50)))
+                    PropertyFromName("m_Character").objectReferenceValue = null;
+            }
+
             EditorGUILayout.EndHorizontal();
         }
 
         /// <summary>
-        /// Draws the free roam fields.
+        ///     Draws the free roam fields.
         /// </summary>
         protected virtual void DrawFreeRoamFields()
         {
@@ -106,7 +121,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Demo
         }
 
         /// <summary>
-        /// Draws the UI fields.
+        ///     Draws the UI fields.
         /// </summary>
         protected virtual void DrawUIFields()
         {
@@ -121,30 +136,32 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Demo
             EditorGUILayout.PropertyField(PropertyFromName("m_NoZoneTitle"));
             EditorGUILayout.LabelField("No Zone Description");
             PropertyFromName("m_NoZoneDescription").stringValue = InspectorUtility.DrawEditorWithoutSelectAll(() =>
-                            EditorGUILayout.TextArea(PropertyFromName("m_NoZoneDescription").stringValue, Shared.Editor.Inspectors.Utility.InspectorStyles.WordWrapTextArea));
+                EditorGUILayout.TextArea(PropertyFromName("m_NoZoneDescription").stringValue,
+                    InspectorStyles.WordWrapTextArea));
             EditorGUILayout.PropertyField(PropertyFromName("m_AddOnDemoManager"));
         }
 
         /// <summary>
-        /// Draws the fields for the selected demo zone.
+        ///     Draws the fields for the selected demo zone.
         /// </summary>
         private void DrawSelectedDemoZone()
         {
             var demoZonesProperty = PropertyFromName("m_DemoZones");
-            if (m_DemoZonesList.index == -1 || m_DemoZonesList.index >= demoZonesProperty.arraySize) {
-                return;
-            }
+            if (m_DemoZonesList.index == -1 || m_DemoZonesList.index >= demoZonesProperty.arraySize) return;
 
             var demoZoneProperty = demoZonesProperty.GetArrayElementAtIndex(m_DemoZonesList.index);
-            EditorGUILayout.LabelField(demoZoneProperty.FindPropertyRelative("m_Header").stringValue + " Demo Zone", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField(demoZoneProperty.FindPropertyRelative("m_Header").stringValue + " Demo Zone",
+                EditorStyles.boldLabel);
             EditorGUILayout.PropertyField(demoZoneProperty.FindPropertyRelative("m_Header"));
             EditorGUILayout.PropertyField(demoZoneProperty.FindPropertyRelative("m_DemoZoneTrigger"));
             EditorGUILayout.PropertyField(demoZoneProperty.FindPropertyRelative("m_EnableObjects"), true);
             EditorGUILayout.PropertyField(demoZoneProperty.FindPropertyRelative("m_ToggleObjects"), true);
             EditorGUILayout.PropertyField(demoZoneProperty.FindPropertyRelative("m_InverseToggleObjects"), true);
             EditorGUILayout.LabelField("Description");
-            demoZoneProperty.FindPropertyRelative("m_Description").stringValue = InspectorUtility.DrawEditorWithoutSelectAll(() => 
-                            EditorGUILayout.TextArea(demoZoneProperty.FindPropertyRelative("m_Description").stringValue, Shared.Editor.Inspectors.Utility.InspectorStyles.WordWrapTextArea));
+            demoZoneProperty.FindPropertyRelative("m_Description").stringValue =
+                InspectorUtility.DrawEditorWithoutSelectAll(() =>
+                    EditorGUILayout.TextArea(demoZoneProperty.FindPropertyRelative("m_Description").stringValue,
+                        InspectorStyles.WordWrapTextArea));
             EditorGUILayout.PropertyField(demoZoneProperty.FindPropertyRelative("m_Action"));
         }
     }

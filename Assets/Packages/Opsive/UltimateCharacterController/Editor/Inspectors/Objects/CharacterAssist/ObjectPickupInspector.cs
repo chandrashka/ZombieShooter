@@ -4,17 +4,18 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Audio;
+using Opsive.UltimateCharacterController.Objects.CharacterAssist;
+using UnityEditor;
+using UnityEditorInternal;
+using UnityEngine;
+using EditorUtility = Opsive.Shared.Editor.Utility.EditorUtility;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Objects.CharacterAssist
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Audio;
-    using Opsive.UltimateCharacterController.Objects.CharacterAssist;
-    using UnityEditor;
-    using UnityEditorInternal;
-    using UnityEngine;
-
     /// <summary>
-    /// Custom inspector for the ObjectPickup component.
+    ///     Custom inspector for the ObjectPickup component.
     /// </summary>
     [CustomEditor(typeof(ObjectPickup), true)]
     public class ObjectPickupInspector : InspectorBase
@@ -23,7 +24,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Objects.Character
         private ReorderableList m_ReorderablePickupAudioClipsList;
 
         /// <summary>
-        /// The inspector has been enabled.
+        ///     The inspector has been enabled.
         /// </summary>
         protected virtual void OnEnable()
         {
@@ -31,7 +32,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Objects.Character
         }
 
         /// <summary>
-        /// Draws the custom inspector.
+        ///     Draws the custom inspector.
         /// </summary>
         public override void OnInspectorGUI()
         {
@@ -42,39 +43,48 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Objects.Character
             DrawObjectPickupFields();
             EditorGUILayout.PropertyField(PropertyFromName("m_TriggerEnableDelay"));
             EditorGUILayout.PropertyField(PropertyFromName("m_RotationSpeed"));
-            if (Foldout("UI")) {
+            if (Foldout("UI"))
+            {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(PropertyFromName("m_PickupMessageText"));
                 EditorGUILayout.PropertyField(PropertyFromName("m_PickupMessageIcon"));
                 EditorGUI.indentLevel--;
             }
-            if (Foldout("Audio")) {
+
+            if (Foldout("Audio"))
+            {
                 EditorGUI.indentLevel++;
-                m_ReorderablePickupAudioClipsList = AudioClipSetInspector.DrawAudioClipSet(m_ObjectPickup.PickupAudioClipSet, m_ReorderablePickupAudioClipsList, OnPickupAudioClipDraw, OnPickupAudioClipListAdd, OnPickupAudioClipListRemove);
+                m_ReorderablePickupAudioClipsList = AudioClipSetInspector.DrawAudioClipSet(
+                    m_ObjectPickup.PickupAudioClipSet, m_ReorderablePickupAudioClipsList, OnPickupAudioClipDraw,
+                    OnPickupAudioClipListAdd, OnPickupAudioClipListRemove);
                 EditorGUI.indentLevel--;
             }
 
-            if (EditorGUI.EndChangeCheck()) {
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Value Change");
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.RecordUndoDirtyObject(target, "Value Change");
                 serializedObject.ApplyModifiedProperties();
             }
         }
 
         /// <summary>
-        /// Draws the object pickup fields.
+        ///     Draws the object pickup fields.
         /// </summary>
-        protected virtual void DrawObjectPickupFields() { }
-
-        /// <summary>
-        /// Draws the AudioClip element.
-        /// </summary>
-        private void OnPickupAudioClipDraw(Rect rect, int index, bool isActive, bool isFocused)
+        protected virtual void DrawObjectPickupFields()
         {
-            AudioClipSetInspector.OnAudioClipDraw(m_ReorderablePickupAudioClipsList, rect, index, m_ObjectPickup.PickupAudioClipSet, null);
         }
 
         /// <summary>
-        /// Adds a new AudioClip element to the AudioClipSet.
+        ///     Draws the AudioClip element.
+        /// </summary>
+        private void OnPickupAudioClipDraw(Rect rect, int index, bool isActive, bool isFocused)
+        {
+            AudioClipSetInspector.OnAudioClipDraw(m_ReorderablePickupAudioClipsList, rect, index,
+                m_ObjectPickup.PickupAudioClipSet, null);
+        }
+
+        /// <summary>
+        ///     Adds a new AudioClip element to the AudioClipSet.
         /// </summary>
         private void OnPickupAudioClipListAdd(ReorderableList list)
         {
@@ -82,7 +92,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Objects.Character
         }
 
         /// <summary>
-        /// Remove the AudioClip element at the list index.
+        ///     Remove the AudioClip element at the list index.
         /// </summary>
         private void OnPickupAudioClipListRemove(ReorderableList list)
         {

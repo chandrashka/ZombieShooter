@@ -4,51 +4,51 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Character
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Interface which specifies an object which can be used for determine the character's look direction.
+    ///     Interface which specifies an object which can be used for determine the character's look direction.
     /// </summary>
     public interface ILookSource
     {
         /// <summary>
-        /// Returns the GameObject of the look source.
+        ///     Returns the GameObject of the look source.
         /// </summary>
         GameObject GameObject { get; }
 
         /// <summary>
-        /// Returns the Transform of the look source.
+        ///     Returns the Transform of the look source.
         /// </summary>
         Transform Transform { get; }
 
         /// <summary>
-        /// Returns the distance that the character should look ahead.
+        ///     Returns the distance that the character should look ahead.
         /// </summary>
         float LookDirectionDistance { get; }
-        
+
         /// <summary>
-        /// Returns the pitch angle of the look source.
+        ///     Returns the pitch angle of the look source.
         /// </summary>
         float Pitch { get; }
 
         /// <summary>
-        /// Returns the position of the look source.
+        ///     Returns the position of the look source.
         /// </summary>
         /// <param name="characterLookPosition">Is the character look position being retrieved?</param>
         /// <returns>The position of the look source.</returns>
         Vector3 LookPosition(bool characterLookPosition);
 
         /// <summary>
-        /// Returns the direction that the character is looking.
+        ///     Returns the direction that the character is looking.
         /// </summary>
         /// <param name="characterLookDirection">Is the character look direction being retrieved?</param>
         /// <returns>The direction that the character is looking.</returns>
         Vector3 LookDirection(bool characterLookDirection);
 
         /// <summary>
-        /// Returns the direction that the character is looking.
+        ///     Returns the direction that the character is looking.
         /// </summary>
         /// <param name="lookPosition">The position that the character is looking from.</param>
         /// <param name="characterLookDirection">Is the character look direction being retrieved?</param>
@@ -56,6 +56,7 @@ namespace Opsive.UltimateCharacterController.Character
         /// <param name="includeRecoil">Should recoil be included in the look direction?</param>
         /// <param name="includeMovementSpread">Should the movement spread be included in the look direction?</param>
         /// <returns>The direction that the character is looking.</returns>
-        Vector3 LookDirection(Vector3 lookPosition, bool characterLookDirection, int layerMask, bool includeRecoil, bool includeMovementSpread);
+        Vector3 LookDirection(Vector3 lookPosition, bool characterLookDirection, int layerMask, bool includeRecoil,
+            bool includeMovementSpread);
     }
 }

@@ -4,35 +4,55 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Game;
+using Opsive.Shared.Utility;
+using Opsive.UltimateCharacterController.Character;
+using Opsive.UltimateCharacterController.Character.Effects;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions
 {
-    using Opsive.Shared.Game;
-    using Opsive.UltimateCharacterController.Character;
-    using Opsive.UltimateCharacterController.Character.Effects;
-    using UnityEngine;
-
     /// <summary>
-    /// Starts an effect on the character.
+    ///     Starts an effect on the character.
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public class StartEffect : CastAction
     {
-        [Tooltip("The effect that should be started when the ability starts.")]
-        [HideInInspector] [SerializeField] protected string m_EffectName;
-        [Tooltip("The index of the effect that should be started when the ability starts.")]
-        [HideInInspector] [SerializeField] protected int m_EffectIndex = -1;
-        [Tooltip("Should the effect be stopped when the cast is stopped?")]
-        [SerializeField] protected bool m_StopEffect;
+        [Tooltip("The effect that should be started when the ability starts.")] [HideInInspector] [SerializeField]
+        protected string m_EffectName;
 
-        public string EffectName { get { return m_EffectName; } set { m_EffectName = value; } }
-        public int EffectIndex { get { return m_EffectIndex; } set { m_EffectIndex = value; } }
-        public bool StopEffect { get { return m_StopEffect; } set { m_StopEffect = value; } }
+        [Tooltip("The index of the effect that should be started when the ability starts.")]
+        [HideInInspector]
+        [SerializeField]
+        protected int m_EffectIndex = -1;
+
+        [Tooltip("Should the effect be stopped when the cast is stopped?")] [SerializeField]
+        protected bool m_StopEffect;
 
         private UltimateCharacterLocomotion m_CharacterLocomotion;
         private Effect m_Effect;
 
+        public string EffectName
+        {
+            get => m_EffectName;
+            set => m_EffectName = value;
+        }
+
+        public int EffectIndex
+        {
+            get => m_EffectIndex;
+            set => m_EffectIndex = value;
+        }
+
+        public bool StopEffect
+        {
+            get => m_StopEffect;
+            set => m_StopEffect = value;
+        }
+
         /// <summary>
-        /// Initializes the CastAction.
+        ///     Initializes the CastAction.
         /// </summary>
         /// <param name="character">The character GameObject.</param>
         /// <param name="magicItem">The MagicItem that the CastAction belongs to.</param>
@@ -45,43 +65,36 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions
         }
 
         /// <summary>
-        /// Awake is called after all of the actions have been initialized.
+        ///     Awake is called after all of the actions have been initialized.
         /// </summary>
         public override void Awake()
         {
             base.Awake();
 
-            if (!string.IsNullOrEmpty(m_EffectName)) {
-                m_Effect = m_CharacterLocomotion.GetEffect(Shared.Utility.TypeUtility.GetType(m_EffectName), m_EffectIndex);
-            }
-            if (m_Effect == null) {
-                Debug.LogError($"Error: Unable to find effect {m_EffectName}.");
-            }
+            if (!string.IsNullOrEmpty(m_EffectName))
+                m_Effect = m_CharacterLocomotion.GetEffect(TypeUtility.GetType(m_EffectName), m_EffectIndex);
+            if (m_Effect == null) Debug.LogError($"Error: Unable to find effect {m_EffectName}.");
         }
 
         /// <summary>
-        /// Performs the cast.
+        ///     Performs the cast.
         /// </summary>
         /// <param name="origin">The location that the cast should spawn from.</param>
         /// <param name="direction">The direction of the cast.</param>
         /// <param name="targetPosition">The target position of the cast.</param>
         public override void Cast(Transform origin, Vector3 direction, Vector3 targetPosition)
         {
-            if (m_Effect == null) {
-                return;
-            }
+            if (m_Effect == null) return;
 
             m_CharacterLocomotion.TryStartEffect(m_Effect);
         }
 
         /// <summary>
-        /// Stops the cast.
+        ///     Stops the cast.
         /// </summary>
         public override void Stop()
         {
-            if (m_StopEffect && m_Effect != null) {
-                m_CharacterLocomotion.TryStopEffect(m_Effect);
-            } 
+            if (m_StopEffect && m_Effect != null) m_CharacterLocomotion.TryStopEffect(m_Effect);
 
             base.Stop();
         }

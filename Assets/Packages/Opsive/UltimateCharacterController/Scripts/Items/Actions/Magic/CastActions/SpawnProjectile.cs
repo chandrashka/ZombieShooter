@@ -4,44 +4,75 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Game;
+using Opsive.UltimateCharacterController.Character;
+using Opsive.UltimateCharacterController.Objects.ItemAssist;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions
 {
-    using Opsive.Shared.Game;
-    using Opsive.UltimateCharacterController.Character;
 #if ULTIMATE_CHARACTER_CONTROLLER_MULTIPLAYER
     using Opsive.UltimateCharacterController.Networking.Game;
 #endif
-    using Opsive.UltimateCharacterController.Objects.ItemAssist;
-    using UnityEngine;
 
     /// <summary>
-    /// Spawns a projectile when the cast is performed.
+    ///     Spawns a projectile when the cast is performed.
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public class SpawnProjectile : CastAction
     {
-        [Tooltip("The projectile that should be spawned.")]
-        [SerializeField] protected GameObject m_ProjectilePrefab;
-        [Tooltip("The positional offset that the projectile should be spawned.")]
-        [SerializeField] protected Vector3 m_PositionOffset;
-        [Tooltip("The rotational offset that the projectile should be spawned.")]
-        [SerializeField] protected Vector3 m_RotationOffset;
-        [Tooltip("The speed that the projectile should be initialized to.")]
-        [SerializeField] protected float m_Speed = 1;
-        [Tooltip("Should the projecitle be parented to the origin?")]
-        [SerializeField] protected bool m_ParentToOrigin;
+        [Tooltip("The projectile that should be spawned.")] [SerializeField]
+        protected GameObject m_ProjectilePrefab;
 
-        public GameObject ProjectilePrefab { get { return m_ProjectilePrefab; } set { m_ProjectilePrefab = value; } }
-        public Vector3 PositionOffset { get { return m_PositionOffset; } set { m_PositionOffset = value; } }
-        public Vector3 RotationOffset { get { return m_RotationOffset; } set { m_RotationOffset = value; } }
-        public float Speed { get { return m_Speed; } set { m_Speed = value; } }
-        public bool ParentToOrigin { get { return m_ParentToOrigin; } set { m_ParentToOrigin = value; } }
+        [Tooltip("The positional offset that the projectile should be spawned.")] [SerializeField]
+        protected Vector3 m_PositionOffset;
+
+        [Tooltip("The rotational offset that the projectile should be spawned.")] [SerializeField]
+        protected Vector3 m_RotationOffset;
+
+        [Tooltip("The speed that the projectile should be initialized to.")] [SerializeField]
+        protected float m_Speed = 1;
+
+        [Tooltip("Should the projecitle be parented to the origin?")] [SerializeField]
+        protected bool m_ParentToOrigin;
 
         private UltimateCharacterLocomotion m_CharacterLocomotion;
         private Transform m_Transform;
 
+        public GameObject ProjectilePrefab
+        {
+            get => m_ProjectilePrefab;
+            set => m_ProjectilePrefab = value;
+        }
+
+        public Vector3 PositionOffset
+        {
+            get => m_PositionOffset;
+            set => m_PositionOffset = value;
+        }
+
+        public Vector3 RotationOffset
+        {
+            get => m_RotationOffset;
+            set => m_RotationOffset = value;
+        }
+
+        public float Speed
+        {
+            get => m_Speed;
+            set => m_Speed = value;
+        }
+
+        public bool ParentToOrigin
+        {
+            get => m_ParentToOrigin;
+            set => m_ParentToOrigin = value;
+        }
+
         /// <summary>
-        /// Initializes the CastAction.
+        ///     Initializes the CastAction.
         /// </summary>
         /// <param name="character">The character GameObject.</param>
         /// <param name="magicItem">The MagicItem that the CastAction belongs to.</param>
@@ -55,7 +86,7 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions
         }
 
         /// <summary>
-        /// Performs the cast.
+        ///     Performs the cast.
         /// </summary>
         /// <param name="origin">The location that the cast should spawn from.</param>
         /// <param name="direction">The direction of the cast.</param>
@@ -74,24 +105,24 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions
             }
 #endif
 
-            if (m_ProjectilePrefab == null) {
+            if (m_ProjectilePrefab == null)
+            {
                 Debug.LogError("Error: A Projectile Prefab must be specified", m_MagicItem);
                 return;
             }
 
-            var position = Utility.MathUtility.TransformPoint(origin.position, m_Transform.rotation, m_PositionOffset);
+            var position = MathUtility.TransformPoint(origin.position, m_Transform.rotation, m_PositionOffset);
             var obj = ObjectPoolBase.Instantiate(m_ProjectilePrefab, position,
-                            Quaternion.LookRotation(direction, m_CharacterLocomotion.Up) * Quaternion.Euler(m_RotationOffset), m_ParentToOrigin ? origin : null);
+                Quaternion.LookRotation(direction, m_CharacterLocomotion.Up) * Quaternion.Euler(m_RotationOffset),
+                m_ParentToOrigin ? origin : null);
             var projectile = obj.GetComponent<MagicProjectile>();
-            if (projectile != null) {
+            if (projectile != null)
                 projectile.Initialize(direction * m_Speed, Vector3.zero, m_GameObject, m_MagicItem, m_CastID);
-            } else {
-                Debug.LogWarning($"Warning: The projectile {m_ProjectilePrefab.name} does not have the MagicProjectile component attached.");
-            }
+            else
+                Debug.LogWarning(
+                    $"Warning: The projectile {m_ProjectilePrefab.name} does not have the MagicProjectile component attached.");
             var magicParticle = obj.GetComponent<MagicParticle>();
-            if (magicParticle != null) {
-                magicParticle.Initialize(m_MagicItem, m_CastID);
-            }
+            if (magicParticle != null) magicParticle.Initialize(m_MagicItem, m_CastID);
 
 #if ULTIMATE_CHARACTER_CONTROLLER_MULTIPLAYER
             if (m_MagicItem.NetworkInfo != null) {

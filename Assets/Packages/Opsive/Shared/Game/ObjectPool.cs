@@ -7,7 +7,7 @@
 namespace Opsive.Shared.Game
 {
     /// <summary>
-    /// Wrapper for the shared ObjectPool component.
+    ///     Wrapper for the shared ObjectPool component.
     /// </summary>
     public class ObjectPool : ObjectPoolBase
     {

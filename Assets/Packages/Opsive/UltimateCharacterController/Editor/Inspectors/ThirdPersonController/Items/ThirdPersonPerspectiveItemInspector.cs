@@ -4,21 +4,21 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Items;
+using Opsive.UltimateCharacterController.ThirdPersonController.Items;
+using UnityEditor;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonController.Items
 {
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Items;
-    using Opsive.UltimateCharacterController.ThirdPersonController.Items;
-    using System;
-    using UnityEditor;
-
     /// <summary>
-    /// Shows a custom inspector for the ThirdPersonPerspectiveItem.
+    ///     Shows a custom inspector for the ThirdPersonPerspectiveItem.
     /// </summary>
     [CustomEditor(typeof(ThirdPersonPerspectiveItem))]
     public class ThirdPersonPerspectiveItemInspector : PerspectiveItemInspector
     {
         /// <summary>
-        /// Draws the options for spawning based on a parent.
+        ///     Draws the options for spawning based on a parent.
         /// </summary>
         protected override void DrawSpawnParentProperties()
         {
@@ -30,7 +30,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
         }
 
         /// <summary>
-        /// Returns the actions to draw before the State list is drawn.
+        ///     Returns the actions to draw before the State list is drawn.
         /// </summary>
         /// <returns>The actions to draw before the State list is drawn.</returns>
         protected override Action GetDrawCallback()
@@ -39,7 +39,8 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
 
             baseCallback += () =>
             {
-                if (Foldout("IK")) {
+                if (Foldout("IK"))
+                {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(PropertyFromName("m_NonDominantHandIKTarget"));
                     EditorGUILayout.PropertyField(PropertyFromName("m_NonDominantHandIKTargetID"));
@@ -53,7 +54,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
         }
 
         /// <summary>
-        /// Draws the options for the render foldout.
+        ///     Draws the options for the render foldout.
         /// </summary>
         protected override void DrawRenderProperties()
         {

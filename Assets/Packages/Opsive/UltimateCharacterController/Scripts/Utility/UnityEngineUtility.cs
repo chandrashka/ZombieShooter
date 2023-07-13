@@ -4,23 +4,26 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using Opsive.Shared.Game;
+using Opsive.UltimateCharacterController.Traits;
+using UnityEngine;
+using Attribute = System.Attribute;
+using Random = UnityEngine.Random;
+
 namespace Opsive.UltimateCharacterController.Utility
 {
-    using Opsive.Shared.Game;
-    using System;
-    using System.Collections.Generic;
-    using UnityEngine;
-
     /// <summary>
-    /// Contains a set of utility functions useful for interacting with the Unity Engine.
+    ///     Contains a set of utility functions useful for interacting with the Unity Engine.
     /// </summary>
     public class UnityEngineUtility
     {
-        public static HashSet<object> s_ObjectUpdated = new HashSet<object>();
+        public static HashSet<object> s_ObjectUpdated = new();
         public static ScheduledEventBase s_ObjectClearEvent;
 
         /// <summary>
-        /// Returns a display name for the specified type.
+        ///     Returns a display name for the specified type.
         /// </summary>
         /// <param name="type">The type to retieve the name of.</param>
         /// <returns>A display name for the specified type.</returns>
@@ -30,23 +33,21 @@ namespace Opsive.UltimateCharacterController.Utility
         }
 
         /// <summary>
-        /// Returns a display name for the specified type.
+        ///     Returns a display name for the specified type.
         /// </summary>
         /// <param name="fullName">The full name of the type.</param>
         /// <param name="name">The name of the type.</param>
         /// <returns>A display name for the specified type.</returns>
         public static string GetDisplayName(string fullName, string name)
         {
-            if (fullName.Contains("FirstPersonController")) {
+            if (fullName.Contains("FirstPersonController"))
                 return "First Person " + name;
-            } else if (fullName.Contains("ThirdPersonController")) {
-                return "Third Person " + name;
-            }
+            if (fullName.Contains("ThirdPersonController")) return "Third Person " + name;
             return name;
         }
 
         /// <summary>
-        /// Returns true if the specified object has been updated.
+        ///     Returns true if the specified object has been updated.
         /// </summary>
         /// <param name="obj">The object to check if it has been updated.</param>
         /// <returns>True if the specified object has been updated.</returns>
@@ -56,7 +57,7 @@ namespace Opsive.UltimateCharacterController.Utility
         }
 
         /// <summary>
-        /// Adds the specified object to the set.
+        ///     Adds the specified object to the set.
         /// </summary>
         /// <param name="obj">The object that has been updated.</param>
         public static void AddUpdatedObject(object obj)
@@ -65,7 +66,7 @@ namespace Opsive.UltimateCharacterController.Utility
         }
 
         /// <summary>
-        /// Adds the specified object to the set.
+        ///     Adds the specified object to the set.
         /// </summary>
         /// <param name="obj">The object that has been updated.</param>
         /// <param name="autoClear">Should the object updated map be automatically cleared on the next tick?</param>
@@ -73,13 +74,12 @@ namespace Opsive.UltimateCharacterController.Utility
         {
             s_ObjectUpdated.Add(obj);
 
-            if (autoClear && s_ObjectClearEvent == null) {
+            if (autoClear && s_ObjectClearEvent == null)
                 s_ObjectClearEvent = SchedulerBase.Schedule(0.0001f, ClearUpdatedObjectsEvent);
-            }
         }
 
         /// <summary>
-        /// Removes all of the objects from the set.
+        ///     Removes all of the objects from the set.
         /// </summary>
         public static void ClearUpdatedObjects()
         {
@@ -87,7 +87,7 @@ namespace Opsive.UltimateCharacterController.Utility
         }
 
         /// <summary>
-        /// Removes all of the objects from the set and sets the event to null.
+        ///     Removes all of the objects from the set and sets the event to null.
         /// </summary>
         private static void ClearUpdatedObjectsEvent()
         {
@@ -96,13 +96,14 @@ namespace Opsive.UltimateCharacterController.Utility
         }
 
         /// <summary>
-        /// Change the size of the RectTransform according to the size of the sprite.
+        ///     Change the size of the RectTransform according to the size of the sprite.
         /// </summary>
         /// <param name="sprite">The sprite that the RectTransform should change its size to.</param>
         /// <param name="spriteRectTransform">A reference to the sprite's RectTransform.</param>
         public static void SizeSprite(Sprite sprite, RectTransform spriteRectTransform)
         {
-            if (sprite != null) {
+            if (sprite != null)
+            {
                 var sizeDelta = spriteRectTransform.sizeDelta;
                 sizeDelta.x = sprite.textureRect.width;
                 sizeDelta.y = sprite.textureRect.height;
@@ -111,105 +112,85 @@ namespace Opsive.UltimateCharacterController.Utility
         }
 
         /// <summary>
-        /// Clears the Unity Engine Utility cache.
+        ///     Clears the Unity Engine Utility cache.
         /// </summary>
-        /// 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         public static void ClearCache()
         {
-            if (s_ObjectUpdated != null) { s_ObjectUpdated.Clear(); }
+            if (s_ObjectUpdated != null) s_ObjectUpdated.Clear();
         }
 
         /// <summary>
-        /// Allows for comparison between RaycastHit objects.
+        ///     Allows for comparison between RaycastHit objects.
         /// </summary>
         public class RaycastHitComparer : IComparer<RaycastHit>
         {
             /// <summary>
-            /// Compare RaycastHit x to RaycastHit y. If x has a smaller distance value compared to y then a negative value will be returned.
-            /// If the distance values are equal then 0 will be returned, and if y has a smaller distance value compared to x then a positive value will be returned.
+            ///     Compare RaycastHit x to RaycastHit y. If x has a smaller distance value compared to y then a negative value will be
+            ///     returned.
+            ///     If the distance values are equal then 0 will be returned, and if y has a smaller distance value compared to x then
+            ///     a positive value will be returned.
             /// </summary>
             /// <param name="x">The first RaycastHit to compare.</param>
             /// <param name="y">The second RaycastHit to compare.</param>
             /// <returns>The resulting difference between RaycastHit x and y.</returns>
             public int Compare(RaycastHit x, RaycastHit y)
             {
-                if (x.transform == null) {
-                    return int.MaxValue;
-                }
-                if (y.transform == null) {
-                    return int.MinValue;
-                }
+                if (x.transform == null) return int.MaxValue;
+                if (y.transform == null) return int.MinValue;
                 return x.distance.CompareTo(y.distance);
             }
         }
 
         /// <summary>
-        /// Allows for equity comparison checks between RaycastHit objects.
+        ///     Allows for equity comparison checks between RaycastHit objects.
         /// </summary>
         public struct RaycastHitEqualityComparer : IEqualityComparer<RaycastHit>
         {
             /// <summary>
-            /// Determines if RaycastHit x is equal to RaycastHit y.
+            ///     Determines if RaycastHit x is equal to RaycastHit y.
             /// </summary>
             /// <param name="x">The first RaycastHit to compare.</param>
             /// <param name="y">The second RaycastHit to compare.</param>
             /// <returns>True if the raycasts are equal.</returns>
             public bool Equals(RaycastHit x, RaycastHit y)
             {
-                if (x.distance != y.distance) {
-                    return false;
-                }
-                if (x.point != y.point) {
-                    return false;
-                }
-                if (x.normal != y.normal) {
-                    return false;
-                }
-                if (x.transform != y.transform) {
-                    return false;
-                }
+                if (x.distance != y.distance) return false;
+                if (x.point != y.point) return false;
+                if (x.normal != y.normal) return false;
+                if (x.transform != y.transform) return false;
                 return true;
             }
 
             /// <summary>
-            /// Returns a hash code for the RaycastHit.
+            ///     Returns a hash code for the RaycastHit.
             /// </summary>
             /// <param name="hit">The RaycastHit to get the hash code of.</param>
             /// <returns>The hash code for the RaycastHit.</returns>
             public int GetHashCode(RaycastHit hit)
             {
                 // Don't use hit.GetHashCode because that has boxing. This hash function won't always prevent duplicates but it's fine for what it's used for.
-                return ((int)(hit.distance * 10000)) ^ ((int)(hit.point.x * 10000)) ^ ((int)(hit.point.y * 10000)) ^ ((int)(hit.point.z * 10000)) ^
-                        ((int)(hit.normal.x * 10000)) ^ ((int)(hit.normal.y * 10000)) ^ ((int)(hit.normal.z * 10000));
+                return (int)(hit.distance * 10000) ^ (int)(hit.point.x * 10000) ^ (int)(hit.point.y * 10000) ^
+                       (int)(hit.point.z * 10000) ^
+                       (int)(hit.normal.x * 10000) ^ (int)(hit.normal.y * 10000) ^ (int)(hit.normal.z * 10000);
             }
         }
     }
 
     /// <summary>
-    /// A container for a min and max float value.
+    ///     A container for a min and max float value.
     /// </summary>
     [Serializable]
     public struct MinMaxFloat
     {
-        [Tooltip("The minimum Vector3 value.")]
-        [SerializeField] private float m_MinValue;
-        [Tooltip("The maximum Vector3 value.")]
-        [SerializeField] private float m_MaxValue;
+        [Tooltip("The minimum Vector3 value.")] [SerializeField]
+        private float m_MinValue;
 
-        public float MinValue { get { return m_MinValue; } set { m_MinValue = value; } }
-        public float MaxValue { get { return m_MaxValue; } set { m_MaxValue = value; } }
-
-        public float RandomValue
-        {
-            get
-            {
-                return UnityEngine.Random.Range(m_MinValue, m_MaxValue);
-            }
-        }
+        [Tooltip("The maximum Vector3 value.")] [SerializeField]
+        private float m_MaxValue;
 
         /// <summary>
-        /// MinMaxFloat constructor which can specify the min and max values.
+        ///     MinMaxFloat constructor which can specify the min and max values.
         /// </summary>
         /// <param name="minValue">The minimum float value.</param>
         /// <param name="maxValue">The maximum float value.</param>
@@ -218,24 +199,79 @@ namespace Opsive.UltimateCharacterController.Utility
             m_MinValue = minValue;
             m_MaxValue = maxValue;
         }
+
+        public float MinValue
+        {
+            get => m_MinValue;
+            set => m_MinValue = value;
+        }
+
+        public float MaxValue
+        {
+            get => m_MaxValue;
+            set => m_MaxValue = value;
+        }
+
+        public float RandomValue => Random.Range(m_MinValue, m_MaxValue);
     }
 
     /// <summary>
-    /// A container for a min and max Vector3 value.
+    ///     A container for a min and max Vector3 value.
     /// </summary>
     [Serializable]
     public struct MinMaxVector3
     {
-        [Tooltip("The minimum Vector3 value.")]
-        [SerializeField] private Vector3 m_MinValue;
-        [Tooltip("The maximum Vector3 value.")]
-        [SerializeField] private Vector3 m_MaxValue;
-        [Tooltip("The minimum magnitude value when determining a random value.")]
-        [SerializeField] private Vector3 m_MinMagnitude;
+        [Tooltip("The minimum Vector3 value.")] [SerializeField]
+        private Vector3 m_MinValue;
 
-        public Vector3 MinValue { get { return m_MinValue; } set { m_MinValue = value; } }
-        public Vector3 MaxValue { get { return m_MaxValue; } set { m_MaxValue = value; } }
-        public Vector3 MinMagnitude { get { return m_MinMagnitude; } set { m_MinMagnitude = value; } }
+        [Tooltip("The maximum Vector3 value.")] [SerializeField]
+        private Vector3 m_MaxValue;
+
+        [Tooltip("The minimum magnitude value when determining a random value.")] [SerializeField]
+        private Vector3 m_MinMagnitude;
+
+        /// <summary>
+        ///     MinMaxVector3 constructor which can specify the min and max values.
+        /// </summary>
+        /// <param name="minValue">The minimum Vector3 value.</param>
+        /// <param name="maxValue">The maximum Vector3 value.</param>
+        public MinMaxVector3(Vector3 minValue, Vector3 maxValue)
+        {
+            m_MinValue = minValue;
+            m_MaxValue = maxValue;
+            m_MinMagnitude = Vector3.zero;
+        }
+
+        /// <summary>
+        ///     MinMaxVector3 constructor which can specify the min and max values.
+        /// </summary>
+        /// <param name="minValue">The minimum Vector3 value.</param>
+        /// <param name="maxValue">The maximum Vector3 value.</param>
+        /// <param name="minMagnitude">The minimum magnitude of the random value.</param>
+        public MinMaxVector3(Vector3 minValue, Vector3 maxValue, Vector3 minMagnitude)
+        {
+            m_MinValue = minValue;
+            m_MaxValue = maxValue;
+            m_MinMagnitude = minMagnitude;
+        }
+
+        public Vector3 MinValue
+        {
+            get => m_MinValue;
+            set => m_MinValue = value;
+        }
+
+        public Vector3 MaxValue
+        {
+            get => m_MaxValue;
+            set => m_MaxValue = value;
+        }
+
+        public Vector3 MinMagnitude
+        {
+            get => m_MinMagnitude;
+            set => m_MinMagnitude = value;
+        }
 
         public Vector3 RandomValue
         {
@@ -250,32 +286,7 @@ namespace Opsive.UltimateCharacterController.Utility
         }
 
         /// <summary>
-        /// MinMaxVector3 constructor which can specify the min and max values.
-        /// </summary>
-        /// <param name="minValue">The minimum Vector3 value.</param>
-        /// <param name="maxValue">The maximum Vector3 value.</param>
-        public MinMaxVector3(Vector3 minValue, Vector3 maxValue)
-        {
-            m_MinValue = minValue;
-            m_MaxValue = maxValue;
-            m_MinMagnitude = Vector3.zero;
-        }
-
-        /// <summary>
-        /// MinMaxVector3 constructor which can specify the min and max values.
-        /// </summary>
-        /// <param name="minValue">The minimum Vector3 value.</param>
-        /// <param name="maxValue">The maximum Vector3 value.</param>
-        /// <param name="minMagnitude">The minimum magnitude of the random value.</param>
-        public MinMaxVector3(Vector3 minValue, Vector3 maxValue, Vector3 minMagnitude)
-        {
-            m_MinValue = minValue;
-            m_MaxValue = maxValue;
-            m_MinMagnitude = minMagnitude;
-        }
-
-        /// <summary>
-        /// Returns a random float between the min and max value with the specified minimum magnitude.
+        ///     Returns a random float between the min and max value with the specified minimum magnitude.
         /// </summary>
         /// <param name="minValue">The minimum float value.</param>
         /// <param name="maxValue">The maximum float value.</param>
@@ -283,38 +294,29 @@ namespace Opsive.UltimateCharacterController.Utility
         /// <returns>A random float between the min and max value.</returns>
         private float GetRandomFloat(float minValue, float maxValue, float minMagnitude)
         {
-            if (minMagnitude != 0 && Mathf.Sign(m_MinValue.x) != Mathf.Sign(m_MaxValue.x)) {
-                if (Mathf.Sign(UnityEngine.Random.Range(m_MinValue.x, m_MaxValue.x)) > 0) {
-                    return UnityEngine.Random.Range(minMagnitude, Mathf.Max(minMagnitude, maxValue));
-                }
-                return UnityEngine.Random.Range(-minMagnitude, Mathf.Min(-minMagnitude, minValue));
-            } else {
-                return UnityEngine.Random.Range(minValue, maxValue);
+            if (minMagnitude != 0 && Mathf.Sign(m_MinValue.x) != Mathf.Sign(m_MaxValue.x))
+            {
+                if (Mathf.Sign(Random.Range(m_MinValue.x, m_MaxValue.x)) > 0)
+                    return Random.Range(minMagnitude, Mathf.Max(minMagnitude, maxValue));
+                return Random.Range(-minMagnitude, Mathf.Min(-minMagnitude, minValue));
             }
+
+            return Random.Range(minValue, maxValue);
         }
     }
 
     /// <summary>
-    /// Represents the object which can be spawned.
+    ///     Represents the object which can be spawned.
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public class ObjectSpawnInfo
     {
-#pragma warning disable 0649
-        [Tooltip("The object that can be spawned.")]
-        [SerializeField] private GameObject m_Object;
-        [Tooltip("The probability that the object can be spawned.")]
-        [Range(0, 1)] [SerializeField] private float m_Probability = 1;
-        [Tooltip("Should a random spin be applied to the object after it has been spawned?")]
-        [SerializeField] private bool m_RandomSpin;
-#pragma warning restore 0649
-
-        public GameObject Object { get { return m_Object; } }
-        public float Probability { get { return m_Probability; } }
-        public bool RandomSpin { get { return m_RandomSpin; } }
+        public GameObject Object => m_Object;
+        public float Probability => m_Probability;
+        public bool RandomSpin => m_RandomSpin;
 
         /// <summary>
-        /// Instantiate the object.
+        ///     Instantiate the object.
         /// </summary>
         /// <param name="position">The position to instantiate the object at.</param>
         /// <param name="normal">The normal of the instantiated object.</param>
@@ -322,119 +324,122 @@ namespace Opsive.UltimateCharacterController.Utility
         /// <returns>The instantiated object (can be null). </returns>
         public GameObject Instantiate(Vector3 position, Vector3 normal, Vector3 gravityDirection)
         {
-            if (m_Object == null) {
-                return null;
-            }
+            if (m_Object == null) return null;
 
             // There is a random chance that the object cannot be spawned.
-            if (UnityEngine.Random.value < m_Probability) {
+            if (Random.value < m_Probability)
+            {
                 var rotation = Quaternion.LookRotation(normal);
                 // A random spin can be applied so the rotation isn't the same every hit.
-                if (m_RandomSpin) {
-                    rotation *= Quaternion.AngleAxis(UnityEngine.Random.Range(0, 360), normal);
-                }
+                if (m_RandomSpin) rotation *= Quaternion.AngleAxis(Random.Range(0, 360), normal);
                 var instantiatedObject = ObjectPoolBase.Instantiate(m_Object, position, rotation);
                 // If the DirectionalConstantForce component exists then the gravity direction should be set so the object will move in the correct direction.
-                var directionalConstantForce = instantiatedObject.GetCachedComponent<Traits.DirectionalConstantForce>();
-                if (directionalConstantForce != null) {
-                    directionalConstantForce.Direction = gravityDirection;
-                }
+                var directionalConstantForce = instantiatedObject.GetCachedComponent<DirectionalConstantForce>();
+                if (directionalConstantForce != null) directionalConstantForce.Direction = gravityDirection;
                 return instantiatedObject;
             }
+
             return null;
         }
+#pragma warning disable 0649
+        [Tooltip("The object that can be spawned.")] [SerializeField]
+        private GameObject m_Object;
+
+        [Tooltip("The probability that the object can be spawned.")] [Range(0, 1)] [SerializeField]
+        private float m_Probability = 1;
+
+        [Tooltip("Should a random spin be applied to the object after it has been spawned?")] [SerializeField]
+        private bool m_RandomSpin;
+#pragma warning restore 0649
     }
 
     /// <summary>
-    /// Struct which stores the material values to revert back to after the material has been faded.
+    ///     Struct which stores the material values to revert back to after the material has been faded.
     /// </summary>
     public struct OriginalMaterialValue
     {
-        [Tooltip("The color of the material.")]
-        private Color m_Color;
-        [Tooltip("Does the material have a mode property?")]
-        private bool m_ContainsMode;
-        [Tooltip("The render mode of the material.")]
-        private float m_Mode;
-        [Tooltip("The SourceBlend BlendMode of the material.")]
-        private int m_SrcBlend;
-        [Tooltip("The DestinationBlend BlendMode of the material.")]
-        private int m_DstBlend;
-        [Tooltip("Is alpha blend enabled?")]
-        private bool m_AlphaBlend;
-        [Tooltip("The render queue of the material.")]
-        private int m_RenderQueue;
+        [field: Tooltip("The color of the material.")]
+        public Color Color { get; set; }
 
-        public Color Color { get { return m_Color; } set { m_Color = value; } }
-        public bool ContainsMode { get { return m_ContainsMode; } set { m_ContainsMode = value; } }
-        public float Mode { get { return m_Mode; } set { m_Mode = value; } }
-        public int SrcBlend { get { return m_SrcBlend; } set { m_SrcBlend = value; } }
-        public int DstBlend { get { return m_DstBlend; } set { m_DstBlend = value; } }
-        public bool AlphaBlend { get { return m_AlphaBlend; } set { m_AlphaBlend = value; } }
-        public int RenderQueue { get { return m_RenderQueue; } set { m_RenderQueue = value; } }
+        [field: Tooltip("Does the material have a mode property?")]
+        public bool ContainsMode { get; set; }
 
-        private static int s_ModeID;
-        private static int s_SrcBlendID;
-        private static int s_DstBlendID;
-        private static string s_AlphaBlendString = "_ALPHABLEND_ON";
+        [field: Tooltip("The render mode of the material.")]
+        public float Mode { get; set; }
 
-        public static int ModeID { get { return s_ModeID; } }
-        public static int SrcBlendID { get { return s_SrcBlendID; } }
-        public static int DstBlendID { get { return s_DstBlendID; } }
-        public static string AlphaBlendString { get { return s_AlphaBlendString; } }
+        [field: Tooltip("The SourceBlend BlendMode of the material.")]
+        public int SrcBlend { get; set; }
+
+        [field: Tooltip("The DestinationBlend BlendMode of the material.")]
+        public int DstBlend { get; set; }
+
+        [field: Tooltip("Is alpha blend enabled?")]
+        public bool AlphaBlend { get; set; }
+
+        [field: Tooltip("The render queue of the material.")]
+        public int RenderQueue { get; set; }
+
+        public static int ModeID { get; private set; }
+
+        public static int SrcBlendID { get; private set; }
+
+        public static int DstBlendID { get; private set; }
+
+        public static string AlphaBlendString { get; } = "_ALPHABLEND_ON";
 
         /// <summary>
-        /// Initializes the OriginalMaterialValue.
+        ///     Initializes the OriginalMaterialValue.
         /// </summary>
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {
-            s_ModeID = Shader.PropertyToID("_Mode");
-            s_SrcBlendID = Shader.PropertyToID("_SrcBlend");
-            s_DstBlendID = Shader.PropertyToID("_DstBlend");
+            ModeID = Shader.PropertyToID("_Mode");
+            SrcBlendID = Shader.PropertyToID("_SrcBlend");
+            DstBlendID = Shader.PropertyToID("_DstBlend");
         }
 
         /// <summary>
-        /// Initializes the OriginalMaterialValue to the material values.
+        ///     Initializes the OriginalMaterialValue to the material values.
         /// </summary>
         /// <param name="material">The material to initialize.</param>
         /// <param name="colorID">The id of the color property.</param>
         /// <param name="containsMode">Does the material have a Mode property?</param>
         public void Initialize(Material material, int colorID, bool containsMode)
         {
-            m_Color = material.GetColor(colorID);
-            m_AlphaBlend = material.IsKeywordEnabled(s_AlphaBlendString);
-            m_RenderQueue = material.renderQueue;
-            m_ContainsMode = containsMode;
-            if (containsMode) {
-                m_Mode = material.GetFloat(s_ModeID);
-                m_SrcBlend = material.GetInt(s_SrcBlendID);
-                m_DstBlend = material.GetInt(s_DstBlendID);
+            Color = material.GetColor(colorID);
+            AlphaBlend = material.IsKeywordEnabled(AlphaBlendString);
+            RenderQueue = material.renderQueue;
+            ContainsMode = containsMode;
+            if (containsMode)
+            {
+                Mode = material.GetFloat(ModeID);
+                SrcBlend = material.GetInt(SrcBlendID);
+                DstBlend = material.GetInt(DstBlendID);
             }
         }
     }
 
     /// <summary>
-    /// Storage class for determining if an event is triggered based on an animation event or time.
+    ///     Storage class for determining if an event is triggered based on an animation event or time.
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public class AnimationEventTrigger
     {
-        [Tooltip("Is the event triggered with a Unity animation event?")]
-        [SerializeField] private bool m_WaitForAnimationEvent;
-        [Tooltip("The amount of time it takes to trigger the event if not using an animation event.")]
-        [SerializeField] private float m_Duration;
+        [Tooltip("Is the event triggered with a Unity animation event?")] [SerializeField]
+        private bool m_WaitForAnimationEvent;
 
-        public bool WaitForAnimationEvent { get { return m_WaitForAnimationEvent; } set { m_WaitForAnimationEvent = value; } }
-        public float Duration { get { return m_Duration; } set { m_Duration = value; } }
+        [Tooltip("The amount of time it takes to trigger the event if not using an animation event.")] [SerializeField]
+        private float m_Duration;
 
         /// <summary>
-        /// Default constructor.
+        ///     Default constructor.
         /// </summary>
-        public AnimationEventTrigger() { }
+        public AnimationEventTrigger()
+        {
+        }
 
         /// <summary>
-        /// Two parameter constructor for AnimationEventTrigger.
+        ///     Two parameter constructor for AnimationEventTrigger.
         /// </summary>
         /// <param name="waitForAnimationEvent">Is the event triggered with a Unity animation event?</param>
         /// <param name="duration">The amount of time it takes to trigger the event if not using an animation event.</param>
@@ -443,36 +448,57 @@ namespace Opsive.UltimateCharacterController.Utility
             m_WaitForAnimationEvent = waitForAnimationEvent;
             m_Duration = duration;
         }
+
+        public bool WaitForAnimationEvent
+        {
+            get => m_WaitForAnimationEvent;
+            set => m_WaitForAnimationEvent = value;
+        }
+
+        public float Duration
+        {
+            get => m_Duration;
+            set => m_Duration = value;
+        }
     }
 
     /// <summary>
-    /// Determines if an animation event should be triggered for a specified slot.
+    ///     Determines if an animation event should be triggered for a specified slot.
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public class AnimationSlotEventTrigger : AnimationEventTrigger
     {
-        [Tooltip("Specifies if the item should wait for the specific slot animation event.")]
-        [SerializeField] private bool m_WaitForSlotEvent;
-
-        public bool WaitForSlotEvent { get { return m_WaitForSlotEvent; } set { m_WaitForSlotEvent = value; } }
+        [Tooltip("Specifies if the item should wait for the specific slot animation event.")] [SerializeField]
+        private bool m_WaitForSlotEvent;
 
         /// <summary>
-        /// Default constructor.
+        ///     Default constructor.
         /// </summary>
-        public AnimationSlotEventTrigger() { }
+        public AnimationSlotEventTrigger()
+        {
+        }
 
         /// <summary>
-        /// Two parameter constructor for AnimationSlotEventTrigger.
+        ///     Two parameter constructor for AnimationSlotEventTrigger.
         /// </summary>
         /// <param name="waitForAnimationEvent">Is the event triggered with a Unity animation event?</param>
         /// <param name="duration">The amount of time it takes to trigger the event if not using an animation event.</param>
-        public AnimationSlotEventTrigger(bool waitForAnimationEvent, float duration) : base(waitForAnimationEvent, duration) { }
+        public AnimationSlotEventTrigger(bool waitForAnimationEvent, float duration) : base(waitForAnimationEvent,
+            duration)
+        {
+        }
+
+        public bool WaitForSlotEvent
+        {
+            get => m_WaitForSlotEvent;
+            set => m_WaitForSlotEvent = value;
+        }
     }
 
     /// <summary>
-    /// Attribute which allows the same type to be added multiple times.
+    ///     Attribute which allows the same type to be added multiple times.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
+    [AttributeUsage(AttributeTargets.Class)]
     public class AllowDuplicateTypes : Attribute
     {
         // Intentionally left blank.

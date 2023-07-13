@@ -7,11 +7,11 @@
 namespace Opsive.UltimateCharacterController.Utility
 {
     /// <summary>
-    /// Static class defining information about the asset.
+    ///     Static class defining information about the asset.
     /// </summary>
     public static class AssetInfo
     {
-        public static string Version { get { return "2.4.3"; } }
+        public static string Version => "2.4.3";
 
         public static string Name
         {

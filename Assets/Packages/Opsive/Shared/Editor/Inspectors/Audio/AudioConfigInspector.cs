@@ -4,20 +4,20 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Audio;
+using UnityEditor;
+using UnityEngine;
+
 namespace Opsive.Shared.Editor.Inspectors.Audio
 {
-    using Opsive.Shared.Audio;
-    using UnityEditor;
-    using UnityEngine;
-
     /// <summary>
-    /// Draws a PropertyDrawer for the FloatOverride.
+    ///     Draws a PropertyDrawer for the FloatOverride.
     /// </summary>
     [CustomPropertyDrawer(typeof(FloatOverride))]
     public class FloatValueOptionDrawer : PropertyDrawer
     {
         /// <summary>
-        /// Draws the property inside the given rect.
+        ///     Draws the property inside the given rect.
         /// </summary>
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -40,12 +40,10 @@ namespace Opsive.Shared.Editor.Inspectors.Audio
 
             // Draw fields - passs GUIContent.none to each so they are drawn without labels.
             EditorGUI.PropertyField(option, property.FindPropertyRelative("m_ValueOverride"), GUIContent.none);
-            if (valueOverride != FloatOverride.Override.NoOverride) {
+            if (valueOverride != FloatOverride.Override.NoOverride)
                 EditorGUI.PropertyField(constant1, property.FindPropertyRelative("m_Constant1"), GUIContent.none);
-            }
-            if (valueOverride == FloatOverride.Override.Random) {
+            if (valueOverride == FloatOverride.Override.Random)
                 EditorGUI.PropertyField(constant2, property.FindPropertyRelative("m_Constant2"), GUIContent.none);
-            }
 
             // Set indent back to what it was.
             EditorGUI.indentLevel = indent;
@@ -54,13 +52,13 @@ namespace Opsive.Shared.Editor.Inspectors.Audio
     }
 
     /// <summary>
-    /// Draws a PropertyDrawer for the BoolOverride.
+    ///     Draws a PropertyDrawer for the BoolOverride.
     /// </summary>
     [CustomPropertyDrawer(typeof(BoolOverride))]
     public class BoolOptionDrawer : PropertyDrawer
     {
         /// <summary>
-        /// Draws the property inside the given rect.
+        ///     Draws the property inside the given rect.
         /// </summary>
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -81,9 +79,8 @@ namespace Opsive.Shared.Editor.Inspectors.Audio
 
             // Draw fields - passs GUIContent.none to each so they are drawn without labels.
             EditorGUI.PropertyField(option, property.FindPropertyRelative("m_ValueOverride"), GUIContent.none);
-            if (valueOverride == BoolOverride.Override.Constant) {
+            if (valueOverride == BoolOverride.Override.Constant)
                 EditorGUI.PropertyField(constant1, property.FindPropertyRelative("m_Value"), GUIContent.none);
-            }
 
             // Set indent back to what it was.
             EditorGUI.indentLevel = indent;

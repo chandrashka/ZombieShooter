@@ -4,23 +4,28 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Audio;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
 {
-    using Opsive.Shared.Audio;
-    using UnityEngine;
-
     /// <summary>
-    /// Plays an AudioClip on the impacted object.
+    ///     Plays an AudioClip on the impacted object.
     /// </summary>
     public class PlayAudioClip : ImpactAction
     {
         [Tooltip("The AudioClip that should be played when the impact occurs. A random AudioClip will be selected.")]
-        [SerializeField] protected AudioClip[] m_AudioClips;
+        [SerializeField]
+        protected AudioClip[] m_AudioClips;
 
-        public AudioClip[] AudioClips { get { return m_AudioClips; } set { m_AudioClips = value; } }
+        public AudioClip[] AudioClips
+        {
+            get => m_AudioClips;
+            set => m_AudioClips = value;
+        }
 
         /// <summary>
-        /// Perform the impact action.
+        ///     Perform the impact action.
         /// </summary>
         /// <param name="castID">The ID of the cast.</param>
         /// <param name="source">The object that caused the cast.</param>
@@ -28,16 +33,19 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
         /// <param name="hit">The raycast that caused the impact.</param>
         protected override void ImpactInternal(uint castID, GameObject source, GameObject target, RaycastHit hit)
         {
-            if (m_AudioClips == null || m_AudioClips.Length == 0) {
+            if (m_AudioClips == null || m_AudioClips.Length == 0)
+            {
                 Debug.LogError("Error: An Audio Clip must be specified", m_MagicItem);
                 return;
             }
 
             var audioClip = m_AudioClips[Random.Range(0, m_AudioClips.Length)];
-            if (audioClip == null) {
+            if (audioClip == null)
+            {
                 Debug.Log("Error: The Audio Clip array has a null value.");
                 return;
             }
+
             AudioManager.PlayAtPosition(audioClip, hit.point);
         }
     }

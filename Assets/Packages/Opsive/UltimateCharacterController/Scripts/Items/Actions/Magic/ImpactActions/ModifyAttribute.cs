@@ -4,26 +4,30 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Events;
+using Opsive.Shared.Game;
+using Opsive.Shared.Utility;
+using Opsive.UltimateCharacterController.Traits;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
 {
-    using Opsive.Shared.Game;
-    using Opsive.Shared.Events;
-    using Opsive.Shared.Utility;
-    using Opsive.UltimateCharacterController.Traits;
-    using UnityEngine;
-
     /// <summary>
-    /// Modifies the specified attribute on the impacted object.
+    ///     Modifies the specified attribute on the impacted object.
     /// </summary>
     public class ModifyAttribute : ImpactAction
     {
-        [Tooltip("The attribute that should be modified.")]
-        [SerializeField] protected AttributeModifier m_AttributeModifier = new AttributeModifier();
+        [Tooltip("The attribute that should be modified.")] [SerializeField]
+        protected AttributeModifier m_AttributeModifier = new();
 
-        public AttributeModifier AttributeModifier { get { return m_AttributeModifier; } set { m_AttributeModifier = value; } }
+        public AttributeModifier AttributeModifier
+        {
+            get => m_AttributeModifier;
+            set => m_AttributeModifier = value;
+        }
 
         /// <summary>
-        /// Perform the impact action.
+        ///     Perform the impact action.
         /// </summary>
         /// <param name="castID">The ID of the cast.</param>
         /// <param name="source">The object that caused the cast.</param>
@@ -32,38 +36,36 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
         protected override void ImpactInternal(uint castID, GameObject source, GameObject target, RaycastHit hit)
         {
             var targetAttributeManager = target.GetCachedParentComponent<AttributeManager>();
-            if (targetAttributeManager == null) {
-                return;
-            }
+            if (targetAttributeManager == null) return;
 
             // The impact action can collide with multiple objects. Use a pooled version of the AttributeModifier for each collision.
             var attributeModifier = GenericObjectPool.Get<AttributeModifier>();
-            if (!attributeModifier.Initialize(m_AttributeModifier, targetAttributeManager)) {
+            if (!attributeModifier.Initialize(m_AttributeModifier, targetAttributeManager))
+            {
                 GenericObjectPool.Return(attributeModifier);
                 return;
             }
 
             // The attribute exists. Enable the modifier. Return the modifier as soon as it is complete (which may be immediate).
             attributeModifier.EnableModifier(true);
-            if (attributeModifier.AutoUpdating && attributeModifier.AutoUpdateDuration > 0) {
-                EventHandler.RegisterEvent<AttributeModifier, bool>(attributeModifier, "OnAttributeModifierAutoUpdateEnable", ModifierAutoUpdateEnabled);
-            } else {
+            if (attributeModifier.AutoUpdating && attributeModifier.AutoUpdateDuration > 0)
+                EventHandler.RegisterEvent<AttributeModifier, bool>(attributeModifier,
+                    "OnAttributeModifierAutoUpdateEnable", ModifierAutoUpdateEnabled);
+            else
                 GenericObjectPool.Return(attributeModifier);
-            }
         }
 
         /// <summary>
-        /// The AttributeModifier auto updater has been enabled or disabled.
+        ///     The AttributeModifier auto updater has been enabled or disabled.
         /// </summary>
         /// <param name="attributeModifier">The modifier that has been enabled or disabled.</param>
         /// <param name="enable">True if the modifier has been enabled.</param>
         private void ModifierAutoUpdateEnabled(AttributeModifier attributeModifier, bool enable)
         {
-            if (enable) {
-                return;
-            }
+            if (enable) return;
 
-            EventHandler.UnregisterEvent<AttributeModifier, bool>(attributeModifier, "OnAttributeModifierAutoUpdateEnable", ModifierAutoUpdateEnabled);
+            EventHandler.UnregisterEvent<AttributeModifier, bool>(attributeModifier,
+                "OnAttributeModifierAutoUpdateEnable", ModifierAutoUpdateEnabled);
             GenericObjectPool.Return(attributeModifier);
         }
     }

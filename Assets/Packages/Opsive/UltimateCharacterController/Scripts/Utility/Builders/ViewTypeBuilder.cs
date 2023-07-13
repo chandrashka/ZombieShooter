@@ -4,23 +4,25 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using Opsive.Shared.StateSystem;
+using Opsive.Shared.Utility;
+using Opsive.UltimateCharacterController.Camera;
+using Opsive.UltimateCharacterController.Camera.ViewTypes;
+using UnityEditor;
+
 namespace Opsive.UltimateCharacterController.Utility.Builders
 {
-    using Opsive.Shared.StateSystem;
-    using Opsive.UltimateCharacterController.Camera;
-    using Opsive.UltimateCharacterController.Camera.ViewTypes;
-    using System;
-    using System.Collections.Generic;
-
     /// <summary>
-    /// Adds and serializes CameraController view types.
+    ///     Adds and serializes CameraController view types.
     /// </summary>
     public static class ViewTypeBuilder
     {
-        private static Dictionary<Type, AddState[]> s_AddStates = new Dictionary<Type, AddState[]>();
+        private static readonly Dictionary<Type, AddState[]> s_AddStates = new();
 
         /// <summary>
-        /// Adds the view type with the specified type.
+        ///     Adds the view type with the specified type.
         /// </summary>
         /// <param name="cameraController">The camera to add the ability to.</param>
         /// <param name="viewType">The type of view type to add.</param>
@@ -28,11 +30,10 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
         public static ViewType AddViewType(CameraController cameraController, Type viewType)
         {
             var viewTypes = cameraController.ViewTypes;
-            if (viewTypes == null) {
+            if (viewTypes == null)
                 viewTypes = new ViewType[1];
-            } else {
+            else
                 Array.Resize(ref viewTypes, viewTypes.Length + 1);
-            }
 
             var viewTypeObj = Activator.CreateInstance(viewType) as ViewType;
             viewTypes[viewTypes.Length - 1] = viewTypeObj;
@@ -46,34 +47,36 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
 
 #if UNITY_EDITOR
             var addStates = GetAddStates(viewType);
-            if (addStates != null && addStates.Length > 0) {
+            if (addStates != null && addStates.Length > 0)
+            {
                 var states = viewTypeObj.States;
                 var addedStates = 0;
                 var stateLength = states.Length;
                 Array.Resize(ref states, stateLength + addStates.Length);
                 // Default must always be at the end.
                 states[states.Length - 1] = states[0];
-                for (int i = 0; i < addStates.Length; ++i) {
-                    var presetPath = UnityEditor.AssetDatabase.GUIDToAssetPath(addStates[i].PresetGUID);
-                    if (!string.IsNullOrEmpty(presetPath)) {
-                        var preset = UnityEditor.AssetDatabase.LoadAssetAtPath(presetPath, typeof(PersistablePreset)) as PersistablePreset;
-                        if (preset != null) {
+                for (var i = 0; i < addStates.Length; ++i)
+                {
+                    var presetPath = AssetDatabase.GUIDToAssetPath(addStates[i].PresetGUID);
+                    if (!string.IsNullOrEmpty(presetPath))
+                    {
+                        var preset =
+                            AssetDatabase.LoadAssetAtPath(presetPath, typeof(PersistablePreset)) as PersistablePreset;
+                        if (preset != null)
+                        {
                             states[i] = new State(addStates[i].Name, preset, null);
                             addedStates++;
                         }
                     }
                 }
-                if (addedStates != addStates.Length) {
-                    Array.Resize(ref states, stateLength + addedStates);
-                }
+
+                if (addedStates != addStates.Length) Array.Resize(ref states, stateLength + addedStates);
                 viewTypeObj.States = states;
             }
 #endif
 
             SerializeViewTypes(cameraController);
-            if (!(viewTypeObj is Transition)) {
-                cameraController.SetViewType(viewType, false);
-            }
+            if (!(viewTypeObj is Transition)) cameraController.SetViewType(viewType, false);
             return viewTypeObj;
         }
 
@@ -91,7 +94,8 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
             UnityEngine.Camera firstPersonCamera = null;
             FirstPersonController.Camera.ViewTypes.FirstPerson firstPersonViewType;
             for (int i = 0; i < viewTypes.Length; ++i) {
-                if ((firstPersonViewType = viewTypes[i] as FirstPersonController.Camera.ViewTypes.FirstPerson) != null &&
+                if ((firstPersonViewType =
+ viewTypes[i] as FirstPersonController.Camera.ViewTypes.FirstPerson) != null &&
                     firstPersonViewType.FirstPersonCamera != null) {
                     firstPersonCamera = firstPersonViewType.FirstPersonCamera;
                     break;
@@ -122,34 +126,31 @@ namespace Opsive.UltimateCharacterController.Utility.Builders
 #endif
 
         /// <summary>
-        /// Serialize all of the view types to the ViewTypeData array.
+        ///     Serialize all of the view types to the ViewTypeData array.
         /// </summary>
         /// <param name="cameraController">The camera controller to serialize.</param>
         public static void SerializeViewTypes(CameraController cameraController)
         {
             var viewTypes = new List<ViewType>(cameraController.ViewTypes);
-            cameraController.ViewTypeData = Shared.Utility.Serialization.Serialize<ViewType>(viewTypes);
+            cameraController.ViewTypeData = Serialization.Serialize<ViewType>(viewTypes);
 #if UNITY_EDITOR
-            UnityEditor.PrefabUtility.RecordPrefabInstancePropertyModifications(cameraController);
+            PrefabUtility.RecordPrefabInstancePropertyModifications(cameraController);
 #endif
             cameraController.ViewTypes = viewTypes.ToArray();
         }
 
         /// <summary>
-        /// Returns the AddState of the specified view type.
+        ///     Returns the AddState of the specified view type.
         /// </summary>
         /// <param name="type">The view type.</param>
         /// <returns>The AddState of the specified ability type. Can be null.</returns>
         private static AddState[] GetAddStates(Type type)
         {
             AddState[] addStates;
-            if (s_AddStates.TryGetValue(type, out addStates)) {
-                return addStates;
-            }
+            if (s_AddStates.TryGetValue(type, out addStates)) return addStates;
 
-            if (type.GetCustomAttributes(typeof(AddState), true).Length > 0) {
+            if (type.GetCustomAttributes(typeof(AddState), true).Length > 0)
                 addStates = type.GetCustomAttributes(typeof(AddState), true) as AddState[];
-            }
             s_AddStates.Add(type, addStates);
             return addStates;
         }

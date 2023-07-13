@@ -4,21 +4,23 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Inventory;
+using UnityEditor;
+using UnityEngine;
+using EditorUtility = Opsive.Shared.Editor.Utility.EditorUtility;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Inventory
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Inventory;
-    using UnityEditor;
-    using UnityEngine;
-
     /// <summary>
-    /// Custom inspector for the InventoryBase component.
+    ///     Custom inspector for the InventoryBase component.
     /// </summary>
     [CustomEditor(typeof(InventoryBase))]
     public class InventoryBaseInspector : InspectorBase
     {
         /// <summary>
-        /// Draws the inspector.
+        ///     Draws the inspector.
         /// </summary>
         public override void OnInspectorGUI()
         {
@@ -27,46 +29,53 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Inventory
             EditorGUI.BeginChangeCheck();
 
             // Show the items currently within the inspector.
-            if (Foldout("Current Inventory")) {
+            if (Foldout("Current Inventory"))
+            {
                 EditorGUI.indentLevel++;
                 var inventory = target as InventoryBase;
                 var itemIdentifiers = inventory.GetAllItemIdentifiers();
-                if (itemIdentifiers.Count > 0) {
+                if (itemIdentifiers.Count > 0)
+                {
                     GUI.enabled = false;
                     EditorGUILayout.BeginHorizontal();
                     EditorGUILayout.LabelField("Item Identifier");
                     EditorGUILayout.LabelField("Count");
                     GUILayout.Space(-150);
                     EditorGUILayout.EndHorizontal();
-                    for (int i = 0; i < itemIdentifiers.Count; ++i) {
+                    for (var i = 0; i < itemIdentifiers.Count; ++i)
+                    {
                         EditorGUILayout.BeginHorizontal();
                         var style = EditorStyles.label;
                         var label = itemIdentifiers[i].ToString();
                         var activeCount = 0;
-                        for (int j = 0; j < inventory.SlotCount; ++j) {
+                        for (var j = 0; j < inventory.SlotCount; ++j)
+                        {
                             var item = inventory.GetActiveItem(j);
-                            if (item != null && item.ItemIdentifier == itemIdentifiers[i]) {
-                                if (activeCount == 0) {
+                            if (item != null && item.ItemIdentifier == itemIdentifiers[i])
+                            {
+                                if (activeCount == 0)
                                     label += " (Slot " + j;
-                                } else {
+                                else
                                     label += ", " + j;
-                                }
                                 style = EditorStyles.boldLabel;
                                 activeCount++;
                             }
                         }
-                        if (activeCount > 0) {
-                            label += ")";
-                        }
+
+                        if (activeCount > 0) label += ")";
                         EditorGUILayout.LabelField(label, style);
                         EditorGUILayout.LabelField(inventory.GetItemIdentifierAmount(itemIdentifiers[i]).ToString());
                         GUILayout.Space(-150);
                         EditorGUILayout.EndHorizontal();
                     }
+
                     GUI.enabled = true;
-                } else {
+                }
+                else
+                {
                     EditorGUILayout.LabelField("(Nothing in inventory)");
                 }
+
                 EditorGUI.indentLevel--;
             }
 
@@ -76,27 +85,31 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Inventory
             EditorGUILayout.PropertyField(PropertyFromName("m_LoadDefaultLoadoutOnRespawn"));
             EditorGUILayout.PropertyField(PropertyFromName("m_UnequippedStateName"));
 
-            if (Foldout("Events")) {
+            if (Foldout("Events"))
+            {
                 EditorGUI.indentLevel++;
-                Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnAddItemEvent"));
-                Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnPickupItemIdentifierEvent"));
-                Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnPickupItemEvent"));
-                Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnEquipItemEvent"));
-                Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnAdjustItemIdentifierAmountEvent"));
-                Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnUnequipItemEvent"));
-                Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnRemoveItemEvent"));
+                InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnAddItemEvent"));
+                InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnPickupItemIdentifierEvent"));
+                InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnPickupItemEvent"));
+                InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnEquipItemEvent"));
+                InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnAdjustItemIdentifierAmountEvent"));
+                InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnUnequipItemEvent"));
+                InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnRemoveItemEvent"));
                 EditorGUI.indentLevel--;
             }
 
-            if (EditorGUI.EndChangeCheck()) {
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 serializedObject.ApplyModifiedProperties();
             }
         }
 
         /// <summary>
-        /// Draws the properties for the inventory subclass.
+        ///     Draws the properties for the inventory subclass.
         /// </summary>
-        protected virtual void DrawInventoryProperties() { }
+        protected virtual void DrawInventoryProperties()
+        {
+        }
     }
 }

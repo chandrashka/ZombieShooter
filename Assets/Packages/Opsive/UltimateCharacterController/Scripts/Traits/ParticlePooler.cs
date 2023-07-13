@@ -4,16 +4,17 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Game;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Traits
 {
-    using UnityEngine;
-    using Opsive.Shared.Game;
 #if ULTIMATE_CHARACTER_CONTROLLER_MULTIPLAYER
     using Opsive.UltimateCharacterController.Networking.Game;
 #endif
 
     /// <summary>
-    /// Pools the ParticleSystem after it is done playing.
+    ///     Pools the ParticleSystem after it is done playing.
     /// </summary>
     public class ParticlePooler : MonoBehaviour
     {
@@ -23,7 +24,7 @@ namespace Opsive.UltimateCharacterController.Traits
         private ScheduledEventBase m_PoolEvent;
 
         /// <summary>
-        /// Initialize the default variables.
+        ///     Initialize the default variables.
         /// </summary>
         private void Awake()
         {
@@ -32,7 +33,7 @@ namespace Opsive.UltimateCharacterController.Traits
         }
 
         /// <summary>
-        /// Schedules the object to be pooled after the particle system has stopped playing.
+        ///     Schedules the object to be pooled after the particle system has stopped playing.
         /// </summary>
         private void OnEnable()
         {
@@ -40,7 +41,7 @@ namespace Opsive.UltimateCharacterController.Traits
         }
 
         /// <summary>
-        /// Cancels the pool event if the object is disabled early.
+        ///     Cancels the pool event if the object is disabled early.
         /// </summary>
         private void OnDisable()
         {
@@ -48,12 +49,13 @@ namespace Opsive.UltimateCharacterController.Traits
         }
 
         /// <summary>
-        /// Returns the GameObject back to the ObjectPool.
+        ///     Returns the GameObject back to the ObjectPool.
         /// </summary>
         private void PoolGameObject()
         {
             // The particle may be looping so it shouldn't be stopped yet.
-            if (m_ParticleSystem.IsAlive(true)) {
+            if (m_ParticleSystem.IsAlive(true))
+            {
                 m_PoolEvent = SchedulerBase.Schedule(m_ParticleSystem.main.duration, PoolGameObject);
                 return;
             }

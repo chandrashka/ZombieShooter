@@ -4,21 +4,21 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Editor.Inspectors.StateSystem;
+using Opsive.UltimateCharacterController.Character;
+using UnityEditor;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors
 {
-    using Opsive.Shared.Editor.Inspectors.StateSystem;
-    using Opsive.UltimateCharacterController.Character;
-    using UnityEditor;
-    using System;
-
     /// <summary>
-    /// Shows a custom inspector for the AnimatorMonitor component.
+    ///     Shows a custom inspector for the AnimatorMonitor component.
     /// </summary>
     [CustomEditor(typeof(AnimatorMonitor), true)]
     public class AnimatorMonitorInspector : StateBehaviorInspector
     {
         /// <summary>
-        /// Returns the actions to draw before the State list is drawn.
+        ///     Returns the actions to draw before the State list is drawn.
         /// </summary>
         /// <returns>The actions to draw before the State list is drawn.</returns>
         protected override Action GetDrawCallback()
@@ -28,7 +28,8 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors
             baseCallback += () =>
             {
                 EditorGUILayout.PropertyField(PropertyFromName("m_AnimatorSpeed"));
-                if (Foldout("Time")) {
+                if (Foldout("Time"))
+                {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(PropertyFromName("m_HorizontalMovementDampingTime"));
                     EditorGUILayout.PropertyField(PropertyFromName("m_ForwardMovementDampingTime"));
@@ -36,7 +37,9 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors
                     EditorGUILayout.PropertyField(PropertyFromName("m_YawDampingTime"));
                     EditorGUI.indentLevel--;
                 }
-                if (Foldout("Editor")) {
+
+                if (Foldout("Editor"))
+                {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(PropertyFromName("m_LogAbilityParameterChanges"));
                     EditorGUILayout.PropertyField(PropertyFromName("m_LogItemParameterChanges"));

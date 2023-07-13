@@ -1,5 +1,5 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
 
 // Cartoon FX  - (c) 2015, Jean Moreno
 
@@ -10,28 +10,25 @@ using System.Collections;
 
 public class CFX_ShurikenThreadFix : MonoBehaviour
 {
-	private ParticleSystem[] systems;
-	
-	void OnEnable()
-	{
-		systems = GetComponentsInChildren<ParticleSystem>();
-		
-		foreach(ParticleSystem ps in systems)
-		{
-			ps.Stop(true);
-			ps.Clear(true);
-		}
-		
-		StartCoroutine("WaitFrame");
-	}
-	
-	IEnumerator WaitFrame()
-	{
-		yield return null;
-		
-		foreach(ParticleSystem ps in systems)
-		{
-			ps.Play(true);
-		}
-	}
+    private ParticleSystem[] systems;
+
+    private void OnEnable()
+    {
+        systems = GetComponentsInChildren<ParticleSystem>();
+
+        foreach (var ps in systems)
+        {
+            ps.Stop(true);
+            ps.Clear(true);
+        }
+
+        StartCoroutine("WaitFrame");
+    }
+
+    private IEnumerator WaitFrame()
+    {
+        yield return null;
+
+        foreach (var ps in systems) ps.Play(true);
+    }
 }

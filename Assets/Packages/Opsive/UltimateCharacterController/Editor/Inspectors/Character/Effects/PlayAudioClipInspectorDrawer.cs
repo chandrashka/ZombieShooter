@@ -4,26 +4,26 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Character.Effects;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Audio;
+using UnityEditorInternal;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character.Effects
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.Shared.Editor.Inspectors.Utility;
-    using Opsive.UltimateCharacterController.Character.Effects;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Audio;
-    using UnityEditorInternal;
-    using UnityEngine;
-
     /// <summary>
-    /// Draws a custom inspector for the PlayAudioClip effect.
+    ///     Draws a custom inspector for the PlayAudioClip effect.
     /// </summary>
     [InspectorDrawer(typeof(PlayAudioClip))]
     public class PlayAudioClipInspectorDrawer : EffectInspectorDrawer
     {
-        private PlayAudioClip m_PlayAudioClip;
         private ReorderableList m_AudioClipsList;
+        private PlayAudioClip m_PlayAudioClip;
 
         /// <summary>
-        /// Draws the fields related to the inspector drawer.
+        ///     Draws the fields related to the inspector drawer.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
@@ -32,11 +32,12 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character.Effects
             ObjectInspector.DrawFields(target, true);
 
             m_PlayAudioClip = target as PlayAudioClip;
-            m_AudioClipsList = AudioClipSetInspector.DrawAudioClipSet(m_PlayAudioClip.AudioClipSet, m_AudioClipsList, OnAudioClipDraw, OnAudioClipListAdd, OnAudioClipListRemove);
+            m_AudioClipsList = AudioClipSetInspector.DrawAudioClipSet(m_PlayAudioClip.AudioClipSet, m_AudioClipsList,
+                OnAudioClipDraw, OnAudioClipListAdd, OnAudioClipListRemove);
         }
 
         /// <summary>
-        /// Draws the AudioClip element.
+        ///     Draws the AudioClip element.
         /// </summary>
         private void OnAudioClipDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
@@ -44,7 +45,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character.Effects
         }
 
         /// <summary>
-        /// Adds a new AudioClip element to the AudioClipSet.
+        ///     Adds a new AudioClip element to the AudioClipSet.
         /// </summary>
         private void OnAudioClipListAdd(ReorderableList list)
         {
@@ -52,7 +53,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character.Effects
         }
 
         /// <summary>
-        /// Remove the AudioClip element at the list index.
+        ///     Remove the AudioClip element at the list index.
         /// </summary>
         private void OnAudioClipListRemove(ReorderableList list)
         {

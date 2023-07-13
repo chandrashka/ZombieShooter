@@ -4,25 +4,35 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Adds a torque to the impacted object.
+    ///     Adds a torque to the impacted object.
     /// </summary>
     public class AddTorque : ImpactAction
     {
-        [Tooltip("The amount of torque that should be added to the impact object.")]
-        [SerializeField] protected Vector3 m_Amount;
-        [Tooltip("Specifies how to apply the torque.")]
-        [SerializeField] protected ForceMode m_Mode;
+        [Tooltip("The amount of torque that should be added to the impact object.")] [SerializeField]
+        protected Vector3 m_Amount;
 
-        public Vector3 Amount { get { return m_Amount; } set { m_Amount = value; } }
-        public ForceMode Mode { get { return m_Mode; } set { m_Mode = value; } }
+        [Tooltip("Specifies how to apply the torque.")] [SerializeField]
+        protected ForceMode m_Mode;
+
+        public Vector3 Amount
+        {
+            get => m_Amount;
+            set => m_Amount = value;
+        }
+
+        public ForceMode Mode
+        {
+            get => m_Mode;
+            set => m_Mode = value;
+        }
 
         /// <summary>
-        /// Perform the impact action.
+        ///     Perform the impact action.
         /// </summary>
         /// <param name="castID">The ID of the cast.</param>
         /// <param name="source">The object that caused the cast.</param>
@@ -31,9 +41,7 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
         protected override void ImpactInternal(uint castID, GameObject source, GameObject target, RaycastHit hit)
         {
             var rigidbody = target.GetComponent<Rigidbody>();
-            if (rigidbody == null) {
-                return;
-            }
+            if (rigidbody == null) return;
 
             rigidbody.AddTorque(m_Amount, m_Mode);
         }

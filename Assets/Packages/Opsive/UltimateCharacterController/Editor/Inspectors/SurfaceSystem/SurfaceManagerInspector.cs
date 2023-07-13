@@ -4,29 +4,36 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.SurfaceSystem;
+using UnityEditor;
+using UnityEditorInternal;
+using UnityEngine;
+using EditorUtility = Opsive.Shared.Editor.Utility.EditorUtility;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.SurfaceSystem
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.SurfaceSystem;
-    using System.Collections.Generic;
-    using UnityEditor;
-    using UnityEditorInternal;
-    using UnityEngine;
-
     /// <summary>
-    /// Shows a custom inspector for the Surface Manager.
+    ///     Shows a custom inspector for the Surface Manager.
     /// </summary>
     [CustomEditor(typeof(SurfaceManager))]
     public class SurfaceManagerInspector : InspectorBase
     {
-        private const string c_EditorPrefsSelectedObjectSurfaceIndexKey = "Opsive.UltimateCharacterController.Editor.Inspectors.SurfaceManager.SelectedObjectSurfaceIndex";
-        private string SelectedObjectSurfaceIndexKey { get { return c_EditorPrefsSelectedObjectSurfaceIndexKey + "." + target.GetType() + "." + target.name; } }
+        private const string c_EditorPrefsSelectedObjectSurfaceIndexKey =
+            "Opsive.UltimateCharacterController.Editor.Inspectors.SurfaceManager.SelectedObjectSurfaceIndex";
 
-        private SurfaceManager m_SurfaceManager;
         private ReorderableList m_ObjectSurfacesList;
 
+        private SurfaceManager m_SurfaceManager;
+
+        private string SelectedObjectSurfaceIndexKey =>
+            c_EditorPrefsSelectedObjectSurfaceIndexKey + "." + target.GetType() + "." + target.name;
+
         /// <summary>
-        /// Initialize the surface manager reference.
+        ///     Initialize the surface manager reference.
         /// </summary>
         private void OnEnable()
         {
@@ -34,56 +41,68 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.SurfaceSystem
         }
 
         /// <summary>
-        /// Draws the custom inspector.
+        ///     Draws the custom inspector.
         /// </summary>
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
             EditorGUI.BeginChangeCheck();
-            if (m_ObjectSurfacesList == null) {
+            if (m_ObjectSurfacesList == null)
+            {
                 var objectSurfacesProperty = PropertyFromName("m_ObjectSurfaces");
-                m_ObjectSurfacesList = new ReorderableList(serializedObject, objectSurfacesProperty, true, false, true, true);
+                m_ObjectSurfacesList =
+                    new ReorderableList(serializedObject, objectSurfacesProperty, true, false, true, true);
                 m_ObjectSurfacesList.drawHeaderCallback = OnObjectSurfaceListDrawHeader;
                 m_ObjectSurfacesList.drawElementCallback = OnObjectSurfaceElementDraw;
                 m_ObjectSurfacesList.onSelectCallback = OnObjectSurfaceSelect;
-                if (EditorPrefs.GetInt(SelectedObjectSurfaceIndexKey, -1) != -1) {
+                if (EditorPrefs.GetInt(SelectedObjectSurfaceIndexKey, -1) != -1)
                     m_ObjectSurfacesList.index = EditorPrefs.GetInt(SelectedObjectSurfaceIndexKey, -1);
-                }
             }
+
             m_ObjectSurfacesList.DoLayoutList();
 
-            if (m_SurfaceManager.ObjectSurfaces != null && m_ObjectSurfacesList.index != -1 && m_ObjectSurfacesList.index < m_SurfaceManager.ObjectSurfaces.Length) {
+            if (m_SurfaceManager.ObjectSurfaces != null && m_ObjectSurfacesList.index != -1 &&
+                m_ObjectSurfacesList.index < m_SurfaceManager.ObjectSurfaces.Length)
+            {
                 EditorGUILayout.BeginHorizontal();
-                GUILayout.Space(Shared.Editor.Inspectors.Utility.InspectorUtility.IndentWidth);
+                GUILayout.Space(InspectorUtility.IndentWidth);
                 EditorGUILayout.BeginVertical();
                 var objectSurface = m_SurfaceManager.ObjectSurfaces[m_ObjectSurfacesList.index];
-                objectSurface.SurfaceType = EditorGUILayout.ObjectField("Surface Type", objectSurface.SurfaceType, typeof(SurfaceType), true) as SurfaceType;
+                objectSurface.SurfaceType =
+                    EditorGUILayout.ObjectField("Surface Type", objectSurface.SurfaceType, typeof(SurfaceType), true) as
+                        SurfaceType;
 
-                if (objectSurface.UVTextures == null) {
-                    objectSurface.UVTextures = new UVTexture[0];
-                }
-                if (objectSurface.UVTextures.Length > 0) {
+                if (objectSurface.UVTextures == null) objectSurface.UVTextures = new UVTexture[0];
+                if (objectSurface.UVTextures.Length > 0)
+                {
                     var columnCount = Mathf.Max(1, Mathf.RoundToInt(EditorGUIUtility.currentViewWidth / 160f) - 1);
                     var columnIndex = 0;
-                    for (int i = 0; i < objectSurface.UVTextures.Length; ++i) {
-                        if (columnIndex % columnCount == 0) {
+                    for (var i = 0; i < objectSurface.UVTextures.Length; ++i)
+                    {
+                        if (columnIndex % columnCount == 0)
+                        {
                             GUILayout.Space(10);
                             GUILayout.BeginHorizontal();
                         }
 
                         // Draw the UVTexture.
                         EditorGUILayout.BeginHorizontal();
-                        objectSurface.UVTextures[i].Texture = EditorGUILayout.ObjectField(objectSurface.UVTextures[i].Texture, typeof(Texture), false, GUILayout.Width(75), GUILayout.Height(75)) as Texture;
+                        objectSurface.UVTextures[i].Texture =
+                            EditorGUILayout.ObjectField(objectSurface.UVTextures[i].Texture, typeof(Texture), false,
+                                GUILayout.Width(75), GUILayout.Height(75)) as Texture;
                         EditorGUILayout.BeginVertical();
                         EditorGUILayout.LabelField("UV");
-                        objectSurface.UVTextures[i].UV = EditorGUILayout.RectField(objectSurface.UVTextures[i].UV, GUILayout.Width(95));
+                        objectSurface.UVTextures[i].UV =
+                            EditorGUILayout.RectField(objectSurface.UVTextures[i].UV, GUILayout.Width(95));
                         GUILayout.Space(3);
-                        if (GUILayout.Button("Remove", GUILayout.Width(95))) {
+                        if (GUILayout.Button("Remove", GUILayout.Width(95)))
+                        {
                             var uvTextureList = new List<UVTexture>(objectSurface.UVTextures);
                             uvTextureList.RemoveAt(i);
                             objectSurface.UVTextures = uvTextureList.ToArray();
                         }
+
                         EditorGUILayout.EndVertical();
                         EditorGUILayout.EndHorizontal();
 
@@ -91,28 +110,29 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.SurfaceSystem
                         var guiRect = GUILayoutUtility.GetLastRect();
                         GUILayout.Space(-guiRect.width - Screen.width);
                         columnIndex = (columnIndex + 1) % columnCount;
-                        if (columnIndex % columnCount == 0) {
-                            GUILayout.EndHorizontal();
-                        }
+                        if (columnIndex % columnCount == 0) GUILayout.EndHorizontal();
                     }
-                    if (columnIndex != 0) {
-                        GUILayout.EndHorizontal();
-                    }
-                } else {
+
+                    if (columnIndex != 0) GUILayout.EndHorizontal();
+                }
+                else
+                {
                     GUILayout.Space(10);
                     GUILayout.Label("(No Textures Added)");
                     GUILayout.Space(-5);
                 }
 
                 GUILayout.Space(15);
-                if (GUILayout.Button("Add Texture", GUILayout.Width(140))) {
+                if (GUILayout.Button("Add Texture", GUILayout.Width(140)))
+                {
                     var uvTextures = objectSurface.UVTextures;
-                    System.Array.Resize(ref uvTextures, uvTextures.Length + 1);
+                    Array.Resize(ref uvTextures, uvTextures.Length + 1);
                     var uvTexture = uvTextures[uvTextures.Length - 1];
                     uvTexture.UV = new Rect(0, 0, 1, 1);
                     uvTextures[uvTextures.Length - 1] = uvTexture;
                     objectSurface.UVTextures = uvTextures;
                 }
+
                 GUILayout.Space(5);
 
                 // ObjectSurface is a struct so it's passed by value and needs to be reassigned.
@@ -124,21 +144,24 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.SurfaceSystem
             EditorGUILayout.PropertyField(PropertyFromName("m_MainTexturePropertyName"));
             EditorGUILayout.PropertyField(PropertyFromName("m_DetectTerrainTreeTextures"), true);
 
-            if (Foldout("Fallbacks")) {
+            if (Foldout("Fallbacks"))
+            {
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(PropertyFromName("m_FallbackSurfaceImpact"), true);
                 EditorGUILayout.PropertyField(PropertyFromName("m_FallbackSurfaceType"), true);
                 EditorGUILayout.PropertyField(PropertyFromName("m_FallbackAllowDecals"), true);
                 EditorGUI.indentLevel--;
             }
-            if (EditorGUI.EndChangeCheck()) {
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 serializedObject.ApplyModifiedProperties();
             }
         }
 
         /// <summary>
-        /// Draws the header for the ObjectSurface list.
+        ///     Draws the header for the ObjectSurface list.
         /// </summary>
         private void OnObjectSurfaceListDrawHeader(Rect rect)
         {
@@ -146,27 +169,27 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.SurfaceSystem
         }
 
         /// <summary>
-        /// Draws the ObjectSurface ReordableList element.
+        ///     Draws the ObjectSurface ReordableList element.
         /// </summary>
         private void OnObjectSurfaceElementDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
             // The index may be out of range if the component was copied.
-            if (index >= m_SurfaceManager.ObjectSurfaces.Length) {
+            if (index >= m_SurfaceManager.ObjectSurfaces.Length)
+            {
                 m_ObjectSurfacesList.index = -1;
                 EditorPrefs.SetInt(SelectedObjectSurfaceIndexKey, m_ObjectSurfacesList.index);
                 return;
             }
 
             var objectSurface = m_SurfaceManager.ObjectSurfaces[index];
-            if (objectSurface.SurfaceType == null) {
+            if (objectSurface.SurfaceType == null)
                 EditorGUI.LabelField(rect, "(No Surface Type)");
-            } else {
+            else
                 EditorGUI.LabelField(rect, objectSurface.SurfaceType.name);
-            }
         }
 
         /// <summary>
-        /// A new element has been selected within the list.
+        ///     A new element has been selected within the list.
         /// </summary>
         private void OnObjectSurfaceSelect(ReorderableList list)
         {

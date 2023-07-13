@@ -8,18 +8,12 @@ public class RagdollController : MonoBehaviour
 
     private void Start()
     {
-        foreach (var currentRigidbody in allRigidbodies)
-        {
-            currentRigidbody.isKinematic = true;
-        }
+        foreach (var currentRigidbody in allRigidbodies) currentRigidbody.isKinematic = true;
     }
 
     public void MakePhysical()
     {
         animator.enabled = false;
-        foreach (var currentRigidbody in allRigidbodies)
-        {
-            currentRigidbody.isKinematic = false;
-        }
+        foreach (var currentRigidbody in allRigidbodies) currentRigidbody.isKinematic = false;
     }
 }

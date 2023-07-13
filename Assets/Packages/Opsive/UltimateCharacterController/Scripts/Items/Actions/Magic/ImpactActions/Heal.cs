@@ -4,26 +4,37 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Traits;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
 {
-    using Opsive.UltimateCharacterController.Traits;
-    using UnityEngine;
-
     /// <summary>
-    /// Heals the impacted object.
+    ///     Heals the impacted object.
     /// </summary>
     public class Heal : ImpactAction
     {
-        [Tooltip("The amount that should be added to the Health component.")]
-        [SerializeField] protected float m_Amount = 10;
-        [Tooltip("Should the subsequent Impact Actions be interrupted if the Health component doesn't exist?")]
-        [SerializeField] protected bool m_InterruptImpactOnNullHealth = true;
+        [Tooltip("The amount that should be added to the Health component.")] [SerializeField]
+        protected float m_Amount = 10;
 
-        public float Amount { get { return m_Amount; } set { m_Amount = value; } }
-        public bool InterruptImpactOnNullHealth { get { return m_InterruptImpactOnNullHealth; } set { m_InterruptImpactOnNullHealth = value; } }
+        [Tooltip("Should the subsequent Impact Actions be interrupted if the Health component doesn't exist?")]
+        [SerializeField]
+        protected bool m_InterruptImpactOnNullHealth = true;
+
+        public float Amount
+        {
+            get => m_Amount;
+            set => m_Amount = value;
+        }
+
+        public bool InterruptImpactOnNullHealth
+        {
+            get => m_InterruptImpactOnNullHealth;
+            set => m_InterruptImpactOnNullHealth = value;
+        }
 
         /// <summary>
-        /// Perform the impact action.
+        ///     Perform the impact action.
         /// </summary>
         /// <param name="castID">The ID of the cast.</param>
         /// <param name="source">The object that caused the cast.</param>
@@ -32,11 +43,9 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
         protected override void ImpactInternal(uint castID, GameObject source, GameObject target, RaycastHit hit)
         {
             var health = target.GetComponent<Health>();
-            if (health == null || !health.Heal(m_Amount)) {
-                if (m_InterruptImpactOnNullHealth) {
+            if (health == null || !health.Heal(m_Amount))
+                if (m_InterruptImpactOnNullHealth)
                     m_MagicItem.InterruptImpact();
-                }
-            }
         }
     }
 }

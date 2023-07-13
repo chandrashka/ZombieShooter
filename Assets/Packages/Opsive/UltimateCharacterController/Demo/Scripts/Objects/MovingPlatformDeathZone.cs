@@ -4,22 +4,22 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Traits;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Demo.Objects
 {
-    using Opsive.UltimateCharacterController.Traits;
-    using UnityEngine;
-
     /// <summary>
-    /// Instantly kills the character if the character moves beneath the moving platform as it is moving down.
+    ///     Instantly kills the character if the character moves beneath the moving platform as it is moving down.
     /// </summary>
     public class MovingPlatformDeathZone : MonoBehaviour
     {
-        private Transform m_Transform;
-        private Vector3 m_PrevPosition;
         private bool m_DownwardMovement;
+        private Vector3 m_PrevPosition;
+        private Transform m_Transform;
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         private void Awake()
         {
@@ -28,7 +28,7 @@ namespace Opsive.UltimateCharacterController.Demo.Objects
         }
 
         /// <summary>
-        /// Detect if the platform is moving downward.
+        ///     Detect if the platform is moving downward.
         /// </summary>
         private void FixedUpdate()
         {
@@ -38,21 +38,17 @@ namespace Opsive.UltimateCharacterController.Demo.Objects
         }
 
         /// <summary>
-        /// An
+        ///     An
         /// </summary>
         /// <param name="other"></param>
         private void OnTriggerEnter(Collider other)
         {
             // The platform has to be moving downward in order to kill the player.
-            if (!m_DownwardMovement) {
-                return;
-            }
+            if (!m_DownwardMovement) return;
 
             // Kill the character.
             var health = other.GetComponentInParent<CharacterHealth>();
-            if (health == null) {
-                return;
-            }
+            if (health == null) return;
 
             var position = m_Transform.position;
             health.ImmediateDeath(position, Vector3.down, (position - m_PrevPosition).magnitude);

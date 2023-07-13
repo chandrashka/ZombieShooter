@@ -4,41 +4,55 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Editor.Inspectors.StateSystem;
+using Opsive.UltimateCharacterController.Character;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Items.AnimatorAudioState;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Inventory;
+using Opsive.UltimateCharacterController.Items;
+using UnityEditor;
+using UnityEditorInternal;
+using UnityEngine;
+using EditorUtility = Opsive.Shared.Editor.Utility.EditorUtility;
+using State = Opsive.Shared.StateSystem.State;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items
 {
-    using Opsive.Shared.Editor.Inspectors.StateSystem;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Items.AnimatorAudioState;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using Opsive.UltimateCharacterController.Items;
-    using Opsive.UltimateCharacterController.Inventory;
-    using System;
-    using UnityEditor;
-    using UnityEditorInternal;
-    using UnityEngine;
-
     /// <summary>
-    /// Shows a custom inspector for the Item component.
+    ///     Shows a custom inspector for the Item component.
     /// </summary>
     [CustomEditor(typeof(Item), true)]
     public class ItemInspector : StateBehaviorInspector
     {
-        private const string c_EditorPrefsSelectedEquipAnimatorAudioStateSetIndexKey = "Opsive.UltimateCharacterController.Editor.Inspectors.SelectedEquipAnimatorAudioStateSetIndex";
-        private const string c_EditorPrefsSelectedEquipAnimatorAudioStateSetStateIndexKey = "Opsive.UltimateCharacterController.Editor.Inspectors.SelectedEquipAnimatorAudioStateSetStateIndex";
-        private const string c_EditorPrefsSelectedUnequipAnimatorAudioStateSetIndexKey = "Opsive.UltimateCharacterController.Editor.Inspectors.SelectedUnequipAnimatorAudioStateSetIndex";
-        private const string c_EditorPrefsSelectedUnequipAnimatorAudioStateSetStateIndexKey = "Opsive.UltimateCharacterController.Editor.Inspectors.SelectedUnequipAnimatorAudioStateSetStateIndex";
-        private string SelectedEquipAnimatorAudioStateSetIndexKey { get { return c_EditorPrefsSelectedEquipAnimatorAudioStateSetIndexKey + "." + target.GetType() + "." + target.name; } }
-        private string SelectedUnequipAnimatorAudioStateSetIndexKey { get { return c_EditorPrefsSelectedUnequipAnimatorAudioStateSetIndexKey + "." + target.GetType() + "." + target.name; } }
+        private const string c_EditorPrefsSelectedEquipAnimatorAudioStateSetIndexKey =
+            "Opsive.UltimateCharacterController.Editor.Inspectors.SelectedEquipAnimatorAudioStateSetIndex";
+
+        private const string c_EditorPrefsSelectedEquipAnimatorAudioStateSetStateIndexKey =
+            "Opsive.UltimateCharacterController.Editor.Inspectors.SelectedEquipAnimatorAudioStateSetStateIndex";
+
+        private const string c_EditorPrefsSelectedUnequipAnimatorAudioStateSetIndexKey =
+            "Opsive.UltimateCharacterController.Editor.Inspectors.SelectedUnequipAnimatorAudioStateSetIndex";
+
+        private const string c_EditorPrefsSelectedUnequipAnimatorAudioStateSetStateIndexKey =
+            "Opsive.UltimateCharacterController.Editor.Inspectors.SelectedUnequipAnimatorAudioStateSetStateIndex";
 
         private Item m_Item;
-        private ReorderableList m_ReorderableEquipAnimatorAudioStateSetList;
         private ReorderableList m_ReorderableEquipAnimatorAudioStateSetAudioList;
+        private ReorderableList m_ReorderableEquipAnimatorAudioStateSetList;
         private ReorderableList m_ReorderableEquipAnimatorAudioStateSetStateList;
-        private ReorderableList m_ReorderableUnequipAnimatorAudioStateSetList;
         private ReorderableList m_ReorderableUnequipAnimatorAudioStateSetAudioList;
+        private ReorderableList m_ReorderableUnequipAnimatorAudioStateSetList;
         private ReorderableList m_ReorderableUnequipAnimatorAudioStateSetStateList;
 
+        private string SelectedEquipAnimatorAudioStateSetIndexKey =>
+            c_EditorPrefsSelectedEquipAnimatorAudioStateSetIndexKey + "." + target.GetType() + "." + target.name;
+
+        private string SelectedUnequipAnimatorAudioStateSetIndexKey =>
+            c_EditorPrefsSelectedUnequipAnimatorAudioStateSetIndexKey + "." + target.GetType() + "." + target.name;
+
         /// <summary>
-        /// Initialize any starting values.
+        ///     Initialize any starting values.
         /// </summary>
         protected override void OnEnable()
         {
@@ -47,12 +61,14 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items
             // After an undo or redo has been performed the animator parameter states need to be deserialized.
             Undo.undoRedoPerformed += OnUndoRedo;
 
-            m_Item.EquipAnimatorAudioStateSet.DeserializeAnimatorAudioStateSelector(m_Item, m_Item.GetComponentInParent<UltimateCharacterController.Character.UltimateCharacterLocomotion>());
-            m_Item.UnequipAnimatorAudioStateSet.DeserializeAnimatorAudioStateSelector(m_Item, m_Item.GetComponentInParent<UltimateCharacterController.Character.UltimateCharacterLocomotion>());
+            m_Item.EquipAnimatorAudioStateSet.DeserializeAnimatorAudioStateSelector(m_Item,
+                m_Item.GetComponentInParent<UltimateCharacterLocomotion>());
+            m_Item.UnequipAnimatorAudioStateSet.DeserializeAnimatorAudioStateSelector(m_Item,
+                m_Item.GetComponentInParent<UltimateCharacterLocomotion>());
         }
 
         /// <summary>
-        /// Perform any cleanup when the inspector has been disabled.
+        ///     Perform any cleanup when the inspector has been disabled.
         /// </summary>
         private void OnDisable()
         {
@@ -60,7 +76,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items
         }
 
         /// <summary>
-        /// Returns the actions to draw before the State list is drawn.
+        ///     Returns the actions to draw before the State list is drawn.
         /// </summary>
         /// <returns>The actions to draw before the State list is drawn.</returns>
         protected override Action GetDrawCallback()
@@ -71,22 +87,30 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items
             {
                 var itemDefinition = PropertyFromName("m_ItemDefinition");
                 EditorGUILayout.PropertyField(itemDefinition);
-                if (itemDefinition == null) {
+                if (itemDefinition == null)
+                {
                     EditorGUILayout.HelpBox("An Item Definition is required.", MessageType.Error);
-                } else {
+                }
+                else
+                {
                     // Ensure the Item Definition exists within the collection set by the Item Set Manager.
                     var itemSetManager = (target as Item).GetComponentInParent<ItemSetManager>();
-                    if (itemSetManager != null && itemSetManager.ItemCollection != null) {
-                        if (AssetDatabase.GetAssetPath(itemDefinition.objectReferenceValue) != AssetDatabase.GetAssetPath(itemSetManager.ItemCollection)) {
-                            EditorGUILayout.HelpBox("The Item Definition must exist within the Item Collection specified on the character's Item Set Manager.", MessageType.Error);
-                        }
-                    }
+                    if (itemSetManager != null && itemSetManager.ItemCollection != null)
+                        if (AssetDatabase.GetAssetPath(itemDefinition.objectReferenceValue) !=
+                            AssetDatabase.GetAssetPath(itemSetManager.ItemCollection))
+                            EditorGUILayout.HelpBox(
+                                "The Item Definition must exist within the Item Collection specified on the character's Item Set Manager.",
+                                MessageType.Error);
                 }
-                if (Application.isPlaying) {
+
+                if (Application.isPlaying)
+                {
                     EditorGUI.indentLevel++;
-                    EditorGUILayout.LabelField("Item Identifier", m_Item.ItemIdentifier == null ? "(none)" : m_Item.ItemIdentifier.ToString());
+                    EditorGUILayout.LabelField("Item Identifier",
+                        m_Item.ItemIdentifier == null ? "(none)" : m_Item.ItemIdentifier.ToString());
                     EditorGUI.indentLevel--;
                 }
+
                 EditorGUILayout.PropertyField(PropertyFromName("m_SlotID"));
                 EditorGUILayout.PropertyField(PropertyFromName("m_AnimatorItemID"));
                 EditorGUILayout.PropertyField(PropertyFromName("m_AnimatorMovementSetID"));
@@ -94,50 +118,77 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items
                 EditorGUILayout.PropertyField(PropertyFromName("m_UniqueItemSet"));
                 EditorGUILayout.PropertyField(PropertyFromName("m_AllowCameraZoom"));
                 EditorGUILayout.PropertyField(PropertyFromName("m_DropPrefab"));
-                if (PropertyFromName("m_DropPrefab").objectReferenceValue != null) {
+                if (PropertyFromName("m_DropPrefab").objectReferenceValue != null)
+                {
                     EditorGUI.indentLevel++;
 #if ULTIMATE_CHARACTER_CONTROLLER_VR
                     EditorGUILayout.PropertyField(PropertyFromName("m_DropVelocityMultiplier"));
 #endif
                     EditorGUI.indentLevel--;
                 }
+
                 EditorGUILayout.PropertyField(PropertyFromName("m_FullInventoryDrop"));
                 EditorGUILayout.PropertyField(PropertyFromName("m_DropConsumableItems"));
-                if (Foldout("Equip")) {
+                if (Foldout("Equip"))
+                {
                     EditorGUI.indentLevel++;
                     InspectorUtility.DrawAnimationEventTrigger(target, "Equip Event", PropertyFromName("m_EquipEvent"));
-                    InspectorUtility.DrawAnimationEventTrigger(target, "Equip Complete Event", PropertyFromName("m_EquipCompleteEvent"));
-                    if (Foldout("Animator Audio", "Equip")) {
+                    InspectorUtility.DrawAnimationEventTrigger(target, "Equip Complete Event",
+                        PropertyFromName("m_EquipCompleteEvent"));
+                    if (Foldout("Animator Audio", "Equip"))
+                    {
                         EditorGUI.indentLevel++;
-                        AnimatorAudioStateSetInspector.DrawAnimatorAudioStateSet(m_Item, m_Item.EquipAnimatorAudioStateSet, "m_EquipAnimatorAudioStateSet", true,
-                                    ref m_ReorderableEquipAnimatorAudioStateSetList, OnEquipAnimatorAudioStateListDraw, OnEquipAnimatorAudioStateListSelect,
-                                    OnEquipAnimatorAudioStateListAdd, OnEquipAnimatorAudioStateListRemove, SelectedEquipAnimatorAudioStateSetIndexKey,
-                                    ref m_ReorderableEquipAnimatorAudioStateSetAudioList, 
-                                    OnEquipAudioListElementDraw, OnEquipAudioListAdd, OnEquipAudioListRemove, ref m_ReorderableEquipAnimatorAudioStateSetStateList,
-                                    OnEquipAnimatorAudioStateSetStateListDraw, OnEquipAnimatorAudioStateSetStateListAdd, OnEquipAnimatorAudioStateSetStateListReorder, OnEquipAnimatorAudioStateSetStateListRemove,
-                                    GetSelectedEquipAnimatorAudioStateSetStateIndexKey(EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)));
+                        AnimatorAudioStateSetInspector.DrawAnimatorAudioStateSet(m_Item,
+                            m_Item.EquipAnimatorAudioStateSet, "m_EquipAnimatorAudioStateSet", true,
+                            ref m_ReorderableEquipAnimatorAudioStateSetList, OnEquipAnimatorAudioStateListDraw,
+                            OnEquipAnimatorAudioStateListSelect,
+                            OnEquipAnimatorAudioStateListAdd, OnEquipAnimatorAudioStateListRemove,
+                            SelectedEquipAnimatorAudioStateSetIndexKey,
+                            ref m_ReorderableEquipAnimatorAudioStateSetAudioList,
+                            OnEquipAudioListElementDraw, OnEquipAudioListAdd, OnEquipAudioListRemove,
+                            ref m_ReorderableEquipAnimatorAudioStateSetStateList,
+                            OnEquipAnimatorAudioStateSetStateListDraw, OnEquipAnimatorAudioStateSetStateListAdd,
+                            OnEquipAnimatorAudioStateSetStateListReorder, OnEquipAnimatorAudioStateSetStateListRemove,
+                            GetSelectedEquipAnimatorAudioStateSetStateIndexKey(
+                                EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)));
                         EditorGUI.indentLevel--;
                     }
+
                     EditorGUI.indentLevel--;
                 }
-                if (Foldout("Unequip")) {
+
+                if (Foldout("Unequip"))
+                {
                     EditorGUI.indentLevel++;
-                    InspectorUtility.DrawAnimationEventTrigger(target, "Unequip Event", PropertyFromName("m_UnequipEvent"));
-                    InspectorUtility.DrawAnimationEventTrigger(target, "Unequip Complete Event", PropertyFromName("m_UnequipCompleteEvent"));
-                    if (Foldout("Animator Audio", "Unequip")) {
+                    InspectorUtility.DrawAnimationEventTrigger(target, "Unequip Event",
+                        PropertyFromName("m_UnequipEvent"));
+                    InspectorUtility.DrawAnimationEventTrigger(target, "Unequip Complete Event",
+                        PropertyFromName("m_UnequipCompleteEvent"));
+                    if (Foldout("Animator Audio", "Unequip"))
+                    {
                         EditorGUI.indentLevel++;
-                        AnimatorAudioStateSetInspector.DrawAnimatorAudioStateSet(m_Item, m_Item.UnequipAnimatorAudioStateSet, "m_UnequipAnimatorAudioStateSet", true,
-                                    ref m_ReorderableUnequipAnimatorAudioStateSetList, OnUnequipAnimatorAudioStateListDraw, OnUnequipAnimatorAudioStateListSelect,
-                                    OnUnequipAnimatorAudioStateListAdd, OnUnequipAnimatorAudioStateListRemove, SelectedUnequipAnimatorAudioStateSetIndexKey,
-                                    ref m_ReorderableUnequipAnimatorAudioStateSetAudioList,
-                                    OnUnequipAudioListElementDraw, OnUnequipAudioListAdd, OnUnequipAudioListRemove, ref m_ReorderableUnequipAnimatorAudioStateSetStateList,
-                                    OnUnequipAnimatorAudioStateSetStateListDraw, OnUnequipAnimatorAudioStateSetStateListAdd, OnUnequipAnimatorAudioStateSetStateListReorder, OnUnequipAnimatorAudioStateSetStateListRemove,
-                                    GetSelectedUnequipAnimatorAudioStateSetStateIndexKey(EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)));
+                        AnimatorAudioStateSetInspector.DrawAnimatorAudioStateSet(m_Item,
+                            m_Item.UnequipAnimatorAudioStateSet, "m_UnequipAnimatorAudioStateSet", true,
+                            ref m_ReorderableUnequipAnimatorAudioStateSetList, OnUnequipAnimatorAudioStateListDraw,
+                            OnUnequipAnimatorAudioStateListSelect,
+                            OnUnequipAnimatorAudioStateListAdd, OnUnequipAnimatorAudioStateListRemove,
+                            SelectedUnequipAnimatorAudioStateSetIndexKey,
+                            ref m_ReorderableUnequipAnimatorAudioStateSetAudioList,
+                            OnUnequipAudioListElementDraw, OnUnequipAudioListAdd, OnUnequipAudioListRemove,
+                            ref m_ReorderableUnequipAnimatorAudioStateSetStateList,
+                            OnUnequipAnimatorAudioStateSetStateListDraw, OnUnequipAnimatorAudioStateSetStateListAdd,
+                            OnUnequipAnimatorAudioStateSetStateListReorder,
+                            OnUnequipAnimatorAudioStateSetStateListRemove,
+                            GetSelectedUnequipAnimatorAudioStateSetStateIndexKey(
+                                EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)));
                         EditorGUI.indentLevel--;
                     }
+
                     EditorGUI.indentLevel--;
                 }
-                if (Foldout("UI")) {
+
+                if (Foldout("UI"))
+                {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(PropertyFromName("m_UIMonitorID"));
                     EditorGUILayout.PropertyField(PropertyFromName("m_Icon"));
@@ -154,12 +205,18 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items
                     EditorGUILayout.PropertyField(PropertyFromName("m_FullScreenUIID"));
                     EditorGUI.indentLevel--;
                 }
-                if (Foldout("Events")) {
+
+                if (Foldout("Events"))
+                {
                     EditorGUI.indentLevel++;
-                    Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_PickupItemEvent"));
-                    Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_EquipItemEvent"));
-                    Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_UnequipItemEvent"));
-                    Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_DropItemEvent"));
+                    Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(
+                        PropertyFromName("m_PickupItemEvent"));
+                    Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(
+                        PropertyFromName("m_EquipItemEvent"));
+                    Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(
+                        PropertyFromName("m_UnequipItemEvent"));
+                    Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(
+                        PropertyFromName("m_DropItemEvent"));
                     EditorGUI.indentLevel--;
                 }
             };
@@ -168,71 +225,81 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items
         }
 
         /// <summary>
-        /// Draws all of the added audio clip elements.
+        ///     Draws all of the added audio clip elements.
         /// </summary>
         private void OnEquipAudioListElementDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
-            AnimatorAudioStateSetInspector.OnAudioClipDraw(m_ReorderableEquipAnimatorAudioStateSetAudioList, rect, index, m_Item.EquipAnimatorAudioStateSet.States, SelectedEquipAnimatorAudioStateSetIndexKey, target);
+            AnimatorAudioStateSetInspector.OnAudioClipDraw(m_ReorderableEquipAnimatorAudioStateSetAudioList, rect,
+                index, m_Item.EquipAnimatorAudioStateSet.States, SelectedEquipAnimatorAudioStateSetIndexKey, target);
         }
 
         /// <summary>
-        /// Adds a new audio clip element to the list.
+        ///     Adds a new audio clip element to the list.
         /// </summary>
         private void OnEquipAudioListAdd(ReorderableList list)
         {
-            AnimatorAudioStateSetInspector.OnAudioClipListAdd(list, m_Item.EquipAnimatorAudioStateSet.States, SelectedEquipAnimatorAudioStateSetIndexKey, target);
+            AnimatorAudioStateSetInspector.OnAudioClipListAdd(list, m_Item.EquipAnimatorAudioStateSet.States,
+                SelectedEquipAnimatorAudioStateSetIndexKey, target);
         }
 
         /// <summary>
-        /// Removes the audio clip at the list index.
+        ///     Removes the audio clip at the list index.
         /// </summary>
         private void OnEquipAudioListRemove(ReorderableList list)
         {
-            AnimatorAudioStateSetInspector.OnAudioClipListRemove(list, m_Item.EquipAnimatorAudioStateSet.States, SelectedEquipAnimatorAudioStateSetIndexKey, target);
+            AnimatorAudioStateSetInspector.OnAudioClipListRemove(list, m_Item.EquipAnimatorAudioStateSet.States,
+                SelectedEquipAnimatorAudioStateSetIndexKey, target);
         }
 
         /// <summary>
-        /// Draws all of the added audio clip elements.
+        ///     Draws all of the added audio clip elements.
         /// </summary>
         private void OnUnequipAudioListElementDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
-            AnimatorAudioStateSetInspector.OnAudioClipDraw(m_ReorderableUnequipAnimatorAudioStateSetAudioList, rect, index, m_Item.UnequipAnimatorAudioStateSet.States, SelectedUnequipAnimatorAudioStateSetIndexKey, target);
+            AnimatorAudioStateSetInspector.OnAudioClipDraw(m_ReorderableUnequipAnimatorAudioStateSetAudioList, rect,
+                index, m_Item.UnequipAnimatorAudioStateSet.States, SelectedUnequipAnimatorAudioStateSetIndexKey,
+                target);
         }
 
         /// <summary>
-        /// Adds a new audio clip element to the list.
+        ///     Adds a new audio clip element to the list.
         /// </summary>
         private void OnUnequipAudioListAdd(ReorderableList list)
         {
-            AnimatorAudioStateSetInspector.OnAudioClipListAdd(list, m_Item.UnequipAnimatorAudioStateSet.States, SelectedUnequipAnimatorAudioStateSetIndexKey, target);
+            AnimatorAudioStateSetInspector.OnAudioClipListAdd(list, m_Item.UnequipAnimatorAudioStateSet.States,
+                SelectedUnequipAnimatorAudioStateSetIndexKey, target);
         }
 
         /// <summary>
-        /// Removes the audio clip at the list index.
+        ///     Removes the audio clip at the list index.
         /// </summary>
         private void OnUnequipAudioListRemove(ReorderableList list)
         {
-            AnimatorAudioStateSetInspector.OnAudioClipListRemove(list, m_Item.UnequipAnimatorAudioStateSet.States, SelectedUnequipAnimatorAudioStateSetIndexKey, target);
+            AnimatorAudioStateSetInspector.OnAudioClipListRemove(list, m_Item.UnequipAnimatorAudioStateSet.States,
+                SelectedUnequipAnimatorAudioStateSetIndexKey, target);
         }
 
         /// <summary>
-        /// Draws the AudioStateSet element.
+        ///     Draws the AudioStateSet element.
         /// </summary>
         private void OnEquipAnimatorAudioStateListDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
-            AnimatorAudioStateSetInspector.OnAnimatorAudioStateElementDraw(m_ReorderableEquipAnimatorAudioStateSetList, m_Item.EquipAnimatorAudioStateSet, rect, index, isActive, isFocused, target);
+            AnimatorAudioStateSetInspector.OnAnimatorAudioStateElementDraw(m_ReorderableEquipAnimatorAudioStateSetList,
+                m_Item.EquipAnimatorAudioStateSet, rect, index, isActive, isFocused, target);
         }
 
         /// <summary>
-        /// Draws the AudioStateSet element.
+        ///     Draws the AudioStateSet element.
         /// </summary>
         private void OnUnequipAnimatorAudioStateListDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
-            AnimatorAudioStateSetInspector.OnAnimatorAudioStateElementDraw(m_ReorderableUnequipAnimatorAudioStateSetList, m_Item.UnequipAnimatorAudioStateSet, rect, index, isActive, isFocused, target);
+            AnimatorAudioStateSetInspector.OnAnimatorAudioStateElementDraw(
+                m_ReorderableUnequipAnimatorAudioStateSetList, m_Item.UnequipAnimatorAudioStateSet, rect, index,
+                isActive, isFocused, target);
         }
 
         /// <summary>
-        /// A new element has been selected.
+        ///     A new element has been selected.
         /// </summary>
         private void OnEquipAnimatorAudioStateListSelect(ReorderableList list)
         {
@@ -240,264 +307,341 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items
         }
 
         /// <summary>
-        /// A new element has been selected.
+        ///     A new element has been selected.
         /// </summary>
         private void OnUnequipAnimatorAudioStateListSelect(ReorderableList list)
         {
-            AnimatorAudioStateSetInspector.OnAnimatorAudioStateSelect(list, SelectedUnequipAnimatorAudioStateSetIndexKey);
+            AnimatorAudioStateSetInspector.OnAnimatorAudioStateSelect(list,
+                SelectedUnequipAnimatorAudioStateSetIndexKey);
         }
 
         /// <summary>
-        /// Adds a new state element to the list.
+        ///     Adds a new state element to the list.
         /// </summary>
         private void OnEquipAnimatorAudioStateListAdd(ReorderableList list)
         {
-            AnimatorAudioStateSetInspector.OnAnimatorAudioStateListAdd(list, m_Item.EquipAnimatorAudioStateSet, SelectedEquipAnimatorAudioStateSetIndexKey);
+            AnimatorAudioStateSetInspector.OnAnimatorAudioStateListAdd(list, m_Item.EquipAnimatorAudioStateSet,
+                SelectedEquipAnimatorAudioStateSetIndexKey);
         }
 
         /// <summary>
-        /// Adds a new state element to the list.
+        ///     Adds a new state element to the list.
         /// </summary>
         private void OnUnequipAnimatorAudioStateListAdd(ReorderableList list)
         {
-            AnimatorAudioStateSetInspector.OnAnimatorAudioStateListAdd(list, m_Item.UnequipAnimatorAudioStateSet, SelectedUnequipAnimatorAudioStateSetIndexKey);
+            AnimatorAudioStateSetInspector.OnAnimatorAudioStateListAdd(list, m_Item.UnequipAnimatorAudioStateSet,
+                SelectedUnequipAnimatorAudioStateSetIndexKey);
         }
 
         /// <summary>
-        /// Removes the state at the list index.
+        ///     Removes the state at the list index.
         /// </summary>
         private void OnEquipAnimatorAudioStateListRemove(ReorderableList list)
         {
-            AnimatorAudioStateSetInspector.OnAnimatorAudioStateListRemove(list, m_Item.EquipAnimatorAudioStateSet, SelectedEquipAnimatorAudioStateSetIndexKey);
+            AnimatorAudioStateSetInspector.OnAnimatorAudioStateListRemove(list, m_Item.EquipAnimatorAudioStateSet,
+                SelectedEquipAnimatorAudioStateSetIndexKey);
         }
 
         /// <summary>
-        /// Removes the state at the list index.
+        ///     Removes the state at the list index.
         /// </summary>
         private void OnUnequipAnimatorAudioStateListRemove(ReorderableList list)
         {
-            AnimatorAudioStateSetInspector.OnAnimatorAudioStateListRemove(list, m_Item.UnequipAnimatorAudioStateSet, SelectedUnequipAnimatorAudioStateSetIndexKey);
+            AnimatorAudioStateSetInspector.OnAnimatorAudioStateListRemove(list, m_Item.UnequipAnimatorAudioStateSet,
+                SelectedUnequipAnimatorAudioStateSetIndexKey);
         }
 
         /// <summary>
-        /// Returns the state index key for the specified AnimatorAudioStateSet type.
+        ///     Returns the state index key for the specified AnimatorAudioStateSet type.
         /// </summary>
         private string GetSelectedEquipAnimatorAudioStateSetStateIndexKey(int index)
         {
-            return c_EditorPrefsSelectedEquipAnimatorAudioStateSetStateIndexKey + "." + target.GetType() + "." + target.name + "." + index;
+            return c_EditorPrefsSelectedEquipAnimatorAudioStateSetStateIndexKey + "." + target.GetType() + "." +
+                   target.name + "." + index;
         }
 
         /// <summary>
-        /// Returns the state index key for the specified AnimatorAudioStateSet type.
+        ///     Returns the state index key for the specified AnimatorAudioStateSet type.
         /// </summary>
         private string GetSelectedUnequipAnimatorAudioStateSetStateIndexKey(int index)
         {
-            return c_EditorPrefsSelectedUnequipAnimatorAudioStateSetStateIndexKey + "." + target.GetType() + "." + target.name + "." + index;
+            return c_EditorPrefsSelectedUnequipAnimatorAudioStateSetStateIndexKey + "." + target.GetType() + "." +
+                   target.name + "." + index;
         }
 
         /// <summary>
-        /// Draws all of the added states.
+        ///     Draws all of the added states.
         /// </summary>
         private void OnEquipAnimatorAudioStateSetStateListDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
             EditorGUI.BeginChangeCheck();
-            var animatorAudioState = m_Item.EquipAnimatorAudioStateSet.States[EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)];
+            var animatorAudioState =
+                m_Item.EquipAnimatorAudioStateSet.States[
+                    EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)];
 
             // The index may be out of range if the component was copied.
-            if (index >= animatorAudioState.States.Length) {
+            if (index >= animatorAudioState.States.Length)
+            {
                 m_ReorderableEquipAnimatorAudioStateSetStateList.index = -1;
-                EditorPrefs.SetInt(GetSelectedEquipAnimatorAudioStateSetStateIndexKey(EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)), m_ReorderableEquipAnimatorAudioStateSetStateList.index);
+                EditorPrefs.SetInt(
+                    GetSelectedEquipAnimatorAudioStateSetStateIndexKey(
+                        EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)),
+                    m_ReorderableEquipAnimatorAudioStateSetStateList.index);
                 return;
             }
 
             StateInspector.OnStateListDraw(animatorAudioState, animatorAudioState.States, rect, index);
-            if (EditorGUI.EndChangeCheck()) {
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 StateInspector.UpdateDefaultStateValues(animatorAudioState.States);
             }
         }
 
         /// <summary>
-        /// Draws all of the added states.
+        ///     Draws all of the added states.
         /// </summary>
         private void OnUnequipAnimatorAudioStateSetStateListDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
             EditorGUI.BeginChangeCheck();
-            var animatorAudioState = m_Item.UnequipAnimatorAudioStateSet.States[EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)];
+            var animatorAudioState =
+                m_Item.UnequipAnimatorAudioStateSet.States[
+                    EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)];
 
             // The index may be out of range if the component was copied.
-            if (index >= animatorAudioState.States.Length) {
+            if (index >= animatorAudioState.States.Length)
+            {
                 m_ReorderableUnequipAnimatorAudioStateSetStateList.index = -1;
-                EditorPrefs.SetInt(GetSelectedUnequipAnimatorAudioStateSetStateIndexKey(EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)), m_ReorderableUnequipAnimatorAudioStateSetStateList.index);
+                EditorPrefs.SetInt(
+                    GetSelectedUnequipAnimatorAudioStateSetStateIndexKey(
+                        EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)),
+                    m_ReorderableUnequipAnimatorAudioStateSetStateList.index);
                 return;
             }
 
             StateInspector.OnStateListDraw(animatorAudioState, animatorAudioState.States, rect, index);
-            if (EditorGUI.EndChangeCheck()) {
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 StateInspector.UpdateDefaultStateValues(animatorAudioState.States);
             }
         }
 
         /// <summary>
-        /// Adds a new state element to the list.
+        ///     Adds a new state element to the list.
         /// </summary>
         private void OnEquipAnimatorAudioStateSetStateListAdd(ReorderableList list)
         {
-            StateInspector.OnStateListAdd(AddExistingEquipAnimatorAudioStateSetStatePreset, CreateEquipAnimatorAudioStateSetStatePreset);
+            StateInspector.OnStateListAdd(AddExistingEquipAnimatorAudioStateSetStatePreset,
+                CreateEquipAnimatorAudioStateSetStatePreset);
         }
 
         /// <summary>
-        /// Adds a new state element to the list.
+        ///     Adds a new state element to the list.
         /// </summary>
         private void OnUnequipAnimatorAudioStateSetStateListAdd(ReorderableList list)
         {
-            StateInspector.OnStateListAdd(AddExistingUnequipAnimatorAudioStateSetStatePreset, CreateUnequipAnimatorAudioStateSetStatePreset);
+            StateInspector.OnStateListAdd(AddExistingUnequipAnimatorAudioStateSetStatePreset,
+                CreateUnequipAnimatorAudioStateSetStatePreset);
         }
 
         /// <summary>
-        /// Adds a new element to the state list which uses an existing preset.
+        ///     Adds a new element to the state list which uses an existing preset.
         /// </summary>
         private void AddExistingEquipAnimatorAudioStateSetStatePreset()
         {
-            var animatorAudioState = m_Item.EquipAnimatorAudioStateSet.States[EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)];
-            var states = StateInspector.AddExistingPreset(animatorAudioState.GetType(), animatorAudioState.States, m_ReorderableEquipAnimatorAudioStateSetStateList, GetSelectedEquipAnimatorAudioStateSetStateIndexKey(EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)));
-            if (animatorAudioState.States.Length != states.Length) {
-                InspectorUtility.SynchronizePropertyCount(states, m_ReorderableEquipAnimatorAudioStateSetStateList.serializedProperty);
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            var animatorAudioState =
+                m_Item.EquipAnimatorAudioStateSet.States[
+                    EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)];
+            var states = StateInspector.AddExistingPreset(animatorAudioState.GetType(), animatorAudioState.States,
+                m_ReorderableEquipAnimatorAudioStateSetStateList,
+                GetSelectedEquipAnimatorAudioStateSetStateIndexKey(
+                    EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)));
+            if (animatorAudioState.States.Length != states.Length)
+            {
+                InspectorUtility.SynchronizePropertyCount(states,
+                    m_ReorderableEquipAnimatorAudioStateSetStateList.serializedProperty);
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 animatorAudioState.States = states;
             }
         }
 
         /// <summary>
-        /// Adds a new element to the state list which uses an existing preset.
+        ///     Adds a new element to the state list which uses an existing preset.
         /// </summary>
         private void AddExistingUnequipAnimatorAudioStateSetStatePreset()
         {
-            var animatorAudioState = m_Item.UnequipAnimatorAudioStateSet.States[EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)];
-            var states = StateInspector.AddExistingPreset(animatorAudioState.GetType(), animatorAudioState.States, m_ReorderableUnequipAnimatorAudioStateSetStateList, GetSelectedUnequipAnimatorAudioStateSetStateIndexKey(EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)));
-            if (animatorAudioState.States.Length != states.Length) {
-                InspectorUtility.SynchronizePropertyCount(states, m_ReorderableUnequipAnimatorAudioStateSetStateList.serializedProperty);
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            var animatorAudioState =
+                m_Item.UnequipAnimatorAudioStateSet.States[
+                    EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)];
+            var states = StateInspector.AddExistingPreset(animatorAudioState.GetType(), animatorAudioState.States,
+                m_ReorderableUnequipAnimatorAudioStateSetStateList,
+                GetSelectedUnequipAnimatorAudioStateSetStateIndexKey(
+                    EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)));
+            if (animatorAudioState.States.Length != states.Length)
+            {
+                InspectorUtility.SynchronizePropertyCount(states,
+                    m_ReorderableUnequipAnimatorAudioStateSetStateList.serializedProperty);
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 animatorAudioState.States = states;
             }
         }
 
         /// <summary>
-        /// Creates a new preset and adds it to a new state in the list.
+        ///     Creates a new preset and adds it to a new state in the list.
         /// </summary>
         private void CreateEquipAnimatorAudioStateSetStatePreset()
         {
-            var animatorAudioState = m_Item.EquipAnimatorAudioStateSet.States[EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)];
-            var states = StateInspector.CreatePreset(animatorAudioState, animatorAudioState.States, m_ReorderableEquipAnimatorAudioStateSetStateList, GetSelectedEquipAnimatorAudioStateSetStateIndexKey(EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)));
-            if (animatorAudioState.States.Length != states.Length) {
-                InspectorUtility.SynchronizePropertyCount(states, m_ReorderableEquipAnimatorAudioStateSetStateList.serializedProperty);
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            var animatorAudioState =
+                m_Item.EquipAnimatorAudioStateSet.States[
+                    EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)];
+            var states = StateInspector.CreatePreset(animatorAudioState, animatorAudioState.States,
+                m_ReorderableEquipAnimatorAudioStateSetStateList,
+                GetSelectedEquipAnimatorAudioStateSetStateIndexKey(
+                    EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)));
+            if (animatorAudioState.States.Length != states.Length)
+            {
+                InspectorUtility.SynchronizePropertyCount(states,
+                    m_ReorderableEquipAnimatorAudioStateSetStateList.serializedProperty);
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 animatorAudioState.States = states;
             }
         }
 
         /// <summary>
-        /// Creates a new preset and adds it to a new state in the list.
+        ///     Creates a new preset and adds it to a new state in the list.
         /// </summary>
         private void CreateUnequipAnimatorAudioStateSetStatePreset()
         {
-            var animatorAudioState = m_Item.UnequipAnimatorAudioStateSet.States[EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)];
-            var states = StateInspector.CreatePreset(animatorAudioState, animatorAudioState.States, m_ReorderableUnequipAnimatorAudioStateSetStateList, GetSelectedUnequipAnimatorAudioStateSetStateIndexKey(EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)));
-            if (animatorAudioState.States.Length != states.Length) {
-                InspectorUtility.SynchronizePropertyCount(states, m_ReorderableUnequipAnimatorAudioStateSetStateList.serializedProperty);
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            var animatorAudioState =
+                m_Item.UnequipAnimatorAudioStateSet.States[
+                    EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)];
+            var states = StateInspector.CreatePreset(animatorAudioState, animatorAudioState.States,
+                m_ReorderableUnequipAnimatorAudioStateSetStateList,
+                GetSelectedUnequipAnimatorAudioStateSetStateIndexKey(
+                    EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)));
+            if (animatorAudioState.States.Length != states.Length)
+            {
+                InspectorUtility.SynchronizePropertyCount(states,
+                    m_ReorderableUnequipAnimatorAudioStateSetStateList.serializedProperty);
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 animatorAudioState.States = states;
             }
         }
 
         /// <summary>
-        /// The list has been reordered. Ensure the reorder is valid.
+        ///     The list has been reordered. Ensure the reorder is valid.
         /// </summary>
         private void OnEquipAnimatorAudioStateSetStateListReorder(ReorderableList list)
         {
-            var animatorAudioState = m_Item.EquipAnimatorAudioStateSet.States[EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)];
+            var animatorAudioState =
+                m_Item.EquipAnimatorAudioStateSet.States[
+                    EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)];
 
             // Use the dummy array in order to determine what element the selected index was swapped with.
-            var copiedStates = new Shared.StateSystem.State[animatorAudioState.States.Length];
+            var copiedStates = new State[animatorAudioState.States.Length];
             Array.Copy(animatorAudioState.States, copiedStates, animatorAudioState.States.Length);
-            for (int i = 0; i < animatorAudioState.States.Length; ++i) {
+            for (var i = 0; i < animatorAudioState.States.Length; ++i)
+            {
                 var element = list.serializedProperty.GetArrayElementAtIndex(i);
-                if (element.intValue != i) {
+                if (element.intValue != i)
+                {
                     animatorAudioState.States[i] = copiedStates[element.intValue];
                     element.intValue = i;
                 }
             }
 
             var states = StateInspector.OnStateListReorder(animatorAudioState.States);
-            if (animatorAudioState.States.Length != states.Length) {
-                InspectorUtility.SynchronizePropertyCount(states, m_ReorderableEquipAnimatorAudioStateSetStateList.serializedProperty);
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            if (animatorAudioState.States.Length != states.Length)
+            {
+                InspectorUtility.SynchronizePropertyCount(states,
+                    m_ReorderableEquipAnimatorAudioStateSetStateList.serializedProperty);
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 animatorAudioState.States = states;
             }
         }
 
         /// <summary>
-        /// The list has been reordered. Ensure the reorder is valid.
+        ///     The list has been reordered. Ensure the reorder is valid.
         /// </summary>
         private void OnUnequipAnimatorAudioStateSetStateListReorder(ReorderableList list)
         {
-            var animatorAudioState = m_Item.UnequipAnimatorAudioStateSet.States[EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)];
+            var animatorAudioState =
+                m_Item.UnequipAnimatorAudioStateSet.States[
+                    EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)];
 
             // Use the dummy array in order to determine what element the selected index was swapped with.
-            var copiedStates = new Shared.StateSystem.State[animatorAudioState.States.Length];
+            var copiedStates = new State[animatorAudioState.States.Length];
             Array.Copy(animatorAudioState.States, copiedStates, animatorAudioState.States.Length);
-            for (int i = 0; i < animatorAudioState.States.Length; ++i) {
+            for (var i = 0; i < animatorAudioState.States.Length; ++i)
+            {
                 var element = list.serializedProperty.GetArrayElementAtIndex(i);
-                if (element.intValue != i) {
+                if (element.intValue != i)
+                {
                     animatorAudioState.States[i] = copiedStates[element.intValue];
                     element.intValue = i;
                 }
             }
 
             var states = StateInspector.OnStateListReorder(animatorAudioState.States);
-            if (animatorAudioState.States.Length != states.Length) {
-                InspectorUtility.SynchronizePropertyCount(states, m_ReorderableUnequipAnimatorAudioStateSetStateList.serializedProperty);
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            if (animatorAudioState.States.Length != states.Length)
+            {
+                InspectorUtility.SynchronizePropertyCount(states,
+                    m_ReorderableUnequipAnimatorAudioStateSetStateList.serializedProperty);
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 animatorAudioState.States = states;
             }
         }
 
         /// <summary>
-        /// The ReordableList remove button has been pressed. Remove the selected state.
+        ///     The ReordableList remove button has been pressed. Remove the selected state.
         /// </summary>
         private void OnEquipAnimatorAudioStateSetStateListRemove(ReorderableList list)
         {
-            var animatorAudioState = m_Item.EquipAnimatorAudioStateSet.States[EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)];
-            var states = StateInspector.OnStateListRemove(animatorAudioState.States, GetSelectedEquipAnimatorAudioStateSetStateIndexKey(EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)), list);
-            if (animatorAudioState.States.Length != states.Length) {
-                InspectorUtility.SynchronizePropertyCount(states, m_ReorderableEquipAnimatorAudioStateSetStateList.serializedProperty);
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            var animatorAudioState =
+                m_Item.EquipAnimatorAudioStateSet.States[
+                    EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)];
+            var states = StateInspector.OnStateListRemove(animatorAudioState.States,
+                GetSelectedEquipAnimatorAudioStateSetStateIndexKey(
+                    EditorPrefs.GetInt(SelectedEquipAnimatorAudioStateSetIndexKey)), list);
+            if (animatorAudioState.States.Length != states.Length)
+            {
+                InspectorUtility.SynchronizePropertyCount(states,
+                    m_ReorderableEquipAnimatorAudioStateSetStateList.serializedProperty);
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 animatorAudioState.States = states;
             }
         }
 
         /// <summary>
-        /// The ReordableList remove button has been pressed. Remove the selected state.
+        ///     The ReordableList remove button has been pressed. Remove the selected state.
         /// </summary>
         private void OnUnequipAnimatorAudioStateSetStateListRemove(ReorderableList list)
         {
-            var animatorAudioState = m_Item.UnequipAnimatorAudioStateSet.States[EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)];
-            var states = StateInspector.OnStateListRemove(animatorAudioState.States, GetSelectedUnequipAnimatorAudioStateSetStateIndexKey(EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)), list);
-            if (animatorAudioState.States.Length != states.Length) {
-                InspectorUtility.SynchronizePropertyCount(states, m_ReorderableUnequipAnimatorAudioStateSetStateList.serializedProperty);
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            var animatorAudioState =
+                m_Item.UnequipAnimatorAudioStateSet.States[
+                    EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)];
+            var states = StateInspector.OnStateListRemove(animatorAudioState.States,
+                GetSelectedUnequipAnimatorAudioStateSetStateIndexKey(
+                    EditorPrefs.GetInt(SelectedUnequipAnimatorAudioStateSetIndexKey)), list);
+            if (animatorAudioState.States.Length != states.Length)
+            {
+                InspectorUtility.SynchronizePropertyCount(states,
+                    m_ReorderableUnequipAnimatorAudioStateSetStateList.serializedProperty);
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 animatorAudioState.States = states;
             }
         }
 
         /// <summary>
-        /// Deserialize the animator audio state states after an undo/redo.
+        ///     Deserialize the animator audio state states after an undo/redo.
         /// </summary>
         protected virtual void OnUndoRedo()
         {
-            m_Item.EquipAnimatorAudioStateSet.DeserializeAnimatorAudioStateSelector(m_Item, m_Item.GetComponentInParent<UltimateCharacterController.Character.UltimateCharacterLocomotion>());
-            m_Item.UnequipAnimatorAudioStateSet.DeserializeAnimatorAudioStateSelector(m_Item, m_Item.GetComponentInParent<UltimateCharacterController.Character.UltimateCharacterLocomotion>());
+            m_Item.EquipAnimatorAudioStateSet.DeserializeAnimatorAudioStateSelector(m_Item,
+                m_Item.GetComponentInParent<UltimateCharacterLocomotion>());
+            m_Item.UnequipAnimatorAudioStateSet.DeserializeAnimatorAudioStateSelector(m_Item,
+                m_Item.GetComponentInParent<UltimateCharacterLocomotion>());
             Repaint();
         }
     }

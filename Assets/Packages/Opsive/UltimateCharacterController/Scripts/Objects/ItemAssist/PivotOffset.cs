@@ -4,18 +4,22 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Objects.ItemAssist
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Specifies an offset for the pivot position.
+    ///     Specifies an offset for the pivot position.
     /// </summary>
     public class PivotOffset : MonoBehaviour
     {
-        [Tooltip("The pivot offset.")]
-        [SerializeField] protected Vector3 m_Offset;
+        [Tooltip("The pivot offset.")] [SerializeField]
+        protected Vector3 m_Offset;
 
-        public Vector3 Offset { get { return m_Offset; } set { m_Offset = value; } }
+        public Vector3 Offset
+        {
+            get => m_Offset;
+            set => m_Offset = value;
+        }
     }
 }

@@ -4,45 +4,73 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Game;
+using Opsive.UltimateCharacterController.Character;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions
 {
-    using Opsive.Shared.Game;
-    using Opsive.UltimateCharacterController.Character;
 #if ULTIMATE_CHARACTER_CONTROLLER_MULTIPLAYER
     using Opsive.UltimateCharacterController.Networking.Game;
     using Opsive.UltimateCharacterController.Networking.Objects;
 #endif
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
 
     /// <summary>
-    /// Spawns an object when the cast is performed.
+    ///     Spawns an object when the cast is performed.
     /// </summary>
-    [System.Serializable]
+    [Serializable]
     public class SpawnObject : CastAction, IMagicObjectAction
     {
-        [Tooltip("The object that should be spawned.")]
-        [SerializeField] protected GameObject m_Object;
-        [Tooltip("The positional offset that the object should be spawned.")]
-        [SerializeField] protected Vector3 m_PositionOffset;
-        [Tooltip("The rotational offset that the object should be spawned.")]
-        [SerializeField] protected Vector3 m_RotationOffset;
-        [Tooltip("Should the object be parented to the origin?")]
-        [SerializeField] protected bool m_ParentToOrigin;
+        [Tooltip("The object that should be spawned.")] [SerializeField]
+        protected GameObject m_Object;
 
-        public GameObject Object { get { return m_Object; } set { m_Object = value; } }
-        public Vector3 PositionOffset { get { return m_PositionOffset; } set { m_PositionOffset = value; } }
-        public Vector3 RotationOffset { get { return m_RotationOffset; } set { m_RotationOffset = value; } }
-        public bool ParentToOrigin { get { return m_ParentToOrigin; } set { m_ParentToOrigin = value; } }
+        [Tooltip("The positional offset that the object should be spawned.")] [SerializeField]
+        protected Vector3 m_PositionOffset;
 
-        private Transform m_Transform;
+        [Tooltip("The rotational offset that the object should be spawned.")] [SerializeField]
+        protected Vector3 m_RotationOffset;
+
+        [Tooltip("Should the object be parented to the origin?")] [SerializeField]
+        protected bool m_ParentToOrigin;
+
         private UltimateCharacterLocomotion m_CharacterLocomotion;
         private GameObject m_SpawnedObject;
 
-        public GameObject SpawnedGameObject { set { m_SpawnedObject = value; } }
+        private Transform m_Transform;
+
+        public GameObject Object
+        {
+            get => m_Object;
+            set => m_Object = value;
+        }
+
+        public Vector3 PositionOffset
+        {
+            get => m_PositionOffset;
+            set => m_PositionOffset = value;
+        }
+
+        public Vector3 RotationOffset
+        {
+            get => m_RotationOffset;
+            set => m_RotationOffset = value;
+        }
+
+        public bool ParentToOrigin
+        {
+            get => m_ParentToOrigin;
+            set => m_ParentToOrigin = value;
+        }
+
+        public GameObject SpawnedGameObject
+        {
+            set => m_SpawnedObject = value;
+        }
 
         /// <summary>
-        /// Initializes the CastAction.
+        ///     Initializes the CastAction.
         /// </summary>
         /// <param name="character">The character GameObject.</param>
         /// <param name="magicItem">The MagicItem that the CastAction belongs to.</param>
@@ -56,14 +84,15 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions
         }
 
         /// <summary>
-        /// Performs the cast.
+        ///     Performs the cast.
         /// </summary>
         /// <param name="origin">The location that the cast should spawn from.</param>
         /// <param name="direction">The direction of the cast.</param>
         /// <param name="targetPosition">The target position of the cast.</param>
         public override void Cast(Transform origin, Vector3 direction, Vector3 targetPosition)
         {
-            if (m_Object == null) {
+            if (m_Object == null)
+            {
                 Debug.LogError("Error: An Object must be specified.", m_MagicItem);
                 return;
             }
@@ -78,11 +107,10 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions
 #endif
 
             var position = MathUtility.TransformPoint(origin.position, m_Transform.rotation, m_PositionOffset);
-            if (targetPosition != position) {
-                direction = (targetPosition - position).normalized;
-            }
-            m_SpawnedObject = ObjectPoolBase.Instantiate(m_Object, position, 
-                            Quaternion.LookRotation(direction, m_CharacterLocomotion.Up) * Quaternion.Euler(m_RotationOffset), m_ParentToOrigin ? origin : null);
+            if (targetPosition != position) direction = (targetPosition - position).normalized;
+            m_SpawnedObject = ObjectPoolBase.Instantiate(m_Object, position,
+                Quaternion.LookRotation(direction, m_CharacterLocomotion.Up) * Quaternion.Euler(m_RotationOffset),
+                m_ParentToOrigin ? origin : null);
 
 #if ULTIMATE_CHARACTER_CONTROLLER_MULTIPLAYER
             if (m_MagicItem.NetworkInfo != null && m_MagicItem.NetworkInfo.IsLocalPlayer()) {
@@ -97,11 +125,12 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions
         }
 
         /// <summary>
-        /// Stops the cast.
+        ///     Stops the cast.
         /// </summary>
         public override void Stop()
         {
-            if (m_SpawnedObject != null) {
+            if (m_SpawnedObject != null)
+            {
 #if ULTIMATE_CHARACTER_CONTROLLER_MULTIPLAYER
                 if (NetworkObjectPool.IsNetworkActive()) {
                     // The object may have already been destroyed over the network.
@@ -120,20 +149,19 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions
         }
 
         /// <summary>
-        /// The character has changed perspectives.
+        ///     The character has changed perspectives.
         /// </summary>
         /// <param name="origin">The location that the cast originates from.</param>
         public override void OnChangePerspectives(Transform origin)
         {
-            if (m_SpawnedObject == null || m_SpawnedObject.transform.parent == origin) {
-                return;
-            }
+            if (m_SpawnedObject == null || m_SpawnedObject.transform.parent == origin) return;
 
             var spawnedTransform = m_SpawnedObject.transform;
             var localRotation = spawnedTransform.localRotation;
             var localScale = spawnedTransform.localScale;
             spawnedTransform.parent = origin;
-            spawnedTransform.position = MathUtility.TransformPoint(origin.position, m_Transform.rotation, m_PositionOffset);
+            spawnedTransform.position =
+                MathUtility.TransformPoint(origin.position, m_Transform.rotation, m_PositionOffset);
             spawnedTransform.localRotation = localRotation;
             spawnedTransform.localScale = localScale;
         }

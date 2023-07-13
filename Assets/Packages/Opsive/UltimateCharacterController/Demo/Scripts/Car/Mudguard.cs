@@ -1,19 +1,19 @@
+using UnityEngine;
 
 namespace Opsive.UltimateCharacterController.Demo.UnityStandardAssets.Vehicles.Car
 {
-    using UnityEngine;
-
     // this script is specific to the supplied Sample Assets car, which has mudguards over the front wheels
     // which have to turn with the wheels when steering is applied.
 
     public class Mudguard : MonoBehaviour
     {
-        public GameObject m_Wheel; // The wheel that the script needs to referencing to get the postion for the suspension
+        public GameObject
+            m_Wheel; // The wheel that the script needs to referencing to get the postion for the suspension
 
         private CarController m_CarController; // car controller to get the steering angle
-        private Vector3 m_TargetOriginalPosition;
         private Vector3 m_OriginalPosition;
         private Quaternion m_OriginalRotation;
+        private Vector3 m_TargetOriginalPosition;
 
         private void Start()
         {

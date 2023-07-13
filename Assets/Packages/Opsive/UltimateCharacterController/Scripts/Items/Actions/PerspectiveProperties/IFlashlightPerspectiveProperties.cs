@@ -4,12 +4,12 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.Actions.PerspectiveProperties
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Interface for a flashlight.
+    ///     Interface for a flashlight.
     /// </summary>
     public interface IFlashlightPerspectiveProperties
     {

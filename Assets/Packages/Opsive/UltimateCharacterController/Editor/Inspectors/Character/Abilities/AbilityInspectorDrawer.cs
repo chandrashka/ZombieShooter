@@ -4,49 +4,61 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.Shared.Utility;
+using Opsive.UltimateCharacterController.Character.Abilities;
+using Opsive.UltimateCharacterController.Character.Abilities.Items;
+using Opsive.UltimateCharacterController.Character.Abilities.Starters;
+using Opsive.UltimateCharacterController.Character.Effects;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Audio;
+using Opsive.UltimateCharacterController.Editor.Utility;
+using Opsive.UltimateCharacterController.Inventory;
+using Opsive.UltimateCharacterController.Traits;
+using UnityEditor;
+using UnityEditorInternal;
+using UnityEngine;
+using AnimatorController = UnityEditor.Animations.AnimatorController;
+using EditorUtility = Opsive.Shared.Editor.Utility.EditorUtility;
+using InspectorUtility = Opsive.UltimateCharacterController.Editor.Inspectors.Utility.InspectorUtility;
+using Object = UnityEngine.Object;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Character.Abilities;
-    using Opsive.UltimateCharacterController.Character.Abilities.Starters;
-    using Opsive.UltimateCharacterController.Traits;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Audio;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using Opsive.UltimateCharacterController.Editor.Utility;
-    using System.Collections.Generic;
-    using UnityEngine;
-    using UnityEditor;
-    using UnityEditorInternal;
-
     /// <summary>
-    /// Draws a custom inspector for the base Ability type.
+    ///     Draws a custom inspector for the base Ability type.
     /// </summary>
     [InspectorDrawer(typeof(Ability))]
     public class AbilityInspectorDrawer : InspectorDrawer
     {
+        private static List<Type> s_AbilityStarterTypeCache;
+        private static List<string> s_AbilityStarterTypeName;
         private Ability m_Ability;
         private ReorderableList m_ReorderableStartAudioClipsList;
         private ReorderableList m_ReorderableStopAudioClipsList;
 
-        private static List<System.Type> s_AbilityStarterTypeCache;
-        private static List<string> s_AbilityStarterTypeName;
+        /// <summary>
+        ///     Returns true if the ability can build to the animator.
+        /// </summary>
+        public virtual bool CanBuildAnimator => false;
 
         /// <summary>
-        /// Called when the object should be drawn to the inspector.
+        ///     Called when the object should be drawn to the inspector.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
         public override void OnInspectorGUI(object target, Object parent)
         {
-            m_Ability = (target as Ability);
+            m_Ability = target as Ability;
 
-            if (!(parent is Component)) {
-                return;
-            }
+            if (!(parent is Component)) return;
 
             DrawInputFieldsFields(target, parent);
 
-            InspectorUtility.DrawAttributeModifier((parent as Component).GetComponent<AttributeManager>(), (target as Ability).AttributeModifier, "Attribute Name");
+            InspectorUtility.DrawAttributeModifier((parent as Component).GetComponent<AttributeManager>(),
+                (target as Ability).AttributeModifier, "Attribute Name");
 
             EditorGUILayout.BeginHorizontal();
             InspectorUtility.DrawField(target, "m_State");
@@ -54,7 +66,9 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
             // The InspectorUtility doesn't support a toggle with the text on the right.
             var field = InspectorUtility.GetField(target, "m_StateAppendItemIdentifierName");
             GUILayout.Space(-5);
-            var value = EditorGUILayout.ToggleLeft(new GUIContent("Append Item", InspectorUtility.GetFieldTooltip(field)), (bool)field.GetValue(target), GUILayout.Width(110));
+            var value = EditorGUILayout.ToggleLeft(
+                new GUIContent("Append Item", InspectorUtility.GetFieldTooltip(field)), (bool)field.GetValue(target),
+                GUILayout.Width(110));
             InspectorUtility.SetFieldValue(target, "m_StateAppendItemIdentifierName", value);
             GUI.enabled = true;
             EditorGUILayout.EndHorizontal();
@@ -62,36 +76,49 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
 
             DrawInspectorDrawerFields(target, parent);
 
-            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Audio")) {
+            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Audio"))
+            {
                 EditorGUI.indentLevel++;
-                if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Start")) {
+                if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Start"))
+                {
                     EditorGUI.indentLevel++;
-                    m_ReorderableStartAudioClipsList = AudioClipSetInspector.DrawAudioClipSet(m_Ability.StartAudioClipSet, m_ReorderableStartAudioClipsList, OnStartAudioClipDraw, OnStartAudioClipListAdd, OnStartAudioClipListRemove);
+                    m_ReorderableStartAudioClipsList = AudioClipSetInspector.DrawAudioClipSet(
+                        m_Ability.StartAudioClipSet, m_ReorderableStartAudioClipsList, OnStartAudioClipDraw,
+                        OnStartAudioClipListAdd, OnStartAudioClipListRemove);
                     EditorGUI.indentLevel--;
                 }
+
                 DrawAudioFields();
-                if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Stop")) {
+                if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Stop"))
+                {
                     EditorGUI.indentLevel++;
-                    m_ReorderableStopAudioClipsList = AudioClipSetInspector.DrawAudioClipSet(m_Ability.StopAudioClipSet, m_ReorderableStopAudioClipsList, OnStopAudioClipDraw, OnStopAudioClipListAdd, OnStopAudioClipListRemove);
+                    m_ReorderableStopAudioClipsList = AudioClipSetInspector.DrawAudioClipSet(m_Ability.StopAudioClipSet,
+                        m_ReorderableStopAudioClipsList, OnStopAudioClipDraw, OnStopAudioClipListAdd,
+                        OnStopAudioClipListRemove);
                     EditorGUI.indentLevel--;
                 }
+
                 EditorGUI.indentLevel--;
             }
 
             var startEffectValue = InspectorUtility.GetFieldValue<string>(target, "m_StartEffectName");
-            var newStartEffectValue = InspectorUtility.DrawTypePopup(typeof(UltimateCharacterController.Character.Effects.Effect), startEffectValue, "Start Effect", true);
-            if (startEffectValue != newStartEffectValue) {
+            var newStartEffectValue =
+                InspectorUtility.DrawTypePopup(typeof(Effect), startEffectValue, "Start Effect", true);
+            if (startEffectValue != newStartEffectValue)
+            {
                 InspectorUtility.SetFieldValue(target, "m_StartEffectName", newStartEffectValue);
-                Shared.Editor.Utility.EditorUtility.SetDirty(parent);
+                EditorUtility.SetDirty(parent);
             }
 
-            if (!string.IsNullOrEmpty(newStartEffectValue)) {
+            if (!string.IsNullOrEmpty(newStartEffectValue))
+            {
                 EditorGUI.indentLevel++;
                 InspectorUtility.DrawField(target, "m_StartEffectIndex");
                 EditorGUI.indentLevel--;
             }
 
-            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "General")) {
+            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "General"))
+            {
                 EditorGUI.indentLevel++;
                 InspectorUtility.DrawField(target, "m_InspectorDescription");
                 InspectorUtility.DrawField(target, "m_AllowPositionalInput");
@@ -102,43 +129,46 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
                 InspectorUtility.DrawField(target, "m_DetectHorizontalCollisions");
                 InspectorUtility.DrawField(target, "m_DetectVerticalCollisions");
                 InspectorUtility.DrawField(target, "m_AnimatorMotion");
-                var itemAbilityMoveTowards = (target is MoveTowards) || (target is UltimateCharacterController.Character.Abilities.Items.ItemAbility);
+                var itemAbilityMoveTowards = target is MoveTowards || target is ItemAbility;
                 GUI.enabled = !itemAbilityMoveTowards;
-                var inventory = (parent as Component).GetComponent<UltimateCharacterController.Inventory.InventoryBase>();
-                if (inventory != null && (parent as Component).GetComponent<UltimateCharacterController.Inventory.ItemSetManagerBase>() != null) {
+                var inventory = (parent as Component).GetComponent<InventoryBase>();
+                if (inventory != null && (parent as Component).GetComponent<ItemSetManagerBase>() != null)
+                {
                     var slotCount = inventory.SlotCount;
-                    if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Allow Equipped Items")) {
+                    if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Allow Equipped Items"))
+                    {
                         EditorGUI.indentLevel++;
                         var mask = InspectorUtility.GetFieldValue<int>(target, "m_AllowEquippedSlotsMask");
                         var newMask = 0;
-                        for (int i = 0; i < slotCount; ++i) {
-                            var enabled = (mask & (1 << i)) == (1 << i);
-                            if (EditorGUILayout.Toggle("Slot " + i, enabled)) {
-                                newMask |= 1 << i;
-                            }
+                        for (var i = 0; i < slotCount; ++i)
+                        {
+                            var enabled = (mask & (1 << i)) == 1 << i;
+                            if (EditorGUILayout.Toggle("Slot " + i, enabled)) newMask |= 1 << i;
                         }
+
                         // If all of the slots are enabled then use -1.
-                        if (newMask == (1 << slotCount) - 1 || itemAbilityMoveTowards) {
-                            newMask = -1;
-                        }
-                        if (mask != newMask) {
+                        if (newMask == (1 << slotCount) - 1 || itemAbilityMoveTowards) newMask = -1;
+                        if (mask != newMask)
                             InspectorUtility.SetFieldValue(target, "m_AllowEquippedSlotsMask", newMask);
-                        }
                         InspectorUtility.DrawField(target, "m_AllowItemDefinitions");
                         InspectorUtility.DrawField(target, "m_ImmediateUnequip");
                         InspectorUtility.DrawField(target, "m_ReequipSlots");
-                        if (itemAbilityMoveTowards && InspectorUtility.GetFieldValue<bool>(target, "m_ReequipSlots")) {
+                        if (itemAbilityMoveTowards && InspectorUtility.GetFieldValue<bool>(target, "m_ReequipSlots"))
+                        {
                             InspectorUtility.SetFieldValue(target, "m_ReequipSlots", false);
                             GUI.changed = true;
                         }
+
                         EditorGUI.indentLevel--;
                     }
                 }
+
                 GUI.enabled = true;
                 EditorGUI.indentLevel--;
             }
 
-            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "UI")) {
+            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "UI"))
+            {
                 EditorGUI.indentLevel++;
                 InspectorUtility.DrawField(target, "m_AbilityMessageText");
                 InspectorUtility.DrawField(target, "m_AbilityMessageIcon");
@@ -147,134 +177,158 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
         }
 
         /// <summary>
-        /// Draws the Ability fields related to input.
+        ///     Draws the Ability fields related to input.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
         protected void DrawInputFieldsFields(object target, Object parent)
         {
-            var startTypeValue = (Ability.AbilityStartType)EditorGUILayout.EnumPopup(new GUIContent("Start Type", InspectorUtility.GetFieldTooltip(target, "m_StartType")), InspectorUtility.GetFieldValue<Ability.AbilityStartType>(target, "m_StartType"));
+            var startTypeValue = (Ability.AbilityStartType)EditorGUILayout.EnumPopup(
+                new GUIContent("Start Type", InspectorUtility.GetFieldTooltip(target, "m_StartType")),
+                InspectorUtility.GetFieldValue<Ability.AbilityStartType>(target, "m_StartType"));
             InspectorUtility.SetFieldValue(target, "m_StartType", startTypeValue);
-            if (startTypeValue == Ability.AbilityStartType.Custom) {
+            if (startTypeValue == Ability.AbilityStartType.Custom)
+            {
                 PopulateAbilityStarterTypes();
-                if (s_AbilityStarterTypeCache != null) {
+                if (s_AbilityStarterTypeCache != null)
+                {
                     EditorGUI.indentLevel++;
                     var selected = 0;
                     var forceUpdate = true;
-                    if (m_Ability.StarterData != null && !string.IsNullOrEmpty(m_Ability.StarterData.ObjectType)) {
-                        for (int i = 0; i < s_AbilityStarterTypeCache.Count; ++i) {
-                            if (s_AbilityStarterTypeCache[i].FullName == m_Ability.StarterData.ObjectType) {
+                    if (m_Ability.StarterData != null && !string.IsNullOrEmpty(m_Ability.StarterData.ObjectType))
+                        for (var i = 0; i < s_AbilityStarterTypeCache.Count; ++i)
+                            if (s_AbilityStarterTypeCache[i].FullName == m_Ability.StarterData.ObjectType)
+                            {
                                 selected = i;
                                 forceUpdate = false;
                                 break;
                             }
-                        }
-                    }
+
                     var newSelected = EditorGUILayout.Popup("Starter", selected, s_AbilityStarterTypeName.ToArray());
-                    if (newSelected != selected || forceUpdate) {
+                    if (newSelected != selected || forceUpdate)
+                    {
                         // Use the Sequence selector as the default (or recoil in the case of a melee weapon).
-                        if (forceUpdate) {
-                            for (int i = 0; i < s_AbilityStarterTypeCache.Count; ++i) {
-                                if (s_AbilityStarterTypeCache[i].FullName == "Opsive.UltimateCharacterController.Character.Abilities.Starters.ComboTimeout") {
+                        if (forceUpdate)
+                        {
+                            for (var i = 0; i < s_AbilityStarterTypeCache.Count; ++i)
+                                if (s_AbilityStarterTypeCache[i].FullName ==
+                                    "Opsive.UltimateCharacterController.Character.Abilities.Starters.ComboTimeout")
+                                {
                                     newSelected = i;
                                     break;
                                 }
-                            }
+
                             GUI.changed = true;
                         }
-                        var starter = System.Activator.CreateInstance(s_AbilityStarterTypeCache[newSelected]) as AbilityStarter;
-                        m_Ability.StarterData = Shared.Utility.Serialization.Serialize(starter);
+
+                        var starter =
+                            Activator.CreateInstance(s_AbilityStarterTypeCache[newSelected]) as AbilityStarter;
+                        m_Ability.StarterData = Serialization.Serialize(starter);
                     }
 
-                    if (m_Ability.Starter != null) {
+                    if (m_Ability.Starter != null)
+                    {
                         EditorGUI.indentLevel++;
-                        InspectorUtility.DrawObject(m_Ability.Starter, false, true, parent, false, () =>
-                        {
-                            m_Ability.StarterData = Shared.Utility.Serialization.Serialize<AbilityStarter>(m_Ability.Starter);
-                        });
+                        InspectorUtility.DrawObject(m_Ability.Starter, false, true, parent, false,
+                            () => { m_Ability.StarterData = Serialization.Serialize(m_Ability.Starter); });
                         EditorGUI.indentLevel--;
                     }
 
                     EditorGUI.indentLevel--;
                 }
-            } else if ((target as Ability).Starter != null) {
-                (target as Ability).StarterData = null; 
             }
-            var stopTypeValue = (Ability.AbilityStopType)EditorGUILayout.EnumPopup(new GUIContent("Stop Type", InspectorUtility.GetFieldTooltip(target, "m_StopType")), InspectorUtility.GetFieldValue<Ability.AbilityStopType>(target, "m_StopType"));
+            else if ((target as Ability).Starter != null)
+            {
+                (target as Ability).StarterData = null;
+            }
+
+            var stopTypeValue = (Ability.AbilityStopType)EditorGUILayout.EnumPopup(
+                new GUIContent("Stop Type", InspectorUtility.GetFieldTooltip(target, "m_StopType")),
+                InspectorUtility.GetFieldValue<Ability.AbilityStopType>(target, "m_StopType"));
             InspectorUtility.SetFieldValue(target, "m_StopType", stopTypeValue);
 
             EditorGUI.indentLevel++;
             // The input name field only needs to be shown if the start/stop type is set to a value which requires the button press.
-            if ((startTypeValue != Ability.AbilityStartType.Automatic && startTypeValue != Ability.AbilityStartType.Manual && startTypeValue != Ability.AbilityStartType.Custom) ||
-                (stopTypeValue != Ability.AbilityStopType.Automatic && stopTypeValue != Ability.AbilityStopType.Manual)) {
-
+            if ((startTypeValue != Ability.AbilityStartType.Automatic &&
+                 startTypeValue != Ability.AbilityStartType.Manual &&
+                 startTypeValue != Ability.AbilityStartType.Custom) ||
+                (stopTypeValue != Ability.AbilityStopType.Automatic && stopTypeValue != Ability.AbilityStopType.Manual))
+            {
                 EditorGUI.BeginChangeCheck();
                 // Draw a custom array inspector for the input names.
                 var inputNames = InspectorUtility.GetFieldValue<string[]>(target, "m_InputNames");
-                if (inputNames == null || inputNames.Length == 0) {
-                    inputNames = new string[1];
-                }
-                for (int i = 0; i < inputNames.Length; ++i) {
+                if (inputNames == null || inputNames.Length == 0) inputNames = new string[1];
+                for (var i = 0; i < inputNames.Length; ++i)
+                {
                     EditorGUILayout.BeginHorizontal();
                     var fieldName = " ";
-                    if (i == 0) {
-                        fieldName = "Input Name";
-                    }
-                    inputNames[i] = EditorGUILayout.TextField(new GUIContent(fieldName, InspectorUtility.GetFieldTooltip(target, "m_InputName")), inputNames[i]);
+                    if (i == 0) fieldName = "Input Name";
+                    inputNames[i] = EditorGUILayout.TextField(
+                        new GUIContent(fieldName, InspectorUtility.GetFieldTooltip(target, "m_InputName")),
+                        inputNames[i]);
 
-                    if (i == inputNames.Length - 1) {
-                        if (i > 0 && GUILayout.Button(Shared.Editor.Inspectors.Utility.InspectorStyles.RemoveIcon, Shared.Editor.Inspectors.Utility.InspectorStyles.NoPaddingButtonStyle, GUILayout.Width(18))) {
-                            System.Array.Resize(ref inputNames, inputNames.Length - 1);
-                        }
-                        if (GUILayout.Button(Shared.Editor.Inspectors.Utility.InspectorStyles.AddIcon, Shared.Editor.Inspectors.Utility.InspectorStyles.NoPaddingButtonStyle, GUILayout.Width(18))) {
-                            System.Array.Resize(ref inputNames, inputNames.Length + 1);
+                    if (i == inputNames.Length - 1)
+                    {
+                        if (i > 0 && GUILayout.Button(InspectorStyles.RemoveIcon, InspectorStyles.NoPaddingButtonStyle,
+                                GUILayout.Width(18))) Array.Resize(ref inputNames, inputNames.Length - 1);
+                        if (GUILayout.Button(InspectorStyles.AddIcon, InspectorStyles.NoPaddingButtonStyle,
+                                GUILayout.Width(18)))
+                        {
+                            Array.Resize(ref inputNames, inputNames.Length + 1);
                             inputNames[inputNames.Length - 1] = inputNames[inputNames.Length - 2];
                         }
                     }
+
                     EditorGUILayout.EndHorizontal();
                 }
-                if (EditorGUI.EndChangeCheck()) {
+
+                if (EditorGUI.EndChangeCheck())
+                {
                     InspectorUtility.SetFieldValue(target, "m_InputNames", inputNames);
                     GUI.changed = true;
                 }
 
                 // Only show the duration and wait for release options with a LongPress start/stop type.
-                if (startTypeValue == Ability.AbilityStartType.LongPress || stopTypeValue == Ability.AbilityStopType.LongPress) {
-                    var duration = EditorGUILayout.FloatField(new GUIContent("Long Press Duration", InspectorUtility.GetFieldTooltip(target, "m_LongPressDuration")), InspectorUtility.GetFieldValue<float>(target, "m_LongPressDuration"));
+                if (startTypeValue == Ability.AbilityStartType.LongPress ||
+                    stopTypeValue == Ability.AbilityStopType.LongPress)
+                {
+                    var duration = EditorGUILayout.FloatField(
+                        new GUIContent("Long Press Duration",
+                            InspectorUtility.GetFieldTooltip(target, "m_LongPressDuration")),
+                        InspectorUtility.GetFieldValue<float>(target, "m_LongPressDuration"));
                     InspectorUtility.SetFieldValue(target, "m_LongPressDuration", duration);
 
-                    var waitForRelease = EditorGUILayout.Toggle(new GUIContent("Wait For Long Press Release", InspectorUtility.GetFieldTooltip(target, "m_WaitForLongPressRelease")),
-                                                                        InspectorUtility.GetFieldValue<bool>(target, "m_WaitForLongPressRelease"));
+                    var waitForRelease = EditorGUILayout.Toggle(
+                        new GUIContent("Wait For Long Press Release",
+                            InspectorUtility.GetFieldTooltip(target, "m_WaitForLongPressRelease")),
+                        InspectorUtility.GetFieldValue<bool>(target, "m_WaitForLongPressRelease"));
                     InspectorUtility.SetFieldValue(target, "m_WaitForLongPressRelease", waitForRelease);
                 }
             }
+
             EditorGUI.indentLevel--;
         }
 
         /// <summary>
-        /// Searches for an adds any Effects available in the project.
+        ///     Searches for an adds any Effects available in the project.
         /// </summary>
         private static void PopulateAbilityStarterTypes()
         {
-            if (s_AbilityStarterTypeCache != null) {
-                return;
-            }
+            if (s_AbilityStarterTypeCache != null) return;
 
-            s_AbilityStarterTypeCache = new List<System.Type>();
+            s_AbilityStarterTypeCache = new List<Type>();
             s_AbilityStarterTypeName = new List<string>();
-            var assemblies = System.AppDomain.CurrentDomain.GetAssemblies();
-            for (int i = 0; i < assemblies.Length; ++i) {
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            for (var i = 0; i < assemblies.Length; ++i)
+            {
                 var assemblyTypes = assemblies[i].GetTypes();
-                for (int j = 0; j < assemblyTypes.Length; ++j) {
+                for (var j = 0; j < assemblyTypes.Length; ++j)
+                {
                     // Must derive from AbilityStarter.
-                    if (!typeof(AbilityStarter).IsAssignableFrom(assemblyTypes[j])) {
-                        continue;
-                    }
+                    if (!typeof(AbilityStarter).IsAssignableFrom(assemblyTypes[j])) continue;
 
                     // Ignore abstract classes.
-                    if (assemblyTypes[j].IsAbstract) {
-                        continue;
-                    }
+                    if (assemblyTypes[j].IsAbstract) continue;
 
                     s_AbilityStarterTypeCache.Add(assemblyTypes[j]);
                     s_AbilityStarterTypeName.Add(InspectorUtility.DisplayTypeName(assemblyTypes[j], false));
@@ -283,88 +337,99 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
         }
 
         /// <summary>
-        /// Draws the fields related to the inspector drawer.
+        ///     Draws the fields related to the inspector drawer.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
         protected virtual void DrawInspectorDrawerFields(object target, Object parent)
         {
-            Shared.Editor.Inspectors.Utility.ObjectInspector.DrawFields(target, false);
+            ObjectInspector.DrawFields(target, false);
         }
 
         /// <summary>
-        /// Draws the fields related to audio.
+        ///     Draws the fields related to audio.
         /// </summary>
-        protected virtual void DrawAudioFields() { }
+        protected virtual void DrawAudioFields()
+        {
+        }
 
         /// <summary>
-        /// The ability has been added to the Ultimate Character Locomotion. Perform any initialization.
+        ///     The ability has been added to the Ultimate Character Locomotion. Perform any initialization.
         /// </summary>
         /// <param name="ability">The ability that has been added.</param>
         /// <param name="parent">The parent of the added ability.</param>
-        public virtual void AbilityAdded(Ability ability, Object parent) { }
+        public virtual void AbilityAdded(Ability ability, Object parent)
+        {
+        }
 
         /// <summary>
-        /// The ability has been removed from the Ultimate Character Locomotion. Perform any destruction.
+        ///     The ability has been removed from the Ultimate Character Locomotion. Perform any destruction.
         /// </summary>
         /// <param name="ability">The ability that has been removed.</param>
         /// <param name="parent">The parent of the removed ability.</param>
-        public virtual void AbilityRemoved(Ability ability, Object parent) { }
+        public virtual void AbilityRemoved(Ability ability, Object parent)
+        {
+        }
 
         /// <summary>
-        /// Allows abilities to draw custom controls under the "Editor" foldout of the ability inspector.
+        ///     Allows abilities to draw custom controls under the "Editor" foldout of the ability inspector.
         /// </summary>
         /// <param name="ability">The ability whose editor controls are being retrieved.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
         /// <returns>Any custom editor controls. Can be null.</returns>
-        public virtual System.Action GetEditorCallback(Ability ability, Object parent)
+        public virtual Action GetEditorCallback(Ability ability, Object parent)
         {
             return null;
         }
 
         /// <summary>
-        /// Generates the code necessary to recreate the states/transitions that are affected by the ability.
+        ///     Generates the code necessary to recreate the states/transitions that are affected by the ability.
         /// </summary>
         /// <param name="ability">The ability to generate the states/transitions for.</param>
         /// <param name="animatorController">The Animator Controller to generate the states/transitions from.</param>
-        /// <param name="firstPersonAnimatorController">The first person Animator Controller to generate the states/transitions from.</param>
+        /// <param name="firstPersonAnimatorController">
+        ///     The first person Animator Controller to generate the states/transitions
+        ///     from.
+        /// </param>
         /// <param name="baseDirectory">The directory that the scripts are located.</param>
         /// <returns>The file path of the generated code.</returns>
-        public string GenerateAnimatorCode(Ability ability, UnityEditor.Animations.AnimatorController animatorController, UnityEditor.Animations.AnimatorController firstPersonAnimatorController, string baseDirectory)
+        public string GenerateAnimatorCode(Ability ability, AnimatorController animatorController,
+            AnimatorController firstPersonAnimatorController, string baseDirectory)
         {
-            return AnimatorBuilder.GenerateAnimatorCode(animatorController, firstPersonAnimatorController, "AbilityIndex", ability.AbilityIndexParameter, ability, baseDirectory);
+            return AnimatorBuilder.GenerateAnimatorCode(animatorController, firstPersonAnimatorController,
+                "AbilityIndex", ability.AbilityIndexParameter, ability, baseDirectory);
         }
 
         /// <summary>
-        /// Returns true if the ability can build to the animator.
-        /// </summary>
-        public virtual bool CanBuildAnimator { get { return false; } }
-
-        /// <summary>
-        /// Adds the abilities states/transitions to the animator. 
+        ///     Adds the abilities states/transitions to the animator.
         /// </summary>
         /// <param name="animatorController">The Animator Controller to add the states to.</param>
         /// <param name="firstPersonAnimatorController">The first person Animator Controller to add the states to.</param>
-        public virtual void BuildAnimator(UnityEditor.Animations.AnimatorController animatorController, UnityEditor.Animations.AnimatorController firstPersonAnimatorController) { }
+        public virtual void BuildAnimator(AnimatorController animatorController,
+            AnimatorController firstPersonAnimatorController)
+        {
+        }
 
         /// <summary>
-        /// Draws the AudioClip element.
+        ///     Draws the AudioClip element.
         /// </summary>
         private void OnStartAudioClipDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
-            AudioClipSetInspector.OnAudioClipDraw(m_ReorderableStartAudioClipsList, rect, index, m_Ability.StartAudioClipSet, null);
+            AudioClipSetInspector.OnAudioClipDraw(m_ReorderableStartAudioClipsList, rect, index,
+                m_Ability.StartAudioClipSet, null);
         }
 
         /// <summary>
-        /// Draws the AudioClip element.
+        ///     Draws the AudioClip element.
         /// </summary>
         private void OnStopAudioClipDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
-            AudioClipSetInspector.OnAudioClipDraw(m_ReorderableStartAudioClipsList, rect, index, m_Ability.StopAudioClipSet, null);
+            AudioClipSetInspector.OnAudioClipDraw(m_ReorderableStartAudioClipsList, rect, index,
+                m_Ability.StopAudioClipSet, null);
         }
 
         /// <summary>
-        /// Adds a new AudioClip element to the AudioClipSet.
+        ///     Adds a new AudioClip element to the AudioClipSet.
         /// </summary>
         private void OnStartAudioClipListAdd(ReorderableList list)
         {
@@ -372,7 +437,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
         }
 
         /// <summary>
-        /// Adds a new AudioClip element to the AudioClipSet.
+        ///     Adds a new AudioClip element to the AudioClipSet.
         /// </summary>
         private void OnStopAudioClipListAdd(ReorderableList list)
         {
@@ -380,7 +445,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
         }
 
         /// <summary>
-        /// Remove the AudioClip element at the list index.
+        ///     Remove the AudioClip element at the list index.
         /// </summary>
         private void OnStartAudioClipListRemove(ReorderableList list)
         {
@@ -389,7 +454,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
         }
 
         /// <summary>
-        /// Remove the AudioClip element at the list index.
+        ///     Remove the AudioClip element at the list index.
         /// </summary>
         private void OnStopAudioClipListRemove(ReorderableList list)
         {

@@ -4,18 +4,18 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Editor.Inspectors.StateSystem;
+using Opsive.UltimateCharacterController.Character;
+using UnityEditor;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
 {
-    using Opsive.Shared.Editor.Inspectors.StateSystem;
-    using Opsive.UltimateCharacterController.Character;
-    using System;
-    using UnityEditor;
-
     [CustomEditor(typeof(CharacterFootEffects), true)]
     public class CharacterFootEffectsInspector : StateBehaviorInspector
     {
         /// <summary>
-        /// Returns the actions to draw before the State list is drawn.
+        ///     Returns the actions to draw before the State list is drawn.
         /// </summary>
         /// <returns>The actions to draw before the State list is drawn.</returns>
         protected override Action GetDrawCallback()
@@ -24,31 +24,41 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Character
 
             baseCallback += () =>
             {
-                if (Foldout("Footprint")) {
+                if (Foldout("Footprint"))
+                {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(PropertyFromName("m_SurfaceImpact"));
                     EditorGUILayout.PropertyField(PropertyFromName("m_FootstepMode"));
-                    var mode = (CharacterFootEffects.FootstepPlacementMode)PropertyFromName("m_FootstepMode").enumValueIndex;
+                    var mode = (CharacterFootEffects.FootstepPlacementMode)PropertyFromName("m_FootstepMode")
+                        .enumValueIndex;
                     EditorGUILayout.PropertyField(PropertyFromName("m_FootOffset"));
-                    if (mode == CharacterFootEffects.FootstepPlacementMode.BodyStep) {
+                    if (mode == CharacterFootEffects.FootstepPlacementMode.BodyStep)
+                    {
                         EditorGUI.indentLevel++;
                         EditorGUILayout.PropertyField(PropertyFromName("m_Feet"), true);
                         EditorGUILayout.PropertyField(PropertyFromName("m_MoveDirectionFrameCount"));
                         EditorGUI.indentLevel--;
-                    } else if (mode == CharacterFootEffects.FootstepPlacementMode.FixedInterval) {
+                    }
+                    else if (mode == CharacterFootEffects.FootstepPlacementMode.FixedInterval)
+                    {
                         EditorGUI.indentLevel++;
                         EditorGUILayout.PropertyField(PropertyFromName("m_FixedInterval"));
                         EditorGUI.indentLevel--;
-                    } else if (mode == CharacterFootEffects.FootstepPlacementMode.CameraBob) {
+                    }
+                    else if (mode == CharacterFootEffects.FootstepPlacementMode.CameraBob)
+                    {
                         EditorGUI.indentLevel++;
                         EditorGUILayout.PropertyField(PropertyFromName("m_MinBobInterval"));
                         EditorGUI.indentLevel--;
-                    } else if (mode == CharacterFootEffects.FootstepPlacementMode.Trigger) {
+                    }
+                    else if (mode == CharacterFootEffects.FootstepPlacementMode.Trigger)
+                    {
                         EditorGUI.indentLevel++;
                         EditorGUILayout.PropertyField(PropertyFromName("m_MinTriggerInterval"));
                         EditorGUILayout.PropertyField(PropertyFromName("m_RequireMovement"));
                         EditorGUI.indentLevel--;
                     }
+
                     EditorGUI.indentLevel--;
                 }
             };

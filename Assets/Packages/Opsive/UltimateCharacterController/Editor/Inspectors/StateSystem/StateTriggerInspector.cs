@@ -4,26 +4,27 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Audio;
+using Opsive.UltimateCharacterController.StateSystem;
+using UnityEditor;
+using UnityEditorInternal;
+using UnityEngine;
+using EditorUtility = Opsive.Shared.Editor.Utility.EditorUtility;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.StateSystem.CharacterAssist
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Audio;
-    using Opsive.UltimateCharacterController.StateSystem;
-    using UnityEditor;
-    using UnityEditorInternal;
-    using UnityEngine;
-
     /// <summary>
-    /// Custom inspector for the StateTrigger component.
+    ///     Custom inspector for the StateTrigger component.
     /// </summary>
     [CustomEditor(typeof(StateTrigger), true)]
     public class StateTriggerInspector : InspectorBase
     {
-        private StateTrigger m_StateTrigger;
         private ReorderableList m_ReorderableActivateAudioClipsList;
+        private StateTrigger m_StateTrigger;
 
         /// <summary>
-        /// The inspector has been enabled.
+        ///     The inspector has been enabled.
         /// </summary>
         protected virtual void OnEnable()
         {
@@ -31,7 +32,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.StateSystem.Chara
         }
 
         /// <summary>
-        /// Draws the custom inspector.
+        ///     Draws the custom inspector.
         /// </summary>
         public override void OnInspectorGUI()
         {
@@ -45,28 +46,33 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.StateSystem.Chara
             EditorGUILayout.PropertyField(PropertyFromName("m_LayerMask"));
             EditorGUILayout.PropertyField(PropertyFromName("m_RequireCharacter"));
             EditorGUILayout.PropertyField(PropertyFromName("m_CharacterTransformChange"));
-            if (Foldout("Audio")) {
+            if (Foldout("Audio"))
+            {
                 EditorGUI.indentLevel++;
-                m_ReorderableActivateAudioClipsList = AudioClipSetInspector.DrawAudioClipSet(m_StateTrigger.ActivateAudioClipSet, m_ReorderableActivateAudioClipsList, OnActivateAudioClipDraw, OnActivateAudioClipListAdd, OnActivateAudioClipListRemove);
+                m_ReorderableActivateAudioClipsList = AudioClipSetInspector.DrawAudioClipSet(
+                    m_StateTrigger.ActivateAudioClipSet, m_ReorderableActivateAudioClipsList, OnActivateAudioClipDraw,
+                    OnActivateAudioClipListAdd, OnActivateAudioClipListRemove);
                 EditorGUI.indentLevel--;
             }
 
-            if (EditorGUI.EndChangeCheck()) {
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Value Change");
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.RecordUndoDirtyObject(target, "Value Change");
                 serializedObject.ApplyModifiedProperties();
             }
         }
 
         /// <summary>
-        /// Draws the AudioClip element.
+        ///     Draws the AudioClip element.
         /// </summary>
         private void OnActivateAudioClipDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
-            AudioClipSetInspector.OnAudioClipDraw(m_ReorderableActivateAudioClipsList, rect, index, m_StateTrigger.ActivateAudioClipSet, null);
+            AudioClipSetInspector.OnAudioClipDraw(m_ReorderableActivateAudioClipsList, rect, index,
+                m_StateTrigger.ActivateAudioClipSet, null);
         }
 
         /// <summary>
-        /// Adds a new AudioClip element to the AudioClipSet.
+        ///     Adds a new AudioClip element to the AudioClipSet.
         /// </summary>
         private void OnActivateAudioClipListAdd(ReorderableList list)
         {
@@ -74,7 +80,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.StateSystem.Chara
         }
 
         /// <summary>
-        /// Remove the AudioClip element at the list index.
+        ///     Remove the AudioClip element at the list index.
         /// </summary>
         private void OnActivateAudioClipListRemove(ReorderableList list)
         {

@@ -4,25 +4,26 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Game;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Objects.ItemAssist
 {
-    using Opsive.Shared.Game;
-    using UnityEngine;
-
     /// <summary>
-    /// The tracer will show a Line Renderer from the hitscan fire point to the hit point.
+    ///     The tracer will show a Line Renderer from the hitscan fire point to the hit point.
     /// </summary>
     public class Tracer : MonoBehaviour
     {
-        [Tooltip("The amount of time that the tracer is visible for.")]
-        [SerializeField] protected float m_VisibleTime = 0.05f;
+        [Tooltip("The amount of time that the tracer is visible for.")] [SerializeField]
+        protected float m_VisibleTime = 0.05f;
+
+        private LineRenderer m_LineRenderer;
 
         // Component references
         private Transform m_Transform;
-        private LineRenderer m_LineRenderer;
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         private void Awake()
         {
@@ -31,7 +32,7 @@ namespace Opsive.UltimateCharacterController.Objects.ItemAssist
         }
 
         /// <summary>
-        /// Sets the hit point that the tracer should move to.
+        ///     Sets the hit point that the tracer should move to.
         /// </summary>
         /// <param name="hitPoint">The hit point position.</param>
         public virtual void Initialize(Vector3 hitPoint)
@@ -43,7 +44,7 @@ namespace Opsive.UltimateCharacterController.Objects.ItemAssist
         }
 
         /// <summary>
-        /// Places the object back in the ObjectPool.
+        ///     Places the object back in the ObjectPool.
         /// </summary>
         private void DestroyObject()
         {

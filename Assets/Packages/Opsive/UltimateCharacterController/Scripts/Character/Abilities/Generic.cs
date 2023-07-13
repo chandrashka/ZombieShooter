@@ -4,16 +4,17 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Events;
+using Opsive.Shared.Game;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Character.Abilities
 {
-    using Opsive.Shared.Events;
-    using Opsive.Shared.Game;
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// The Generic ability allows for new animations without having to explicitly code a new ability. The ability will end after a specified duration or 
-    /// the OnAnimatorGenericAbilityComplete event is sent.
+    ///     The Generic ability allows for new animations without having to explicitly code a new ability. The ability will end
+    ///     after a specified duration or
+    ///     the OnAnimatorGenericAbilityComplete event is sent.
     /// </summary>
     [AllowDuplicateTypes]
     [DefaultAbilityIndex(10000)]
@@ -21,13 +22,19 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
     [DefaultInputName("Action")]
     public class Generic : Ability
     {
-        [Tooltip("Specifies if the ability should stop when the OnAnimatorGenericAbilityComplete event is received or wait the specified amount of time before ending the ability.")]
-        [SerializeField] protected AnimationEventTrigger m_StopEvent = new AnimationEventTrigger(false, 0.5f);
+        [Tooltip(
+            "Specifies if the ability should stop when the OnAnimatorGenericAbilityComplete event is received or wait the specified amount of time before ending the ability.")]
+        [SerializeField]
+        protected AnimationEventTrigger m_StopEvent = new(false, 0.5f);
 
-        public AnimationEventTrigger StopEvent { get { return m_StopEvent; } set { m_StopEvent = value; } }
+        public AnimationEventTrigger StopEvent
+        {
+            get => m_StopEvent;
+            set => m_StopEvent = value;
+        }
 
         /// <summary>
-        /// Initialize the default values.
+        ///     Initialize the default values.
         /// </summary>
         public override void Awake()
         {
@@ -37,19 +44,17 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// The ability has started.
+        ///     The ability has started.
         /// </summary>
         protected override void AbilityStarted()
         {
             base.AbilityStarted();
 
-            if (!m_StopEvent.WaitForAnimationEvent) {
-                SchedulerBase.ScheduleFixed(m_StopEvent.Duration, OnComplete);
-            }
+            if (!m_StopEvent.WaitForAnimationEvent) SchedulerBase.ScheduleFixed(m_StopEvent.Duration, OnComplete);
         }
 
         /// <summary>
-        /// The animation is done playing - stop the ability.
+        ///     The animation is done playing - stop the ability.
         /// </summary>
         private void OnComplete()
         {
@@ -57,7 +62,7 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// The object has been destroyed.
+        ///     The object has been destroyed.
         /// </summary>
         public override void OnDestroy()
         {

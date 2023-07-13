@@ -4,17 +4,17 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Demo
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Destroys the GameObject when the game starts.
+    ///     Destroys the GameObject when the game starts.
     /// </summary>
     public class DestroyOnStart : MonoBehaviour
     {
         /// <summary>
-        /// Destroys the GameObject.
+        ///     Destroys the GameObject.
         /// </summary>
         private void Start()
         {

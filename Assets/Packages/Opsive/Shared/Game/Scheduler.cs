@@ -7,7 +7,7 @@
 namespace Opsive.Shared.Game
 {
     /// <summary>
-    /// Wrapper for the shared Scheduler component.
+    ///     Wrapper for the shared Scheduler component.
     /// </summary>
     public class Scheduler : SchedulerBase
     {

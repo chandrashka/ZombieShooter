@@ -4,16 +4,17 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Demo.Objects
 {
 #if FIRST_PERSON_CONTROLLER
     using Opsive.UltimateCharacterController.Camera;
     using Opsive.UltimateCharacterController.FirstPersonController.Camera;
 #endif
-    using UnityEngine;
-
     /// <summary>
-    /// Uses the MaterialSwapper to toggle between first and third person perspective materials. The Mirror component should be attached to the camera used as the mirror.
+    ///     Uses the MaterialSwapper to toggle between first and third person perspective materials. The Mirror component
+    ///     should be attached to the camera used as the mirror.
     /// </summary>
     public class Mirror : MonoBehaviour
     {

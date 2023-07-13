@@ -4,12 +4,12 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.Actions.PerspectiveProperties
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Interface for the grenade item action.
+    ///     Interface for the grenade item action.
     /// </summary>
     public interface IGrenadeItemPerspectiveProperties
     {

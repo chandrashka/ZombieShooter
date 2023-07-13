@@ -4,29 +4,31 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using System.Collections.Generic;
+using Opsive.Shared.StateSystem;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+using UnityEngine.Scripting;
+
 namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
 {
-    using Opsive.Shared.StateSystem;
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
-    using System.Collections.Generic;
-
     /// <summary>
-    /// Impact Actions will perform an action when the cast has impacted another object.
+    ///     Impact Actions will perform an action when the cast has impacted another object.
     /// </summary>
-    [System.Serializable]
-    [UnityEngine.Scripting.Preserve]
+    [Serializable]
+    [Preserve]
     [AllowDuplicateTypes]
     public abstract class ImpactAction : StateObject
     {
-        protected MagicItem m_MagicItem;
-        protected int m_Index;
-
-        private Dictionary<uint, HashSet<Transform>> m_ImpactedObjectsMap = new Dictionary<uint, HashSet<Transform>>();
         private HashSet<Transform> m_ImpactedObjects;
 
+        private Dictionary<uint, HashSet<Transform>> m_ImpactedObjectsMap = new();
+        protected int m_Index;
+        protected MagicItem m_MagicItem;
+
         /// <summary>
-        /// Initializes the ImpactAction.
+        ///     Initializes the ImpactAction.
         /// </summary>
         /// <param name="character">The character GameObject.</param>
         /// <param name="magicItem">The MagicItem that the ImpactAction belongs to.</param>
@@ -40,7 +42,7 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
         }
 
         /// <summary>
-        /// Perform the impact action.
+        ///     Perform the impact action.
         /// </summary>
         /// <param name="castID">The ID of the cast.</param>
         /// <param name="source">The object that caused the cast.</param>
@@ -48,15 +50,16 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
         /// <param name="hit">The raycast that caused the impact.</param>
         public void Impact(uint castID, GameObject source, GameObject target, RaycastHit hit)
         {
-            if (!m_MagicItem.ContinuousCast) {
-                if (!m_ImpactedObjectsMap.TryGetValue(castID, out m_ImpactedObjects)) {
+            if (!m_MagicItem.ContinuousCast)
+            {
+                if (!m_ImpactedObjectsMap.TryGetValue(castID, out m_ImpactedObjects))
+                {
                     m_ImpactedObjects = new HashSet<Transform>();
                     m_ImpactedObjectsMap.Add(castID, m_ImpactedObjects);
                 }
+
                 // Don't call impact if the object has already been impacted by the same id.
-                if (m_ImpactedObjects.Contains(target.transform)) {
-                    return;
-                }
+                if (m_ImpactedObjects.Contains(target.transform)) return;
                 m_ImpactedObjects.Add(target.transform);
             }
 
@@ -64,7 +67,7 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
         }
 
         /// <summary>
-        /// Internal method which performs the impact action.
+        ///     Internal method which performs the impact action.
         /// </summary>
         /// <param name="castID">The ID of the cast spawn.</param>
         /// <param name="source">The object that caused the cast.</param>
@@ -73,32 +76,30 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
         protected abstract void ImpactInternal(uint castID, GameObject source, GameObject target, RaycastHit hit);
 
         /// <summary>
-        /// Has the specified object been impacted?
+        ///     Has the specified object been impacted?
         /// </summary>
         /// <param name="obj">The object that may have been impacted.</param>
         /// <returns>True if the specified object has been impacted.</returns>
         protected bool HasImpacted(Transform obj)
         {
-            if (m_ImpactedObjects == null) {
-                return false;
-            }
+            if (m_ImpactedObjects == null) return false;
             return m_ImpactedObjects.Contains(obj);
         }
 
         /// <summary>
-        /// Resets the impact action.
+        ///     Resets the impact action.
         /// </summary>
         /// <param name="castID">The ID of the cast to reset.</param>
         public virtual void Reset(uint castID)
         {
-            if (m_ImpactedObjectsMap.TryGetValue(castID, out var impactedObjects)) {
-                impactedObjects.Clear();
-            }
+            if (m_ImpactedObjectsMap.TryGetValue(castID, out var impactedObjects)) impactedObjects.Clear();
         }
 
         /// <summary>
-        /// The action has been destroyed.
+        ///     The action has been destroyed.
         /// </summary>
-        public virtual void OnDestroy() { }
+        public virtual void OnDestroy()
+        {
+        }
     }
 }

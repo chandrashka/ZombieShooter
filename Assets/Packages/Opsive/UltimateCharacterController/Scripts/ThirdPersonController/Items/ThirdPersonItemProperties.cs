@@ -4,15 +4,15 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Items;
+
 namespace Opsive.UltimateCharacterController.ThirdPersonController.Items
 {
-    using Opsive.UltimateCharacterController.Items;
-
     /// <summary>
-    /// Describes any third person perspective dependent properties for the item.
+    ///     Describes any third person perspective dependent properties for the item.
     /// </summary>
     public abstract class ThirdPersonItemProperties : ItemPerspectiveProperties
     {
-        public override bool FirstPersonItem { get { return false; } }
+        public override bool FirstPersonItem => false;
     }
 }

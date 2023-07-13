@@ -1,10 +1,8 @@
+using UnityEngine;
 
 namespace Opsive.UltimateCharacterController.Demo.UnityStandardAssets.Vehicles.Car
 {
-    using UnityEngine;
-    using Random = UnityEngine.Random;
-
-    [RequireComponent(typeof (CarController))]
+    [RequireComponent(typeof(CarController))]
     public class CarAudio : MonoBehaviour
     {
         // This script reads some of the car's current properties and plays sounds accordingly.
@@ -29,26 +27,95 @@ namespace Opsive.UltimateCharacterController.Demo.UnityStandardAssets.Vehicles.C
             FourChannel // four Channel audio
         }
 
-        public EngineAudioOptions engineSoundStyle = EngineAudioOptions.FourChannel;// Set the default audio options to be four channel
-        public AudioClip lowAccelClip;                                              // Audio clip for low acceleration
-        public AudioClip lowDecelClip;                                              // Audio clip for low deceleration
-        public AudioClip highAccelClip;                                             // Audio clip for high acceleration
-        public AudioClip highDecelClip;                                             // Audio clip for high deceleration
-        public float pitchMultiplier = 1f;                                          // Used for altering the pitch of audio clips
-        public float lowPitchMin = 1f;                                              // The lowest possible pitch for the low sounds
-        public float lowPitchMax = 6f;                                              // The highest possible pitch for the low sounds
-        public float highPitchMultiplier = 0.25f;                                   // Used for altering the pitch of high sounds
-        public float maxRolloffDistance = 500;                                      // The maximum distance where rollof starts to take place
-        public float dopplerLevel = 1;                                              // The mount of doppler effect used in the audio
-        public bool useDoppler = true;                                              // Toggle for using doppler
+        public EngineAudioOptions
+            engineSoundStyle = EngineAudioOptions.FourChannel; // Set the default audio options to be four channel
+
+        public AudioClip lowAccelClip; // Audio clip for low acceleration
+        public AudioClip lowDecelClip; // Audio clip for low deceleration
+        public AudioClip highAccelClip; // Audio clip for high acceleration
+        public AudioClip highDecelClip; // Audio clip for high deceleration
+        public float pitchMultiplier = 1f; // Used for altering the pitch of audio clips
+        public float lowPitchMin = 1f; // The lowest possible pitch for the low sounds
+        public float lowPitchMax = 6f; // The highest possible pitch for the low sounds
+        public float highPitchMultiplier = 0.25f; // Used for altering the pitch of high sounds
+        public float maxRolloffDistance = 500; // The maximum distance where rollof starts to take place
+        public float dopplerLevel = 1; // The mount of doppler effect used in the audio
+        public bool useDoppler = true; // Toggle for using doppler
         public float volumnMultiplier = 1;
+        private CarController m_CarController; // Reference to car we are controlling
+        private AudioSource m_HighAccel; // Source for the high acceleration sounds
+        private AudioSource m_HighDecel; // Source for the high deceleration sounds
 
         private AudioSource m_LowAccel; // Source for the low acceleration sounds
         private AudioSource m_LowDecel; // Source for the low deceleration sounds
-        private AudioSource m_HighAccel; // Source for the high acceleration sounds
-        private AudioSource m_HighDecel; // Source for the high deceleration sounds
         private bool m_StartedSound; // flag for knowing if we have started sounds
-        private CarController m_CarController; // Reference to car we are controlling
+
+
+        // Update is called once per frame
+        private void Update()
+        {
+            // get the distance to main camera
+            var camDist = (UnityEngine.Camera.main.transform.position - transform.position).sqrMagnitude;
+
+            // stop sound if the object is beyond the maximum roll off distance
+            if (m_StartedSound && camDist > maxRolloffDistance * maxRolloffDistance) StopSound();
+
+            // start the sound if not playing and it is nearer than the maximum distance
+            if (!m_StartedSound && camDist < maxRolloffDistance * maxRolloffDistance) StartSound();
+
+            if (m_StartedSound)
+            {
+                // The pitch is interpolated between the min and max values, according to the car's revs.
+                var pitch = ULerp(lowPitchMin, lowPitchMax, m_CarController.Revs);
+
+                // clamp to minimum pitch (note, not clamped to max for high revs while burning out)
+                pitch = Mathf.Min(lowPitchMax, pitch);
+
+                if (engineSoundStyle == EngineAudioOptions.Simple)
+                {
+                    // for 1 channel engine sound, it's oh so simple:
+                    m_HighAccel.pitch = pitch * pitchMultiplier * highPitchMultiplier;
+                    m_HighAccel.dopplerLevel = useDoppler ? dopplerLevel : 0;
+                    m_HighAccel.volume = volumnMultiplier;
+                }
+                else
+                {
+                    // for 4 channel engine sound, it's a little more complex:
+
+                    // adjust the pitches based on the multipliers
+                    m_LowAccel.pitch = pitch * pitchMultiplier;
+                    m_LowDecel.pitch = pitch * pitchMultiplier;
+                    m_HighAccel.pitch = pitch * highPitchMultiplier * pitchMultiplier;
+                    m_HighDecel.pitch = pitch * highPitchMultiplier * pitchMultiplier;
+
+                    // get values for fading the sounds based on the acceleration
+                    var accFade = Mathf.Abs(m_CarController.AccelInput);
+                    var decFade = 1 - accFade;
+
+                    // get the high fade value based on the cars revs
+                    var highFade = Mathf.InverseLerp(0.2f, 0.8f, m_CarController.Revs);
+                    var lowFade = 1 - highFade;
+
+                    // adjust the values to be more realistic
+                    highFade = 1 - (1 - highFade) * (1 - highFade);
+                    lowFade = 1 - (1 - lowFade) * (1 - lowFade);
+                    accFade = 1 - (1 - accFade) * (1 - accFade);
+                    decFade = 1 - (1 - decFade) * (1 - decFade);
+
+                    // adjust the source volumes based on the fade values
+                    m_LowAccel.volume = lowFade * accFade * volumnMultiplier;
+                    m_LowDecel.volume = lowFade * decFade * volumnMultiplier;
+                    m_HighAccel.volume = highFade * accFade * volumnMultiplier;
+                    m_HighDecel.volume = highFade * decFade * volumnMultiplier;
+
+                    // adjust the doppler levels
+                    m_HighAccel.dopplerLevel = useDoppler ? dopplerLevel : 0;
+                    m_LowAccel.dopplerLevel = useDoppler ? dopplerLevel : 0;
+                    m_HighDecel.dopplerLevel = useDoppler ? dopplerLevel : 0;
+                    m_LowDecel.dopplerLevel = useDoppler ? dopplerLevel : 0;
+                }
+            }
+        }
 
         private void OnDisable()
         {
@@ -79,85 +146,9 @@ namespace Opsive.UltimateCharacterController.Demo.UnityStandardAssets.Vehicles.C
         private void StopSound()
         {
             //Destroy all audio sources on this object:
-            foreach (var source in GetComponents<AudioSource>())
-            {
-                Destroy(source);
-            }
+            foreach (var source in GetComponents<AudioSource>()) Destroy(source);
 
             m_StartedSound = false;
-        }
-
-
-        // Update is called once per frame
-        private void Update()
-        {
-            // get the distance to main camera
-            float camDist = (UnityEngine.Camera.main.transform.position - transform.position).sqrMagnitude;
-
-            // stop sound if the object is beyond the maximum roll off distance
-            if (m_StartedSound && camDist > maxRolloffDistance*maxRolloffDistance)
-            {
-                StopSound();
-            }
-
-            // start the sound if not playing and it is nearer than the maximum distance
-            if (!m_StartedSound && camDist < maxRolloffDistance*maxRolloffDistance)
-            {
-                StartSound();
-            }
-
-            if (m_StartedSound)
-            {
-                // The pitch is interpolated between the min and max values, according to the car's revs.
-                float pitch = ULerp(lowPitchMin, lowPitchMax, m_CarController.Revs);
-
-                // clamp to minimum pitch (note, not clamped to max for high revs while burning out)
-                pitch = Mathf.Min(lowPitchMax, pitch);
-
-                if (engineSoundStyle == EngineAudioOptions.Simple)
-                {
-                    // for 1 channel engine sound, it's oh so simple:
-                    m_HighAccel.pitch = pitch*pitchMultiplier*highPitchMultiplier;
-                    m_HighAccel.dopplerLevel = useDoppler ? dopplerLevel : 0;
-                    m_HighAccel.volume = volumnMultiplier;
-                }
-                else
-                {
-                    // for 4 channel engine sound, it's a little more complex:
-
-                    // adjust the pitches based on the multipliers
-                    m_LowAccel.pitch = pitch*pitchMultiplier;
-                    m_LowDecel.pitch = pitch*pitchMultiplier;
-                    m_HighAccel.pitch = pitch*highPitchMultiplier*pitchMultiplier;
-                    m_HighDecel.pitch = pitch*highPitchMultiplier*pitchMultiplier;
-
-                    // get values for fading the sounds based on the acceleration
-                    float accFade = Mathf.Abs(m_CarController.AccelInput);
-                    float decFade = 1 - accFade;
-
-                    // get the high fade value based on the cars revs
-                    float highFade = Mathf.InverseLerp(0.2f, 0.8f, m_CarController.Revs);
-                    float lowFade = 1 - highFade;
-
-                    // adjust the values to be more realistic
-                    highFade = 1 - ((1 - highFade)*(1 - highFade));
-                    lowFade = 1 - ((1 - lowFade)*(1 - lowFade));
-                    accFade = 1 - ((1 - accFade)*(1 - accFade));
-                    decFade = 1 - ((1 - decFade)*(1 - decFade));
-
-                    // adjust the source volumes based on the fade values
-                    m_LowAccel.volume = lowFade*accFade * volumnMultiplier;
-                    m_LowDecel.volume = lowFade*decFade * volumnMultiplier;
-                    m_HighAccel.volume = highFade*accFade * volumnMultiplier;
-                    m_HighDecel.volume = highFade*decFade * volumnMultiplier;
-
-                    // adjust the doppler levels
-                    m_HighAccel.dopplerLevel = useDoppler ? dopplerLevel : 0;
-                    m_LowAccel.dopplerLevel = useDoppler ? dopplerLevel : 0;
-                    m_HighDecel.dopplerLevel = useDoppler ? dopplerLevel : 0;
-                    m_LowDecel.dopplerLevel = useDoppler ? dopplerLevel : 0;
-                }
-            }
         }
 
 
@@ -165,7 +156,7 @@ namespace Opsive.UltimateCharacterController.Demo.UnityStandardAssets.Vehicles.C
         private AudioSource SetUpEngineAudioSource(AudioClip clip)
         {
             // create the new audio source component on the game object and set up its properties
-            AudioSource source = gameObject.AddComponent<AudioSource>();
+            var source = gameObject.AddComponent<AudioSource>();
             source.clip = clip;
             source.volume = 0;
             source.loop = true;
@@ -183,7 +174,7 @@ namespace Opsive.UltimateCharacterController.Demo.UnityStandardAssets.Vehicles.C
         // unclamped versions of Lerp and Inverse Lerp, to allow value to exceed the from-to range
         private static float ULerp(float from, float to, float value)
         {
-            return (1.0f - value)*from + value*to;
+            return (1.0f - value) * from + value * to;
         }
     }
 }

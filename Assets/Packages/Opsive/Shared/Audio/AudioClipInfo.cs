@@ -4,33 +4,31 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using UnityEngine;
+
 namespace Opsive.Shared.Audio
 {
-    using System;
-    using UnityEngine;
-
     /// <summary>
-    /// Container struct which allows the default functionality to be overridden for a specific clip.
+    ///     Container struct which allows the default functionality to be overridden for a specific clip.
     /// </summary>
     [Serializable]
     public struct AudioClipInfo
     {
-        [Tooltip("The index of the AudioClip inside the AudioConfig.")]
-        [SerializeField] private int m_ClipIndex;
-        [Tooltip("A reference to the clip that should be played.")]
-        [SerializeField] private AudioClip m_AudioClip;
-        [Tooltip("The overridden AudioConfig.")]
-        [SerializeField] private AudioConfig m_AudioConfig;
-        [Tooltip("The overridden AudioModifier.")]
-        [SerializeField] private AudioModifier m_AudioModifier;
+        [Tooltip("The index of the AudioClip inside the AudioConfig.")] [SerializeField]
+        private int m_ClipIndex;
 
-        public int ClipIndex => m_ClipIndex;
-        public AudioClip AudioClip => m_AudioClip;
-        public AudioConfig AudioConfig => m_AudioConfig;
-        public AudioModifier AudioModifier => m_AudioModifier;
+        [Tooltip("A reference to the clip that should be played.")] [SerializeField]
+        private AudioClip m_AudioClip;
+
+        [Tooltip("The overridden AudioConfig.")] [SerializeField]
+        private AudioConfig m_AudioConfig;
+
+        [Tooltip("The overridden AudioModifier.")] [SerializeField]
+        private AudioModifier m_AudioModifier;
 
         /// <summary>
-        /// One parameter constructor.
+        ///     One parameter constructor.
         /// </summary>
         /// <param name="audioConfig">A reference to the overridden AudioConfig.</param>
         public AudioClipInfo(AudioConfig audioConfig)
@@ -42,7 +40,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Two parameter constructor.
+        ///     Two parameter constructor.
         /// </summary>
         /// <param name="audioClip">The clip that should be played.</param>
         /// <param name="audioConfig">A reference to the overridden AudioConfig.</param>
@@ -55,7 +53,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Two parameter constructor.
+        ///     Two parameter constructor.
         /// </summary>
         /// <param name="clipIndex">The index of the AudioClip inside the AudioConfig.</param>
         /// <param name="audioConfig">A reference to the overridden AudioConfig.</param>
@@ -68,7 +66,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Three parameter constructor.
+        ///     Three parameter constructor.
         /// </summary>
         /// <param name="audioClip">The clip that should be played.</param>
         /// <param name="audioConfig">A reference to the overridden AudioConfig.</param>
@@ -82,7 +80,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Three parameter constructor.
+        ///     Three parameter constructor.
         /// </summary>
         /// <param name="clipIndex">The index of the AudioClip inside the AudioConfig.</param>
         /// <param name="audioConfig">A reference to the overridden AudioConfig.</param>
@@ -96,7 +94,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Three parameter constructor.
+        ///     Three parameter constructor.
         /// </summary>
         /// <param name="clipIndex">The index of the AudioClip inside the AudioConfig.</param>
         /// <param name="audioClip">The clip that should be played.</param>
@@ -111,7 +109,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Two parameter constructor which copies another AudioClipInfo.
+        ///     Two parameter constructor which copies another AudioClipInfo.
         /// </summary>
         /// <param name="audioClipInfo">The AudioClipInfo that should be copied.</param>
         /// <param name="clipIndex">The index of the Audio Clip inside the Audio Config.</param>
@@ -124,7 +122,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Two parameter constructor which copies another AudioClipInfo.
+        ///     Two parameter constructor which copies another AudioClipInfo.
         /// </summary>
         /// <param name="audioClipInfo">The AudioClipInfo that should be copied.</param>
         /// <param name="audioModifier">A reference to the overridden AudioModifier.</param>
@@ -137,7 +135,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Two parameter constructor which copies another AudioClipInfo.
+        ///     Two parameter constructor which copies another AudioClipInfo.
         /// </summary>
         /// <param name="audioClipInfo">The AudioClipInfo that should be copied.</param>
         /// <param name="audioConfig">A reference to the overridden AudioConfig.</param>
@@ -150,7 +148,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Two parameter constructor which copies another AudioClipInfo.
+        ///     Two parameter constructor which copies another AudioClipInfo.
         /// </summary>
         /// <param name="audioClipInfo">The AudioClipInfo that should be copied.</param>
         /// <param name="audioClip">The clip that should be played.</param>
@@ -163,7 +161,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// One parameter constructor which copies another AudioClipInfo.
+        ///     One parameter constructor which copies another AudioClipInfo.
         /// </summary>
         /// <param name="audioClipInfo">The AudioClipInfo that should be copied.</param>
         public AudioClipInfo(AudioClipInfo audioClipInfo)
@@ -173,5 +171,10 @@ namespace Opsive.Shared.Audio
             m_AudioConfig = audioClipInfo.m_AudioConfig;
             m_AudioModifier = audioClipInfo.m_AudioModifier;
         }
+
+        public int ClipIndex => m_ClipIndex;
+        public AudioClip AudioClip => m_AudioClip;
+        public AudioConfig AudioConfig => m_AudioConfig;
+        public AudioModifier AudioModifier => m_AudioModifier;
     }
 }

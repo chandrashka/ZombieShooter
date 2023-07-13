@@ -4,21 +4,21 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Editor.Inspectors.StateSystem;
+using Opsive.UltimateCharacterController.ThirdPersonController.Camera;
+using UnityEditor;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonController.Camera
 {
-    using Opsive.Shared.Editor.Inspectors.StateSystem;
-    using Opsive.UltimateCharacterController.ThirdPersonController.Camera;
-    using System;
-    using UnityEditor;
-
     /// <summary>
-    /// Shows a custom inspector for the ObjectFader.
+    ///     Shows a custom inspector for the ObjectFader.
     /// </summary>
     [CustomEditor(typeof(ObjectFader))]
     public class ObjectFaderInspector : StateBehaviorInspector
     {
         /// <summary>
-        /// Returns the actions to draw before the State list is drawn.
+        ///     Returns the actions to draw before the State list is drawn.
         /// </summary>
         /// <returns>The actions to draw before the State list is drawn.</returns>
         protected override Action GetDrawCallback()
@@ -29,7 +29,8 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
             {
                 EditorGUILayout.PropertyField(PropertyFromName("m_ColorPropertyName"));
                 EditorGUILayout.PropertyField(PropertyFromName("m_CharacterFade"));
-                if (PropertyFromName("m_CharacterFade").boolValue) {
+                if (PropertyFromName("m_CharacterFade").boolValue)
+                {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(PropertyFromName("m_CacheCharacterMaterials"));
                     EditorGUILayout.PropertyField(PropertyFromName("m_StartFadeDistance"));
@@ -39,7 +40,8 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
                 }
 
                 EditorGUILayout.PropertyField(PropertyFromName("m_ObstructingObjectsFade"));
-                if (PropertyFromName("m_ObstructingObjectsFade").boolValue) {
+                if (PropertyFromName("m_ObstructingObjectsFade").boolValue)
+                {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(PropertyFromName("m_CollisionRadius"));
                     EditorGUILayout.PropertyField(PropertyFromName("m_FadeSpeed"));
@@ -50,6 +52,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
                     EditorGUILayout.PropertyField(PropertyFromName("m_MaxObstructingMaterialCount"));
                     EditorGUI.indentLevel--;
                 }
+
                 EditorGUILayout.PropertyField(PropertyFromName("m_TransformOffset"));
             };
             return baseCallback;

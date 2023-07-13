@@ -4,15 +4,18 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using UnityEngine;
+using Random = System.Random;
+
 namespace Opsive.UltimateCharacterController.Motion
 {
-    using System;
-    using UnityEngine;
-
     /// <summary>
-    /// This is a modified version of the perlin noise class from the official Unity 'Procedural Examples' at the following URL:
-    /// https://www.assetstore.unity3d.com/en/#!/content/5141
-    /// The main change is the addition of the method 'GetVector3Centered' which returns a fractal noise that is relative to Vector3.zero.
+    ///     This is a modified version of the perlin noise class from the official Unity 'Procedural Examples' at the following
+    ///     URL:
+    ///     https://www.assetstore.unity3d.com/en/#!/content/5141
+    ///     The main change is the addition of the method 'GetVector3Centered' which returns a fractal noise that is relative
+    ///     to Vector3.zero.
     /// </summary>
     public class SmoothRandom
     {
@@ -20,12 +23,20 @@ namespace Opsive.UltimateCharacterController.Motion
         private static Vector3 s_Result1;
         private static Vector3 s_Result2;
 
-        private static FractalNoise Noise { get { if (s_Noise == null) { s_Noise = new FractalNoise(1.27f, 2.04f, 8.36f); } return s_Noise; } }
+        private static FractalNoise Noise
+        {
+            get
+            {
+                if (s_Noise == null) s_Noise = new FractalNoise(1.27f, 2.04f, 8.36f);
+                return s_Noise;
+            }
+        }
 
         public static Vector3 GetVector3(float speed)
         {
-            float time = Time.time * 0.01f * speed;
-            s_Result1.Set(Noise.HybridMultifractal(time, 15.73f, 0.58f), Noise.HybridMultifractal(time, 63.94f, 0.58f), Noise.HybridMultifractal(time, 0.2f, 0.58f));
+            var time = Time.time * 0.01f * speed;
+            s_Result1.Set(Noise.HybridMultifractal(time, 15.73f, 0.58f), Noise.HybridMultifractal(time, 63.94f, 0.58f),
+                Noise.HybridMultifractal(time, 0.2f, 0.58f));
             return s_Result1;
         }
 
@@ -33,57 +44,58 @@ namespace Opsive.UltimateCharacterController.Motion
         {
             var time1 = Time.time * 0.01f * speed;
             var time2 = (Time.time - 1) * 0.01f * speed;
-            s_Result1.Set(Noise.HybridMultifractal(time1, 15.73f, 0.58f), Noise.HybridMultifractal(time1, 63.94f, 0.58f), Noise.HybridMultifractal(time1, 0.2f, 0.58f));
-            s_Result2.Set(Noise.HybridMultifractal(time2, 15.73f, 0.58f), Noise.HybridMultifractal(time2, 63.94f, 0.58f), Noise.HybridMultifractal(time2, 0.2f, 0.58f));
+            s_Result1.Set(Noise.HybridMultifractal(time1, 15.73f, 0.58f),
+                Noise.HybridMultifractal(time1, 63.94f, 0.58f), Noise.HybridMultifractal(time1, 0.2f, 0.58f));
+            s_Result2.Set(Noise.HybridMultifractal(time2, 15.73f, 0.58f),
+                Noise.HybridMultifractal(time2, 63.94f, 0.58f), Noise.HybridMultifractal(time2, 0.2f, 0.58f));
             return s_Result1 - s_Result2;
         }
-        
+
         /// <summary>
-        /// Slightly refactored perlin class from the Procedular Examples package.
+        ///     Slightly refactored perlin class from the Procedular Examples package.
         /// </summary>
         private class Perlin
         {
             // Original C code derived from 
             // http://astronomy.swin.edu.au/~pbourke/texture/perlin/perlin.c
             // http://astronomy.swin.edu.au/~pbourke/texture/perlin/perlin.h
-            const int B = 0x100;
-            const int BM = 0xff;
-            const int N = 0x1000;
+            private const int B = 0x100;
+            private const int BM = 0xff;
+            private const int N = 0x1000;
+            private readonly float[] g1 = new float[B + B + 2];
+            private readonly float[,] g2 = new float[B + B + 2, 2];
+            private readonly float[,] g3 = new float[B + B + 2, 3];
 
-            int[] p = new int[B + B + 2];
-            float[,] g3 = new float[B + B + 2, 3];
-            float[,] g2 = new float[B + B + 2, 2];
-            float[] g1 = new float[B + B + 2];
+            private readonly int[] p = new int[B + B + 2];
 
             public Perlin()
             {
                 int i, j, k;
-                System.Random rnd = new System.Random();
+                var rnd = new Random();
 
-                for (i = 0; i < B; i++) {
+                for (i = 0; i < B; i++)
+                {
                     p[i] = i;
                     g1[i] = (float)(rnd.Next(B + B) - B) / B;
 
-                    for (j = 0; j < 2; j++) {
-                        g2[i, j] = (float)(rnd.Next(B + B) - B) / B;
-                    }
+                    for (j = 0; j < 2; j++) g2[i, j] = (float)(rnd.Next(B + B) - B) / B;
                     Normalize2(ref g2[i, 0], ref g2[i, 1]);
 
-                    for (j = 0; j < 3; j++) {
-                        g3[i, j] = (float)(rnd.Next(B + B) - B) / B;
-                    }
+                    for (j = 0; j < 3; j++) g3[i, j] = (float)(rnd.Next(B + B) - B) / B;
 
 
                     Normalize3(ref g3[i, 0], ref g3[i, 1], ref g3[i, 2]);
                 }
 
-                while (--i != 0) {
+                while (--i != 0)
+                {
                     k = p[i];
                     p[i] = p[j = rnd.Next(B)];
                     p[j] = k;
                 }
 
-                for (i = 0; i < B + 2; i++) {
+                for (i = 0; i < B + 2; i++)
+                {
                     p[B + i] = p[i];
                     g1[B + i] = g1[i];
                     for (j = 0; j < 2; j++)
@@ -105,15 +117,22 @@ namespace Opsive.UltimateCharacterController.Motion
 
             private void Setup(float value, out int b0, out int b1, out float r0, out float r1)
             {
-                float t = value + N;
-                b0 = ((int)t) & BM;
+                var t = value + N;
+                b0 = (int)t & BM;
                 b1 = (b0 + 1) & BM;
                 r0 = t - (int)t;
                 r1 = r0 - 1.0f;
             }
 
-            private float At2(float rx, float ry, float x, float y) { return rx * x + ry * y; }
-            private float At3(float rx, float ry, float rz, float x, float y, float z) { return rx * x + ry * y + rz * z; }
+            private float At2(float rx, float ry, float x, float y)
+            {
+                return rx * x + ry * y;
+            }
+
+            private float At3(float rx, float ry, float rz, float x, float y, float z)
+            {
+                return rx * x + ry * y + rz * z;
+            }
 
             public float Noise(float arg)
             {
@@ -125,7 +144,7 @@ namespace Opsive.UltimateCharacterController.Motion
                 u = rx0 * g1[p[bx0]];
                 v = rx1 * g1[p[bx1]];
 
-                return (Lerp(sx, u, v));
+                return Lerp(sx, u, v);
             }
 
             public float Noise(float x, float y)
@@ -204,7 +223,7 @@ namespace Opsive.UltimateCharacterController.Motion
                 return Lerp(sz, c, d);
             }
 
-            void Normalize2(ref float x, ref float y)
+            private void Normalize2(ref float x, ref float y)
             {
                 float s;
 
@@ -213,7 +232,7 @@ namespace Opsive.UltimateCharacterController.Motion
                 y = y / s;
             }
 
-            void Normalize3(ref float x, ref float y, ref float z)
+            private void Normalize3(ref float x, ref float y, ref float z)
             {
                 float s;
                 s = (float)Math.Sqrt(x * x + y * y + z * z);
@@ -224,17 +243,20 @@ namespace Opsive.UltimateCharacterController.Motion
         }
 
         /// <summary>
-        /// Slightly refactored fractal noise class from the Procedular Examples package.
+        ///     Slightly refactored fractal noise class from the Procedular Examples package.
         /// </summary>
         private class FractalNoise
         {
-            private Perlin m_Noise;
-            private float[] m_Exponent;
-            private int m_IntOctaves;
-            private float m_Octaves;
-            private float m_Lacunarity;
+            private readonly float[] m_Exponent;
+            private readonly int m_IntOctaves;
+            private readonly float m_Lacunarity;
+            private readonly Perlin m_Noise;
+            private readonly float m_Octaves;
 
-            public FractalNoise(float inH, float inLacunarity, float inOctaves) : this(inH, inLacunarity, inOctaves, null) { }
+            public FractalNoise(float inH, float inLacunarity, float inOctaves) : this(inH, inLacunarity, inOctaves,
+                null)
+            {
+            }
 
             public FractalNoise(float inH, float inLacunarity, float inOctaves, Perlin noise)
             {
@@ -242,15 +264,12 @@ namespace Opsive.UltimateCharacterController.Motion
                 m_Octaves = inOctaves;
                 m_IntOctaves = (int)inOctaves;
                 m_Exponent = new float[m_IntOctaves + 1];
-                for (int i = 0; i < m_IntOctaves + 1; i++) {
-                    m_Exponent[i] = (float)Math.Pow(m_Lacunarity, -inH);
-                }
+                for (var i = 0; i < m_IntOctaves + 1; i++) m_Exponent[i] = (float)Math.Pow(m_Lacunarity, -inH);
 
-                if (noise == null) {
+                if (noise == null)
                     m_Noise = new Perlin();
-                } else {
+                else
                     m_Noise = noise;
-                }
             }
 
             public float HybridMultifractal(float x, float y, float offset)
@@ -262,7 +281,8 @@ namespace Opsive.UltimateCharacterController.Motion
                 x *= m_Lacunarity;
                 y *= m_Lacunarity;
                 int i;
-                for (i = 1; i < m_IntOctaves; i++) {
+                for (i = 1; i < m_IntOctaves; i++)
+                {
                     if (weight > 1.0f) weight = 1.0f;
                     signal = (m_Noise.Noise(x, y) + offset) * m_Exponent[i];
                     result += weight * signal;
@@ -270,6 +290,7 @@ namespace Opsive.UltimateCharacterController.Motion
                     x *= m_Lacunarity;
                     y *= m_Lacunarity;
                 }
+
                 remainder = m_Octaves - m_IntOctaves;
                 result += remainder * m_Noise.Noise(x, y) * m_Exponent[i];
 

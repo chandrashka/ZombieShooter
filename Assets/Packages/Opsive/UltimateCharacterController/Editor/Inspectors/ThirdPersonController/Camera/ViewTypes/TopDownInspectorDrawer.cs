@@ -4,22 +4,23 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Camera;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.ThirdPersonController.Camera.ViewTypes;
+using UnityEditor;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonController.Camera.ViewTypes
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Camera;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using Opsive.UltimateCharacterController.ThirdPersonController.Camera.ViewTypes;
-    using UnityEngine;
-
     /// <summary>
-    /// Draws a custom inspector for the Top Down View Type.
+    ///     Draws a custom inspector for the Top Down View Type.
     /// </summary>
     [InspectorDrawer(typeof(TopDown))]
     public class TopDownInspectorDrawer : ViewTypeInspectorDrawer
     {
         /// <summary>
-        /// Called when the object should be drawn to the inspector.
+        ///     Called when the object should be drawn to the inspector.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
@@ -40,53 +41,54 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
             var maxPitchLimit = InspectorUtility.GetFieldValue<float>(target, "m_MaxPitchLimit");
             var minValue = Mathf.Round(minPitchLimit * 100f) / 100f;
             var maxValue = Mathf.Round(maxPitchLimit * 100f) / 100f;
-            InspectorUtility.MinMaxSlider(ref minValue, ref maxValue, 0, 89.99f, new GUIContent("Pitch Limit", "The min and max limit of the pitch angle (in degrees)."));
-            if (minValue != minPitchLimit) {
-                InspectorUtility.SetFieldValue(target, "m_MinPitchLimit", minValue);
-            }
-            if (minValue != maxPitchLimit) {
-                InspectorUtility.SetFieldValue(target, "m_MaxPitchLimit", maxValue);
-            }
+            InspectorUtility.MinMaxSlider(ref minValue, ref maxValue, 0, 89.99f,
+                new GUIContent("Pitch Limit", "The min and max limit of the pitch angle (in degrees)."));
+            if (minValue != minPitchLimit) InspectorUtility.SetFieldValue(target, "m_MinPitchLimit", minValue);
+            if (minValue != maxPitchLimit) InspectorUtility.SetFieldValue(target, "m_MaxPitchLimit", maxValue);
             InspectorUtility.DrawField(target, "m_AllowDynamicCameraRotation");
             var dynamicRotation = InspectorUtility.GetFieldValue<bool>(target, "m_AllowDynamicCameraRotation");
-            if (dynamicRotation) {
-                UnityEditor.EditorGUI.indentLevel++;
+            if (dynamicRotation)
+            {
+                EditorGUI.indentLevel++;
                 InspectorUtility.DrawField(target, "m_DesiredAngle");
                 InspectorUtility.DrawField(target, "m_ChangeAngleSpeed");
                 InspectorUtility.DrawField(target, "m_RotationTransitionCurve");
-                UnityEditor.EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
             }
+
             InspectorUtility.DrawField(target, "m_AllowDynamicPitchAdjustment");
             var pitchAdjustment = InspectorUtility.GetFieldValue<bool>(target, "m_AllowDynamicPitchAdjustment");
-            if (pitchAdjustment) {
-                UnityEditor.EditorGUI.indentLevel++;
+            if (pitchAdjustment)
+            {
+                EditorGUI.indentLevel++;
                 InspectorUtility.DrawField(target, "m_DesiredPitch");
                 InspectorUtility.DrawField(target, "m_ChangePitchSpeed");
                 InspectorUtility.DrawField(target, "m_UseIndependentPitchTransition");
                 var pitchTransition = InspectorUtility.GetFieldValue<bool>(target, "m_UseIndependentPitchTransition");
-                if (pitchTransition) {
-                    InspectorUtility.DrawField(target, "m_PitchTransitionCurve");
-                }
-                UnityEditor.EditorGUI.indentLevel--;
+                if (pitchTransition) InspectorUtility.DrawField(target, "m_PitchTransitionCurve");
+                EditorGUI.indentLevel--;
             }
+
             InspectorUtility.DrawField(target, "m_AllowDynamicDistanceAdjustment");
             var distanceAdjustment = InspectorUtility.GetFieldValue<bool>(target, "m_AllowDynamicDistanceAdjustment");
-            if (pitchAdjustment) {
-                UnityEditor.EditorGUI.indentLevel++;
+            if (pitchAdjustment)
+            {
+                EditorGUI.indentLevel++;
                 InspectorUtility.DrawField(target, "m_DesiredDistance");
                 InspectorUtility.DrawField(target, "m_ChangeDistanceSpeed");
                 InspectorUtility.DrawField(target, "m_UseIndependentDistanceTransition");
-                var distanceTransition = InspectorUtility.GetFieldValue<bool>(target, "m_UseIndependentDistanceTransition");
-                if (distanceTransition) {
-                    InspectorUtility.DrawField(target, "m_DistanceTransitionCurve");
-                }
-                UnityEditor.EditorGUI.indentLevel--;
+                var distanceTransition =
+                    InspectorUtility.GetFieldValue<bool>(target, "m_UseIndependentDistanceTransition");
+                if (distanceTransition) InspectorUtility.DrawField(target, "m_DistanceTransitionCurve");
+                EditorGUI.indentLevel--;
             }
-            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Secondary Spring")) {
-                UnityEditor.EditorGUI.indentLevel++;
+
+            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Secondary Spring"))
+            {
+                EditorGUI.indentLevel++;
                 InspectorUtility.DrawSpring(target, "Secondary Position Spring", "m_SecondaryPositionSpring");
                 InspectorUtility.DrawSpring(target, "Secondary Rotation Spring", "m_SecondaryRotationSpring");
-                UnityEditor.EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
             }
         }
     }

@@ -3,7 +3,7 @@ using UnityEngine;
 public class KilledEnemyCounter : MonoBehaviour
 {
     private int m_KilledEnemies;
-    
+
     public void EnemyKilled()
     {
         m_KilledEnemies++;

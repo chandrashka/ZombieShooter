@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 
 // Cartoon FX  - (c) 2015 Jean Moreno
 
@@ -7,12 +6,9 @@ using System.Collections;
 
 public class CFX_AutodestructWhenNoChildren : MonoBehaviour
 {
-	// Update is called once per frame
-	void Update ()
-	{
-		if( transform.childCount == 0)
-		{
-			GameObject.Destroy(this.gameObject);
-		}
-	}
+    // Update is called once per frame
+    private void Update()
+    {
+        if (transform.childCount == 0) Destroy(gameObject);
+    }
 }

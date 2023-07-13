@@ -4,32 +4,50 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Utility;
+using UnityEngine;
+
 namespace Opsive.Shared.StateSystem
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Acts as the parent component which can use the state system to change property values.
+    ///     Acts as the parent component which can use the state system to change property values.
     /// </summary>
     public class StateBehavior : MonoBehaviour, IStateOwner
     {
-        [Tooltip("A list of all states that the component can change to.")]
-        [HideInInspector] [SerializeField] protected State[] m_States = new State[] { new State("Default", true) };
+        [Tooltip("A list of all states that the component can change to.")] [HideInInspector] [SerializeField]
+        protected State[] m_States = { new("Default", true) };
 
-        [Opsive.Shared.Utility.NonSerialized] public State[] States { get { return m_States; } set { m_States = value; } }
-
-        /// <summary>
-        /// Initialize the default values.
-        /// </summary>
-        protected virtual void Awake()
+        [NonSerialized]
+        public State[] States
         {
-            if (Application.isPlaying) {
-                StateManager.Initialize(gameObject, this, m_States);
-            }
+            get => m_States;
+            set => m_States = value;
         }
 
         /// <summary>
-        /// Activates or deactivates the specified state.
+        ///     Initialize the default values.
+        /// </summary>
+        protected virtual void Awake()
+        {
+            if (Application.isPlaying) StateManager.Initialize(gameObject, this, m_States);
+        }
+
+        /// <summary>
+        ///     Callback when the StateManager will change the active state on the current object.
+        /// </summary>
+        public virtual void StateWillChange()
+        {
+        }
+
+        /// <summary>
+        ///     Callback when the StateManager has changed the active state on the current object.
+        /// </summary>
+        public virtual void StateChange()
+        {
+        }
+
+        /// <summary>
+        ///     Activates or deactivates the specified state.
         /// </summary>
         /// <param name="stateName">The name of the state to change the activate status of.</param>
         /// <param name="active">Should the state be activated?</param>
@@ -37,15 +55,5 @@ namespace Opsive.Shared.StateSystem
         {
             StateManager.SetState(this, m_States, stateName, active);
         }
-
-        /// <summary>
-        /// Callback when the StateManager will change the active state on the current object.
-        /// </summary>
-        public virtual void StateWillChange() { }
-
-        /// <summary>
-        /// Callback when the StateManager has changed the active state on the current object.
-        /// </summary>
-        public virtual void StateChange() { }
     }
 }

@@ -4,20 +4,20 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.Shared.Audio
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Container class for playing background music.
+    ///     Container class for playing background music.
     /// </summary>
     public class AudioMusic : MonoBehaviour
     {
-        [Tooltip("The music that should be playd.")]
-        [SerializeField] protected AudioClipSet m_AudioClipSet;
+        [Tooltip("The music that should be playd.")] [SerializeField]
+        protected AudioClipSet m_AudioClipSet;
 
         /// <summary>
-        /// Plays the music.
+        ///     Plays the music.
         /// </summary>
         [ContextMenu("Play")]
         public void Play()
@@ -26,7 +26,7 @@ namespace Opsive.Shared.Audio
         }
 
         /// <summary>
-        /// Stops playing the music.
+        ///     Stops playing the music.
         /// </summary>
         [ContextMenu("Stop")]
         public void Stop()

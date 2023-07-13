@@ -4,17 +4,19 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.Shared.Input;
+using UnityEditor;
+
 namespace Opsive.Shared.Editor.Inspectors.Input
 {
 #if FIRST_PERSON_CONTROLLER || THIRD_PERSON_CONTROLLER
-    using Opsive.Shared.Editor.Inspectors.StateSystem;
+    using StateSystem;
 #endif
-    using Opsive.Shared.Input;
-    using System;
-    using UnityEditor;
 
     /// <summary>
-    /// Shows a custom inspector for the PlayerInput.
+    ///     Shows a custom inspector for the PlayerInput.
     /// </summary>
     [CustomEditor(typeof(PlayerInput))]
     public class PlayerInputInspector :
@@ -26,7 +28,7 @@ namespace Opsive.Shared.Editor.Inspectors.Input
     {
 #if FIRST_PERSON_CONTROLLER || THIRD_PERSON_CONTROLLER
         /// <summary>
-        /// Returns the actions to draw before the State list is drawn.
+        ///     Returns the actions to draw before the State list is drawn.
         /// </summary>
         /// <returns>The actions to draw before the State list is drawn.</returns>
         protected override Action GetDrawCallback()
@@ -42,11 +44,12 @@ namespace Opsive.Shared.Editor.Inspectors.Input
             EditorGUI.BeginChangeCheck();
 #endif
 
-            EditorGUILayout.PropertyField(PropertyFromName("m_HorizontalLookInputName"));
+                EditorGUILayout.PropertyField(PropertyFromName("m_HorizontalLookInputName"));
                 EditorGUILayout.PropertyField(PropertyFromName("m_VerticalLookInputName"));
                 var lookVector = PropertyFromName("m_LookVectorMode");
                 EditorGUILayout.PropertyField(lookVector);
-                if (lookVector.enumValueIndex == (int)PlayerInput.LookVectorMode.Smoothed) {
+                if (lookVector.enumValueIndex == (int)PlayerInput.LookVectorMode.Smoothed)
+                {
                     EditorGUI.indentLevel++;
                     EditorGUILayout.PropertyField(PropertyFromName("m_LookSensitivity"));
                     EditorGUILayout.PropertyField(PropertyFromName("m_LookSensitivityMultiplier"));
@@ -56,6 +59,7 @@ namespace Opsive.Shared.Editor.Inspectors.Input
                     EditorGUILayout.PropertyField(PropertyFromName("m_LookAccelerationThreshold"));
                     EditorGUI.indentLevel--;
                 }
+
                 EditorGUILayout.PropertyField(PropertyFromName("m_ControllerConnectedCheckRate"));
 #if FIRST_PERSON_CONTROLLER || THIRD_PERSON_CONTROLLER
                 EditorGUILayout.PropertyField(PropertyFromName("m_ConnectedControllerState"));
@@ -64,9 +68,10 @@ namespace Opsive.Shared.Editor.Inspectors.Input
                 DrawInputFields();
 
                 // Event fields should be last.
-                if (Foldout("Events")) {
+                if (Foldout("Events"))
+                {
                     EditorGUI.indentLevel++;
-                    Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_EnableGamplayInputEvent"));
+                    InspectorUtility.UnityEventPropertyField(PropertyFromName("m_EnableGamplayInputEvent"));
                     EditorGUI.indentLevel--;
                 }
 #if FIRST_PERSON_CONTROLLER || THIRD_PERSON_CONTROLLER
@@ -74,7 +79,6 @@ namespace Opsive.Shared.Editor.Inspectors.Input
 
             return baseCallback;
 #else
-
             if (EditorGUI.EndChangeCheck()) {
                 Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 serializedObject.ApplyModifiedProperties();
@@ -83,8 +87,10 @@ namespace Opsive.Shared.Editor.Inspectors.Input
         }
 
         /// <summary>
-        /// Draws all of the fields related to input.
+        ///     Draws all of the fields related to input.
         /// </summary>
-        protected virtual void DrawInputFields() { }
+        protected virtual void DrawInputFields()
+        {
+        }
     }
 }

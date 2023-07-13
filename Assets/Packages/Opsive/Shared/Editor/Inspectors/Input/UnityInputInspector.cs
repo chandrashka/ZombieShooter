@@ -4,19 +4,19 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Input;
+using UnityEditor;
+
 namespace Opsive.Shared.Editor.Inspectors.Input
 {
-    using Opsive.Shared.Input;
-    using UnityEditor;
-
     /// <summary>
-    /// Shows a custom inspector for the UnityInput.
+    ///     Shows a custom inspector for the UnityInput.
     /// </summary>
     [CustomEditor(typeof(UnityInput))]
     public class UnityInputInspector : PlayerInputInspector
     {
         /// <summary>
-        /// Draws all of the fields related to input.
+        ///     Draws all of the fields related to input.
         /// </summary>
         protected override void DrawInputFields()
         {
@@ -24,9 +24,8 @@ namespace Opsive.Shared.Editor.Inspectors.Input
             EditorGUILayout.PropertyField(PropertyFromName("m_DisableCursor"));
             var disableCursorProperty = PropertyFromName("m_EnableCursorWithEscape");
             EditorGUILayout.PropertyField(disableCursorProperty);
-            if (disableCursorProperty.boolValue) {
+            if (disableCursorProperty.boolValue)
                 EditorGUILayout.PropertyField(PropertyFromName("m_PreventLookVectorChanges"));
-            }
             EditorGUILayout.PropertyField(PropertyFromName("m_JoystickUpThreshold"));
         }
     }

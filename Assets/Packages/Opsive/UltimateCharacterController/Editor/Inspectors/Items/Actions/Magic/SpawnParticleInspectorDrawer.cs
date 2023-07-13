@@ -4,22 +4,22 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions;
+using UnityEditor;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items.Actions.Magic
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using Opsive.UltimateCharacterController.Items.Actions.Magic.CastActions;
-    using UnityEngine;
-    using UnityEditor;
-
     /// <summary>
-    /// Draws an inspector for the SpawnParticle CastAction.
+    ///     Draws an inspector for the SpawnParticle CastAction.
     /// </summary>
     [InspectorDrawer(typeof(SpawnParticle))]
     public class SpawnParticleInspectorDrawer : InspectorDrawer
     {
         /// <summary>
-        /// Called when the object should be drawn to the inspector.
+        ///     Called when the object should be drawn to the inspector.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
@@ -33,15 +33,20 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Items.Actions.Mag
             InspectorUtility.DrawField(target, "m_ClearParentOnStop");
             InspectorUtility.DrawField(target, "m_SetRendererLengthScale");
             var spawnParticle = target as SpawnParticle;
-            if (spawnParticle.SetRendererLengthScale) {
+            if (spawnParticle.SetRendererLengthScale)
+            {
                 EditorGUI.indentLevel++;
                 InspectorUtility.DrawField(target, "m_AdditionalLength");
                 EditorGUI.indentLevel--;
             }
-            spawnParticle.ParticleLayer = EditorGUILayout.LayerField(new GUIContent("Particle Layer", "The layer that the particle should occupy."), spawnParticle.ParticleLayer);
+
+            spawnParticle.ParticleLayer = EditorGUILayout.LayerField(
+                new GUIContent("Particle Layer", "The layer that the particle should occupy."),
+                spawnParticle.ParticleLayer);
             InspectorUtility.DrawField(target, "m_FadeInDuration");
             InspectorUtility.DrawField(target, "m_FadeOutDuration");
-            if (spawnParticle.FadeInDuration > 0 || spawnParticle.FadeOutDuration > 0) {
+            if (spawnParticle.FadeInDuration > 0 || spawnParticle.FadeOutDuration > 0)
+            {
                 EditorGUI.indentLevel++;
                 InspectorUtility.DrawField(target, "m_MaterialColorName");
                 InspectorUtility.DrawField(target, "m_FadeStep");

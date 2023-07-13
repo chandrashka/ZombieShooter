@@ -1,8 +1,7 @@
+using UnityEngine;
 
 namespace Opsive.UltimateCharacterController.Demo.UnityStandardAssets.Vehicles.Car
 {
-    using UnityEngine;
-
     public class BrakeLight : MonoBehaviour
     {
         private CarController m_Car;

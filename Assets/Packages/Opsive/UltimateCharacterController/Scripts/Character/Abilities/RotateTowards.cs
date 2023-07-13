@@ -4,21 +4,33 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Utility;
+using Opsive.UltimateCharacterController.Utility;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Character.Abilities
 {
-    using Opsive.UltimateCharacterController.Utility;
-    using UnityEngine;
-
     /// <summary>
-    /// Rotates the character towards the target. If the character is using root motion then the speed is determined by the Animator.
-    /// If the character is not using root motion then the speed is determined by the Ultimate Character Locomotion's Motor Rotation Speed field.
+    ///     Rotates the character towards the target. If the character is using root motion then the speed is determined by the
+    ///     Animator.
+    ///     If the character is not using root motion then the speed is determined by the Ultimate Character Locomotion's Motor
+    ///     Rotation Speed field.
     /// </summary>
     public class RotateTowards : Ability
     {
-        [Tooltip("The object that the character should rotate towards.")]
-        [SerializeField] protected Transform m_Target;
+        [Tooltip("The object that the character should rotate towards.")] [SerializeField]
+        protected Transform m_Target;
 
-        [Shared.Utility.NonSerialized] public Transform Target { get { return m_Target; } set { m_Target = value; if (IsActive && m_Target == null) StopAbility(); } }
+        [NonSerialized]
+        public Transform Target
+        {
+            get => m_Target;
+            set
+            {
+                m_Target = value;
+                if (IsActive && m_Target == null) StopAbility();
+            }
+        }
 
         public override bool CanStartAbility()
         {
@@ -26,7 +38,7 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
         }
 
         /// <summary>
-        /// Update the controller's rotation values.
+        ///     Update the controller's rotation values.
         /// </summary>
         public override void UpdateRotation()
         {
@@ -37,7 +49,8 @@ namespace Opsive.UltimateCharacterController.Character.Abilities
             localLookDirection.y = 0;
             lookDirection = MathUtility.TransformDirection(localLookDirection, rotation);
             var targetRotation = Quaternion.LookRotation(lookDirection, rotation * Vector3.up);
-            m_CharacterLocomotion.DeltaRotation = (Quaternion.Inverse(m_Transform.rotation) * targetRotation).eulerAngles;
+            m_CharacterLocomotion.DeltaRotation =
+                (Quaternion.Inverse(m_Transform.rotation) * targetRotation).eulerAngles;
         }
     }
 }

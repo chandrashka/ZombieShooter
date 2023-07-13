@@ -4,35 +4,38 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using System.Collections.Generic;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using UnityEditor;
+using UnityEngine;
+using EditorUtility = Opsive.Shared.Editor.Utility.EditorUtility;
+
 namespace Opsive.Shared.Editor.Inspectors
 {
-    using System.Collections.Generic;
-    using UnityEditor;
-    using UnityEngine;
-
     /// <summary>
-    /// Base class for all IMGUI inspectors.
+    ///     Base class for all IMGUI inspectors.
     /// </summary>
     public abstract class InspectorBase : UnityEditor.Editor
     {
-        private Dictionary<string, SerializedProperty> m_PropertyStringMap = new Dictionary<string, SerializedProperty>();
+        private readonly Dictionary<string, SerializedProperty> m_PropertyStringMap = new();
 
         /// <summary>
-        /// Draws the custom inspector.
+        ///     Draws the custom inspector.
         /// </summary>
         public override void OnInspectorGUI()
         {
             // Show the script field.
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(PropertyFromName("m_Script"));
-            if (EditorGUI.EndChangeCheck()) {
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Change Value");
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.RecordUndoDirtyObject(target, "Change Value");
                 serializedObject.ApplyModifiedProperties();
             }
         }
 
         /// <summary>
-        /// Uses a dictionary to lookup a property from a string key.
+        ///     Uses a dictionary to lookup a property from a string key.
         /// </summary>
         /// <param name="propertyName">The name of the property.</param>
         /// <returns>The found SerializedProperty.</returns>
@@ -42,7 +45,7 @@ namespace Opsive.Shared.Editor.Inspectors
         }
 
         /// <summary>
-        /// Uses a dictionary to lookup a property from a string key.
+        ///     Uses a dictionary to lookup a property from a string key.
         /// </summary>
         /// <param name="propertySerializedObject">The object which contains the property.</param>
         /// <param name="propertyName">The name of the property.</param>
@@ -50,21 +53,21 @@ namespace Opsive.Shared.Editor.Inspectors
         public SerializedProperty PropertyFromName(SerializedObject propertySerializedObject, string propertyName)
         {
             SerializedProperty property = null;
-            if (m_PropertyStringMap.TryGetValue(propertyName, out property)) {
-                return property;
-            }
+            if (m_PropertyStringMap.TryGetValue(propertyName, out property)) return property;
 
             property = propertySerializedObject.FindProperty(propertyName);
-            if (property == null) {
+            if (property == null)
+            {
                 Debug.LogError("Unable to find property " + propertyName);
                 return null;
             }
+
             m_PropertyStringMap.Add(propertyName, property);
             return property;
         }
 
         /// <summary>
-        /// Shortcut for drawing a foldout on the current target.
+        ///     Shortcut for drawing a foldout on the current target.
         /// </summary>
         /// <param name="foldoutName">The name of the foldout.</param>
         /// <returns>True if the foldout is expanded.</returns>
@@ -74,7 +77,7 @@ namespace Opsive.Shared.Editor.Inspectors
         }
 
         /// <summary>
-        /// Shortcut for drawing a foldout on the current target.
+        ///     Shortcut for drawing a foldout on the current target.
         /// </summary>
         /// <param name="foldoutName">The name of the foldout.</param>
         /// <param name="defaultExpanded">The default value if the foldout is expanded.</param>
@@ -85,7 +88,7 @@ namespace Opsive.Shared.Editor.Inspectors
         }
 
         /// <summary>
-        /// Shortcut for drawing a foldout on the current target.
+        ///     Shortcut for drawing a foldout on the current target.
         /// </summary>
         /// <param name="foldoutName">The name of the foldout.</param>
         /// <param name="identifyingString">A string that can be used to help identify the foldout key.</param>
@@ -96,7 +99,7 @@ namespace Opsive.Shared.Editor.Inspectors
         }
 
         /// <summary>
-        /// Shortcut for drawing a foldout on the current target.
+        ///     Shortcut for drawing a foldout on the current target.
         /// </summary>
         /// <param name="foldoutName">The name of the foldout.</param>
         /// <param name="defaultExpanded">The default value if the foldout is expanded.</param>
@@ -104,7 +107,7 @@ namespace Opsive.Shared.Editor.Inspectors
         /// <returns>True if the foldout is expanded.</returns>
         protected bool Foldout(string foldoutName, bool defaultExpanded, string identifyingString)
         {
-            return Utility.InspectorUtility.Foldout(target, new GUIContent(foldoutName), defaultExpanded, identifyingString);
+            return InspectorUtility.Foldout(target, new GUIContent(foldoutName), defaultExpanded, identifyingString);
         }
     }
 }

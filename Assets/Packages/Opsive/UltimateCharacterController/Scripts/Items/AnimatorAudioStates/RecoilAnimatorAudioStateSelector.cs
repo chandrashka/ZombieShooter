@@ -4,27 +4,29 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Game;
+using Opsive.UltimateCharacterController.Objects.ItemAssist;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.AnimatorAudioStates
 {
-    using Opsive.Shared.Game;
-    using Opsive.UltimateCharacterController.Objects.ItemAssist;
-    using UnityEngine;
-
     /// <summary>
-    /// The RecoilAnimatorAudioState will return a Item Substate Index parameter based on the object's recoil state.
-    /// If the character hit a blocking object then the block recoil state index value will be added to the current index value.
+    ///     The RecoilAnimatorAudioState will return a Item Substate Index parameter based on the object's recoil state.
+    ///     If the character hit a blocking object then the block recoil state index value will be added to the current index
+    ///     value.
     /// </summary>
     public abstract class RecoilAnimatorAudioStateSelector : AnimatorAudioStateSelector
     {
         [Tooltip("The base index when the melee weapon is blocked. The state's index will be added to this value.")]
-        [SerializeField] protected int m_BlockedRecoilItemSubstateIndex;
+        [SerializeField]
+        protected int m_BlockedRecoilItemSubstateIndex;
 
         protected int m_HitColliderCount;
         protected Collider[] m_HitColliders;
         protected int m_UseStateIndex;
 
         /// <summary>
-        /// Moves to the next state.
+        ///     Moves to the next state.
         /// </summary>
         /// <param name="hitColliderCount">The number of colliders that were hit.</param>
         /// <param name="hitColliders">The colliders that were hit.</param>
@@ -38,34 +40,35 @@ namespace Opsive.UltimateCharacterController.Items.AnimatorAudioStates
         }
 
         /// <summary>
-        /// Returns an additional value that should be added to the Item Substate Index.
+        ///     Returns an additional value that should be added to the Item Substate Index.
         /// </summary>
         /// <returns>An additional value that should be added to the Item Substate Index.</returns>
         public override int GetAdditionalItemSubstateIndex()
         {
-            if (IsBlocked()) {
-                return m_BlockedRecoilItemSubstateIndex;
-            }
+            if (IsBlocked()) return m_BlockedRecoilItemSubstateIndex;
             return base.GetAdditionalItemSubstateIndex();
         }
 
         /// <summary>
-        /// Is the item currently being blocked by an object that should cause recoil?
+        ///     Is the item currently being blocked by an object that should cause recoil?
         /// </summary>
         /// <returns>True if the item is currently being blocked by an object that should cause recoil.</returns>
         private bool IsBlocked()
         {
-            for (int i = 0; i < m_HitColliderCount; ++i) {
+            for (var i = 0; i < m_HitColliderCount; ++i)
+            {
                 ShieldCollider shieldCollider;
                 var hitGameObject = m_HitColliders[i].gameObject;
-                if ((shieldCollider = hitGameObject.GetCachedComponent<ShieldCollider>()) != null) {
-                    if (shieldCollider.Shield.DurabilityValue > 0) {
-                        return true;
-                    }
-                } else if (hitGameObject.GetCachedComponent<RecoilObject>() != null) {
+                if ((shieldCollider = hitGameObject.GetCachedComponent<ShieldCollider>()) != null)
+                {
+                    if (shieldCollider.Shield.DurabilityValue > 0) return true;
+                }
+                else if (hitGameObject.GetCachedComponent<RecoilObject>() != null)
+                {
                     return true;
                 }
             }
+
             return false;
         }
     }

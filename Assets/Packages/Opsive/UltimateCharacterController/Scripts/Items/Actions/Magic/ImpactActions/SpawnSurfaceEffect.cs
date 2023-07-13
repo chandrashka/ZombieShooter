@@ -4,22 +4,22 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Game;
+using Opsive.UltimateCharacterController.Character;
+using Opsive.UltimateCharacterController.SurfaceSystem;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
 {
-    using Opsive.Shared.Game;
-    using Opsive.UltimateCharacterController.Character;
-    using Opsive.UltimateCharacterController.SurfaceSystem;
-    using UnityEngine;
-
     /// <summary>
-    /// Spawns a SurfaceEffect upon impact. The SurfaceImpact object is specified on the MagicItem.
+    ///     Spawns a SurfaceEffect upon impact. The SurfaceImpact object is specified on the MagicItem.
     /// </summary>
     public class SpawnSurfaceEffect : ImpactAction
     {
         private UltimateCharacterLocomotion m_CharacterLocomotion;
 
         /// <summary>
-        /// Initializes the ImpactAction.
+        ///     Initializes the ImpactAction.
         /// </summary>
         /// <param name="character">The character GameObject.</param>
         /// <param name="magicItem">The MagicItem that the ImpactAction belongs to.</param>
@@ -32,7 +32,7 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
         }
 
         /// <summary>
-        /// Perform the impact action.
+        ///     Perform the impact action.
         /// </summary>
         /// <param name="castID">The ID of the cast.</param>
         /// <param name="source">The object that caused the cast.</param>
@@ -40,7 +40,8 @@ namespace Opsive.UltimateCharacterController.Items.Actions.Magic.ImpactActions
         /// <param name="hit">The raycast that caused the impact.</param>
         protected override void ImpactInternal(uint castID, GameObject source, GameObject target, RaycastHit hit)
         {
-            SurfaceManager.SpawnEffect(hit, m_MagicItem.SurfaceImpact, m_CharacterLocomotion.Up, m_CharacterLocomotion.TimeScale, m_CharacterLocomotion.gameObject);
+            SurfaceManager.SpawnEffect(hit, m_MagicItem.SurfaceImpact, m_CharacterLocomotion.Up,
+                m_CharacterLocomotion.TimeScale, m_CharacterLocomotion.gameObject);
         }
     }
 }

@@ -4,26 +4,27 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.UltimateCharacterController.Character;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Items.AnimatorAudioStates
 {
-    using Opsive.UltimateCharacterController.Character;
-    using UnityEngine;
-
     /// <summary>
-    /// The Random state will move from one state to another in a random order.
+    ///     The Random state will move from one state to another in a random order.
     /// </summary>
     public class Random : AnimatorAudioStateSelector
     {
         private int m_CurrentIndex = -1;
 
         /// <summary>
-        /// Initializes the selector.
+        ///     Initializes the selector.
         /// </summary>
         /// <param name="gameObject">The GameObject that the state belongs to.</param>
         /// <param name="characterLocomotion">The character that the state bleongs to.</param>
         /// <param name="item">The item that the state belongs to.</param>
         /// <param name="states">The states which are being selected.</param>
-        public override void Initialize(GameObject gameObject, UltimateCharacterLocomotion characterLocomotion, Item item, AnimatorAudioStateSet.AnimatorAudioState[] states)
+        public override void Initialize(GameObject gameObject, UltimateCharacterLocomotion characterLocomotion,
+            Item item, AnimatorAudioStateSet.AnimatorAudioState[] states)
         {
             base.Initialize(gameObject, characterLocomotion, item, states);
 
@@ -32,7 +33,7 @@ namespace Opsive.UltimateCharacterController.Items.AnimatorAudioStates
         }
 
         /// <summary>
-        /// Returns the current state index. -1 indicates this index is not set by the class.
+        ///     Returns the current state index. -1 indicates this index is not set by the class.
         /// </summary>
         /// <returns>The current state index.</returns>
         public override int GetStateIndex()
@@ -41,7 +42,7 @@ namespace Opsive.UltimateCharacterController.Items.AnimatorAudioStates
         }
 
         /// <summary>
-        /// Moves to the next state.
+        ///     Moves to the next state.
         /// </summary>
         /// <returns>Was the state changed successfully?</returns>
         public override bool NextState()
@@ -49,17 +50,15 @@ namespace Opsive.UltimateCharacterController.Items.AnimatorAudioStates
             var lastIndex = m_CurrentIndex;
             var count = 0;
             var size = m_States.Length;
-            if (size == 0) {
-                return false;
-            }
-            do {
+            if (size == 0) return false;
+            do
+            {
                 m_CurrentIndex = UnityEngine.Random.Range(0, size);
                 ++count;
             } while ((!IsStateValid(m_CurrentIndex) || !m_States[m_CurrentIndex].Enabled) && count <= size);
+
             var stateChange = count <= size;
-            if (stateChange) {
-                ChangeStates(lastIndex, m_CurrentIndex);
-            }
+            if (stateChange) ChangeStates(lastIndex, m_CurrentIndex);
             return stateChange;
         }
     }

@@ -4,17 +4,19 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.Shared.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Audio;
+using Opsive.UltimateCharacterController.Objects;
+using UnityEditor;
+using UnityEditorInternal;
+using UnityEngine;
+using EditorUtility = Opsive.Shared.Editor.Utility.EditorUtility;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.Objects
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Audio;
-    using Opsive.UltimateCharacterController.Objects;
-    using UnityEditor;
-    using UnityEditorInternal;
-    using UnityEngine;
-
     /// <summary>
-    /// Custom inspector for the Explosion component.
+    ///     Custom inspector for the Explosion component.
     /// </summary>
     [CustomEditor(typeof(Explosion))]
     public class ExplosionInspector : InspectorBase
@@ -23,7 +25,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Objects
         private ReorderableList m_ReorderableExplosionAudioClipsList;
 
         /// <summary>
-        /// The inspector has been enabled.
+        ///     The inspector has been enabled.
         /// </summary>
         public void OnEnable()
         {
@@ -31,7 +33,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Objects
         }
 
         /// <summary>
-        /// Draws the custom inspector.
+        ///     Draws the custom inspector.
         /// </summary>
         public override void OnInspectorGUI()
         {
@@ -48,30 +50,36 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Objects
             EditorGUILayout.PropertyField(PropertyFromName("m_LineOfSight"));
             EditorGUILayout.PropertyField(PropertyFromName("m_Lifespan"));
             EditorGUILayout.PropertyField(PropertyFromName("m_MaxCollisionCount"));
-            if (Foldout("Audio")) {
+            if (Foldout("Audio"))
+            {
                 EditorGUI.indentLevel++;
-                m_ReorderableExplosionAudioClipsList = AudioClipSetInspector.DrawAudioClipSet(m_Explosion.ExplosionAudioClipSet, m_ReorderableExplosionAudioClipsList, OnExplosionAudioClipDraw, OnExplosionAudioClipListAdd, OnExplosionAudioClipListRemove);
+                m_ReorderableExplosionAudioClipsList = AudioClipSetInspector.DrawAudioClipSet(
+                    m_Explosion.ExplosionAudioClipSet, m_ReorderableExplosionAudioClipsList, OnExplosionAudioClipDraw,
+                    OnExplosionAudioClipListAdd, OnExplosionAudioClipListRemove);
                 EditorGUI.indentLevel--;
             }
-            Shared.Editor.Inspectors.Utility.InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnImpactEvent"));
 
-            if (EditorGUI.EndChangeCheck()) {
-                Shared.Editor.Utility.EditorUtility.RecordUndoDirtyObject(target, "Value Change");
+            InspectorUtility.UnityEventPropertyField(PropertyFromName("m_OnImpactEvent"));
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                EditorUtility.RecordUndoDirtyObject(target, "Value Change");
                 serializedObject.ApplyModifiedProperties();
-                Shared.Editor.Utility.EditorUtility.SetDirty(target);
+                EditorUtility.SetDirty(target);
             }
         }
 
         /// <summary>
-        /// Draws the AudioClip element.
+        ///     Draws the AudioClip element.
         /// </summary>
         private void OnExplosionAudioClipDraw(Rect rect, int index, bool isActive, bool isFocused)
         {
-            AudioClipSetInspector.OnAudioClipDraw(m_ReorderableExplosionAudioClipsList, rect, index, m_Explosion.ExplosionAudioClipSet, null);
+            AudioClipSetInspector.OnAudioClipDraw(m_ReorderableExplosionAudioClipsList, rect, index,
+                m_Explosion.ExplosionAudioClipSet, null);
         }
 
         /// <summary>
-        /// Adds a new AudioClip element to the AudioClipSet.
+        ///     Adds a new AudioClip element to the AudioClipSet.
         /// </summary>
         private void OnExplosionAudioClipListAdd(ReorderableList list)
         {
@@ -79,7 +87,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.Objects
         }
 
         /// <summary>
-        /// Remove the AudioClip element at the list index.
+        ///     Remove the AudioClip element at the list index.
         /// </summary>
         private void OnExplosionAudioClipListRemove(ReorderableList list)
         {

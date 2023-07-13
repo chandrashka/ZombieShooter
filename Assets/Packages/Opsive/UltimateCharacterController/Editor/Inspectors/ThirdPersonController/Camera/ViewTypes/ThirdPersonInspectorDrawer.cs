@@ -4,23 +4,23 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Editor.Inspectors;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Camera;
+using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
+using Opsive.UltimateCharacterController.ThirdPersonController.Camera.ViewTypes;
+using UnityEditor;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonController.Camera.ViewTypes
 {
-    using Opsive.Shared.Editor.Inspectors;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Camera;
-    using Opsive.UltimateCharacterController.Editor.Inspectors.Utility;
-    using Opsive.UltimateCharacterController.ThirdPersonController.Camera.ViewTypes;
-    using UnityEditor;
-    using UnityEngine;
-
     /// <summary>
-    /// Draws a custom inspector for the Third Person View Type.
+    ///     Draws a custom inspector for the Third Person View Type.
     /// </summary>
     [InspectorDrawer(typeof(ThirdPerson))]
     public class ThirdPersonInspectorDrawer : ViewTypeInspectorDrawer
     {
         /// <summary>
-        /// Called when the object should be drawn to the inspector.
+        ///     Called when the object should be drawn to the inspector.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         /// <param name="parent">The Unity Object that the object belongs to.</param>
@@ -38,21 +38,24 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
             InspectorUtility.DrawFieldSlider(target, "m_FieldOfViewDamping", 0, 5);
             InspectorUtility.DrawField(target, "m_CollisionRadius");
             InspectorUtility.DrawField(target, "m_CollisionAnchorOffset");
-            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Primary Spring")) {
+            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Primary Spring"))
+            {
                 EditorGUI.indentLevel++;
                 InspectorUtility.DrawSpring(target, "Position Spring", "m_PositionSpring");
                 InspectorUtility.DrawSpring(target, "Rotation Spring", "m_RotationSpring");
                 EditorGUI.indentLevel--;
             }
 
-            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Secondary Spring")) {
+            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Secondary Spring"))
+            {
                 EditorGUI.indentLevel++;
                 InspectorUtility.DrawSpring(target, "Position Spring", "m_SecondaryPositionSpring");
                 InspectorUtility.DrawSpring(target, "Rotation Spring", "m_SecondaryRotationSpring");
                 EditorGUI.indentLevel--;
             }
 
-            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Step Zoom")) {
+            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Step Zoom"))
+            {
                 EditorGUI.indentLevel++;
                 InspectorUtility.DrawField(target, "m_StepZoomInputName");
                 InspectorUtility.DrawField(target, "m_StepZoomSensitivity");
@@ -61,7 +64,8 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
                 EditorGUI.indentLevel--;
             }
 
-            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Limits")) {
+            if (Shared.Editor.Inspectors.Utility.InspectorUtility.Foldout(target, "Limits"))
+            {
                 EditorGUI.indentLevel++;
                 OnDrawLimits(target);
                 EditorGUI.indentLevel--;
@@ -69,7 +73,7 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
         }
 
         /// <summary>
-        /// Callback which draws the limits for the view type.
+        ///     Callback which draws the limits for the view type.
         /// </summary>
         /// <param name="target">The object that is being drawn.</param>
         protected virtual void OnDrawLimits(object target)
@@ -78,25 +82,20 @@ namespace Opsive.UltimateCharacterController.Editor.Inspectors.ThirdPersonContro
             var maxLimit = InspectorUtility.GetFieldValue<float>(target, "m_MaxAlignToGroundRollLimit");
             var minValue = Mathf.Round(minLimit * 100f) / 100f;
             var maxValue = Mathf.Round(maxLimit * 100f) / 100f;
-            InspectorUtility.MinMaxSlider(ref minValue, ref maxValue, -180, 180, new GUIContent("Align To Ground Roll Limit", "The min and max limit of the Align to Ground Roll angle (in degrees)."));
-            if (minValue != minLimit) {
-                InspectorUtility.SetFieldValue(target, "m_MinAlignToGroundRollLimit", minValue);
-            }
-            if (minValue != maxLimit) {
-                InspectorUtility.SetFieldValue(target, "m_MaxAlignToGroundRollLimit", maxValue);
-            }
+            InspectorUtility.MinMaxSlider(ref minValue, ref maxValue, -180, 180,
+                new GUIContent("Align To Ground Roll Limit",
+                    "The min and max limit of the Align to Ground Roll angle (in degrees)."));
+            if (minValue != minLimit) InspectorUtility.SetFieldValue(target, "m_MinAlignToGroundRollLimit", minValue);
+            if (minValue != maxLimit) InspectorUtility.SetFieldValue(target, "m_MaxAlignToGroundRollLimit", maxValue);
 
             minLimit = InspectorUtility.GetFieldValue<float>(target, "m_MinPitchLimit");
             maxLimit = InspectorUtility.GetFieldValue<float>(target, "m_MaxPitchLimit");
             minValue = Mathf.Round(minLimit * 100f) / 100f;
             maxValue = Mathf.Round(maxLimit * 100f) / 100f;
-            InspectorUtility.MinMaxSlider(ref minValue, ref maxValue, -90, 90, new GUIContent("Pitch Limit", "The min and max limit of the pitch angle (in degrees)."));
-            if (minValue != minLimit) {
-                InspectorUtility.SetFieldValue(target, "m_MinPitchLimit", minValue);
-            }
-            if (minValue != maxLimit) {
-                InspectorUtility.SetFieldValue(target, "m_MaxPitchLimit", maxValue);
-            }
+            InspectorUtility.MinMaxSlider(ref minValue, ref maxValue, -90, 90,
+                new GUIContent("Pitch Limit", "The min and max limit of the pitch angle (in degrees)."));
+            if (minValue != minLimit) InspectorUtility.SetFieldValue(target, "m_MinPitchLimit", minValue);
+            if (minValue != maxLimit) InspectorUtility.SetFieldValue(target, "m_MaxPitchLimit", maxValue);
         }
     }
 }

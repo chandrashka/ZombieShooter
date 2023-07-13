@@ -4,24 +4,30 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using Opsive.Shared.Audio;
+using Opsive.Shared.Game;
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.Character.Effects
 {
-    using Opsive.Shared.Audio;
-    using Opsive.Shared.Game;
-    using UnityEngine;
-
     /// <summary>
-    /// Plays an AudioClip when the effect starts.
+    ///     Plays an AudioClip when the effect starts.
     /// </summary>
     public class PlayAudioClip : Effect
     {
         [Tooltip("A set of AudioClips that can be played when the effect is started.")]
-        [HideInInspector] [SerializeField] protected AudioClipSet m_AudioClipSet = new AudioClipSet();
+        [HideInInspector]
+        [SerializeField]
+        protected AudioClipSet m_AudioClipSet = new();
 
-        public AudioClipSet AudioClipSet { get { return m_AudioClipSet; } set { m_AudioClipSet = value; } }
+        public AudioClipSet AudioClipSet
+        {
+            get => m_AudioClipSet;
+            set => m_AudioClipSet = value;
+        }
 
         /// <summary>
-        /// Can the effect be started?
+        ///     Can the effect be started?
         /// </summary>
         /// <returns>True if the effect can be started.</returns>
         public override bool CanStartEffect()
@@ -30,16 +36,14 @@ namespace Opsive.UltimateCharacterController.Character.Effects
         }
 
         /// <summary>
-        /// The effect has been started.
+        ///     The effect has been started.
         /// </summary>
         protected override void EffectStarted()
         {
             base.EffectStarted();
 
             var audioSource = m_AudioClipSet.PlayAudioClip(m_GameObject).AudioSource;
-            if (audioSource != null) {
-                SchedulerBase.ScheduleFixed(audioSource.clip.length, StopEffect);
-            }
+            if (audioSource != null) SchedulerBase.ScheduleFixed(audioSource.clip.length, StopEffect);
         }
     }
 }

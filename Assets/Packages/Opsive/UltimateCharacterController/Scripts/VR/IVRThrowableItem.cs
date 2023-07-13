@@ -4,28 +4,28 @@
 /// https://www.opsive.com
 /// ---------------------------------------------
 
+using UnityEngine;
+
 namespace Opsive.UltimateCharacterController.VR
 {
-    using UnityEngine;
-
     /// <summary>
-    /// Allows the ThrowableItem to communicate with a VRThrowableItem.
+    ///     Allows the ThrowableItem to communicate with a VRThrowableItem.
     /// </summary>
     public interface IVRThrowableItem
     {
         /// <summary>
-        /// The character has equipped the item.
+        ///     The character has equipped the item.
         /// </summary>
         void Equip();
 
         /// <summary>
-        /// Returns the velocity that the item should be thrown at.
+        ///     Returns the velocity that the item should be thrown at.
         /// </summary>
         /// <returns>The velocity that the item should be thrown at.</returns>
         Vector3 GetVelocity();
 
         /// <summary>
-        /// The character has unequipped the item.
+        ///     The character has unequipped the item.
         /// </summary>
         void Unequip();
     }
