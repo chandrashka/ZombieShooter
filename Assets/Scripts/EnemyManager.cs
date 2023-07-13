@@ -60,8 +60,9 @@ public class EnemyManager : MonoBehaviour
         var enemyRagdoll = enemy.GetComponent<RagdollController>();
         enemyRagdoll.MakePhysical();
         
-        enemy.GetComponent<EnemyAI>().isKilled = true;
-        
+        var enemyAI = enemy.GetComponent<EnemyAI>();
+        enemyAI.Kill();
+
         Destroy(enemy, 10f);
     }
 

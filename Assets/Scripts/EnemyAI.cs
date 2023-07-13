@@ -13,7 +13,7 @@ public class EnemyAI : MonoBehaviour
     private float m_TimeToAttack;
     private const float TimeBetweenAttacks = 1f;
     
-    public bool isKilled;
+    private bool m_IsKilled;
 
     public GameObject player;
     private LayerMask m_Masks;
@@ -27,7 +27,7 @@ public class EnemyAI : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (isKilled) return;
+        if (m_IsKilled) return;
         if (Physics.Raycast(transform.position, transform.forward, 1f,
                 m_Masks))
         {
@@ -61,5 +61,11 @@ public class EnemyAI : MonoBehaviour
     {
         m_NavMeshAgent.isStopped = false;
         m_NavMeshAgent.SetDestination(player.transform.position);
+    }
+
+    public void Kill()
+    {
+        m_NavMeshAgent.isStopped = true;
+        m_IsKilled = true;
     }
 }
